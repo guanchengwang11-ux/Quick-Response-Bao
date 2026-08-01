@@ -1,5 +1,5 @@
 param(
-    [string]$Version = '1.0.0-rc.3',
+    [string]$Version = '1.0.0',
     [switch]$SkipInstaller
 )
 
@@ -57,4 +57,4 @@ $lines = $releaseFiles | ForEach-Object {
     "$($hash.Hash.ToUpperInvariant())  $([IO.Path]::GetFileName($_))"
 }
 Set-Content -LiteralPath $checksums -Value $lines -Encoding ascii
-Write-Host "Release candidate files created in $artifacts"
+Write-Host "Release files created in $artifacts"

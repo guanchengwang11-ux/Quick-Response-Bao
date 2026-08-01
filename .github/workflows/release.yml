@@ -15,28 +15,46 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 8.0.x
-      - run: dotnet restore QuickResponseBao.sln
-      - run: dotnet test QuickResponseBao.sln --configuration Release --no-restore
-      - name: Publish x64 portable application
-        run: dotnet publish src/QuickResponseBao.App/QuickResponseBao.App.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -o artifacts/publish
-      - name: Publish updater
-        run: dotnet publish src/QuickResponseBao.Updater/QuickResponseBao.Updater.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -o artifacts/publish
-      - name: Create portable archive
-        shell: pwsh
-        run: Compress-Archive -Path artifacts/publish/* -DestinationPath artifacts/Quick-Response-Bao-Portable-1.0.0-x64.zip
       - name: Install Inno Setup
         run: choco install innosetup --no-progress -y
-      - name: Build installer
-        run: '& "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" installer\QuickResponseBao.iss'
+      - name: Build, test and package stable release
         shell: pwsh
-      - name: Calculate checksums
+        run: |
+          $env:ISCC_PATH = 'C:\Program Files (x86)\Inno Setup 6\ISCC.exe'
+          ./scripts/build-release-candidate.ps1 -Version 1.0.0
+      - name: Run clean-tree release preflight
         shell: pwsh
-        run: Get-FileHash artifacts/Quick-Response-Bao-Setup-1.0.0-x64.exe, artifacts/Quick-Response-Bao-Portable-1.0.0-x64.zip -Algorithm SHA256 | ForEach-Object { "$($_.Hash)  $([IO.Path]::GetFileName($_.Path))" } | Set-Content artifacts/checksums.txt
-      - uses: softprops/action-gh-release@v2
+        run: ./scripts/preflight-release.ps1 -Version 1.0.0 -SkipBuildAndTests
+      - name: Verify locally built installer and portable package
+        shell: pwsh
+        run: ./scripts/verify-rc-packages.ps1 -Version 1.0.0
+      - name: Create stable GitHub Release
+        uses: softprops/action-gh-release@v2
         with:
-          name: Quick Response Bao ${{ github.ref_name }}
-          generate_release_notes: true
+          name: Quick Response Bao v1.0.0
+          body_path: docs/release-notes-1.0.0.md
+          draft: false
+          prerelease: false
+          make_latest: true
+          fail_on_unmatched_files: true
           files: |
             artifacts/Quick-Response-Bao-Setup-1.0.0-x64.exe
             artifacts/Quick-Response-Bao-Portable-1.0.0-x64.zip
             artifacts/checksums.txt
+      - name: Download assets back from GitHub Release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          New-Item -ItemType Directory -Force -Path artifacts/release-download | Out-Null
+          gh release download v1.0.0 --dir artifacts/release-download --pattern 'Quick-Response-Bao-Setup-1.0.0-x64.exe' --pattern 'Quick-Response-Bao-Portable-1.0.0-x64.zip' --pattern 'checksums.txt'
+      - name: Verify downloaded checksums, installation, startup and user-data retention
+        shell: pwsh
+        run: |
+          $download = Join-Path $PWD 'artifacts/release-download'
+          $manifest = Get-Content (Join-Path $download 'checksums.txt') -Raw
+          foreach ($name in @('Quick-Response-Bao-Setup-1.0.0-x64.exe', 'Quick-Response-Bao-Portable-1.0.0-x64.zip')) {
+            $hash = (Get-FileHash (Join-Path $download $name) -Algorithm SHA256).Hash
+            if ($manifest -notmatch "(?im)^$hash\s+$([regex]::Escape($name))\s*$") { throw "Downloaded SHA-256 mismatch: $name" }
+          }
+          ./scripts/verify-rc-packages.ps1 -Version 1.0.0 -PackageDirectory $download

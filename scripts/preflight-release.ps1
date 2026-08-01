@@ -1,5 +1,5 @@
 param(
-    [string]$Version = '1.0.0-rc.3',
+    [string]$Version = '1.0.0',
     [switch]$SkipBuildAndTests,
     [switch]$AllowMissingInstaller
 )
@@ -35,13 +35,13 @@ try {
     }
 
     [xml]$props = Get-Content -LiteralPath 'Directory.Build.props' -Raw -Encoding utf8
-    if ($props.Project.PropertyGroup.Version -ne $Version) { throw 'Directory.Build.props version differs from RC version.' }
-    if ((Get-Content 'installer\QuickResponseBao.iss' -Raw) -notmatch ('#define MyAppVersion "' + [regex]::Escape($Version) + '"')) { throw 'Installer version differs from RC version.' }
-    if ((Get-Content "docs\release-notes-$Version.md" -Raw) -notmatch [regex]::Escape($Version)) { throw 'Release notes version differs from RC version.' }
+    if ($props.Project.PropertyGroup.Version -ne $Version) { throw 'Directory.Build.props version differs from the release version.' }
+    if ((Get-Content 'installer\QuickResponseBao.iss' -Raw) -notmatch ('#define MyAppVersion "' + [regex]::Escape($Version) + '"')) { throw 'Installer version differs from the release version.' }
+    if ((Get-Content "docs\release-notes-$Version.md" -Raw) -notmatch [regex]::Escape($Version)) { throw 'Release notes version differs from the release version.' }
     $mainWindowCode = Get-Content 'src\QuickResponseBao.App\MainWindow.xaml.cs' -Raw
     if ($mainWindowCode -notmatch 'AboutVersionValue\.Text.*ApplicationVersion\.Current') { throw 'About page is not bound to the assembly informational version.' }
     $exe = Join-Path $artifacts 'rc-publish\QuickResponseBao.exe'
-    if (-not (Test-Path $exe) -or (Get-Item $exe).VersionInfo.ProductVersion -notlike "$Version*") { throw 'Published assembly version differs from RC version.' }
+    if (-not (Test-Path $exe) -or (Get-Item $exe).VersionInfo.ProductVersion -notlike "$Version*") { throw 'Published assembly version differs from the release version.' }
 
     [xml]$en = Get-Content 'src\QuickResponseBao.App\Resources\Strings.en-US.xaml' -Raw -Encoding utf8
     [xml]$zh = Get-Content 'src\QuickResponseBao.App\Resources\Strings.zh-CN.xaml' -Raw -Encoding utf8
@@ -57,6 +57,6 @@ try {
     $archiveEntries = tar -tf (Join-Path $artifacts $portableName)
     if ($LASTEXITCODE -or -not ($archiveEntries -match 'QuickResponseBao\.exe') -or -not ($archiveEntries -match 'licenses/')) { throw 'Portable archive is invalid or omits required license files.' }
     if ($archiveEntries -match '(^|/)(bin|obj|logs?|backups?|data|config)(/|$)|\.(db|log)$') { throw 'Portable archive contains forbidden build or user-data files.' }
-    Write-Host 'All release-candidate preflight checks passed.'
+    Write-Host 'All release preflight checks passed.'
 }
 finally { Pop-Location }

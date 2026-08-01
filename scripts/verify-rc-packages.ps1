@@ -1,10 +1,13 @@
-param([string]$Version = '1.0.0-rc.3')
+param(
+    [string]$Version = '1.0.0',
+    [string]$PackageDirectory
+)
 
 $ErrorActionPreference = 'Stop'
 if ($env:GITHUB_ACTIONS -ne 'true') { throw 'Package installation verification is restricted to an isolated GitHub Actions runner.' }
 
 $root = Split-Path -Parent $PSScriptRoot
-$artifacts = Join-Path $root 'artifacts'
+$artifacts = if ($PackageDirectory) { $PackageDirectory } else { Join-Path $root 'artifacts' }
 $setup = Join-Path $artifacts "Quick-Response-Bao-Setup-$Version-x64.exe"
 $portable = Join-Path $artifacts "Quick-Response-Bao-Portable-$Version-x64.zip"
 $testRoot = Join-Path $env:RUNNER_TEMP 'quick-response-bao-rc-validation'
