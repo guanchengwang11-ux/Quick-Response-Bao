@@ -1,0 +1,42 @@
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+      - run: dotnet restore QuickResponseBao.sln
+      - run: dotnet test QuickResponseBao.sln --configuration Release --no-restore
+      - name: Publish x64 portable application
+        run: dotnet publish src/QuickResponseBao.App/QuickResponseBao.App.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -o artifacts/publish
+      - name: Publish updater
+        run: dotnet publish src/QuickResponseBao.Updater/QuickResponseBao.Updater.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -o artifacts/publish
+      - name: Create portable archive
+        shell: pwsh
+        run: Compress-Archive -Path artifacts/publish/* -DestinationPath artifacts/Quick-Response-Bao-Portable-1.0.0-x64.zip
+      - name: Install Inno Setup
+        run: choco install innosetup --no-progress -y
+      - name: Build installer
+        run: '& "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" installer\QuickResponseBao.iss'
+        shell: pwsh
+      - name: Calculate checksums
+        shell: pwsh
+        run: Get-FileHash artifacts/Quick-Response-Bao-Setup-1.0.0-x64.exe, artifacts/Quick-Response-Bao-Portable-1.0.0-x64.zip -Algorithm SHA256 | ForEach-Object { "$($_.Hash)  $([IO.Path]::GetFileName($_.Path))" } | Set-Content artifacts/checksums.txt
+      - uses: softprops/action-gh-release@v2
+        with:
+          name: Quick Response Bao ${{ github.ref_name }}
+          generate_release_notes: true
+          files: |
+            artifacts/Quick-Response-Bao-Setup-1.0.0-x64.exe
+            artifacts/Quick-Response-Bao-Portable-1.0.0-x64.zip
+            artifacts/checksums.txt

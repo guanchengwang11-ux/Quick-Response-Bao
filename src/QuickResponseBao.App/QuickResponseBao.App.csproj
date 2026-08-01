@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
+    <AssemblyName>QuickResponseBao</AssemblyName>
+    <RootNamespace>QuickResponseBao.App</RootNamespace>
+    <ApplicationIcon />
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\QuickResponseBao.Core\QuickResponseBao.Core.csproj" />
+    <ProjectReference Include="..\QuickResponseBao.Infrastructure\QuickResponseBao.Infrastructure.csproj" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,21 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:sys="clr-namespace:System;assembly=mscorlib">
+  <sys:String x:Key="AppName">Quick Response Bao</sys:String>
+  <sys:String x:Key="Dashboard">首页</sys:String><sys:String x:Key="Library">话术库</sys:String>
+  <sys:String x:Key="Settings">设置</sys:String><sys:String x:Key="About">关于</sys:String>
+  <sys:String x:Key="Running">程序正在运行</sys:String><sys:String x:Key="ListenerEnabled">监听已启用</sys:String>
+  <sys:String x:Key="ListenerPaused">监听已暂停</sys:String><sys:String x:Key="Pause">暂停监听</sys:String>
+  <sys:String x:Key="Resume">恢复监听</sys:String><sys:String x:Key="Search">搜索摘要、正文、关键词或分类</sys:String>
+  <sys:String x:Key="Add">新增话术</sys:String><sys:String x:Key="Edit">编辑</sys:String><sys:String x:Key="Delete">删除</sys:String>
+  <sys:String x:Key="Duplicate">复制</sys:String><sys:String x:Key="Toggle">启用/停用</sys:String>
+  <sys:String x:Key="Import">导入 CSV/JSON</sys:String><sys:String x:Key="Export">导出</sys:String>
+  <sys:String x:Key="Summary">摘要</sys:String><sys:String x:Key="Content">话术正文</sys:String>
+  <sys:String x:Key="Category">分类</sys:String><sys:String x:Key="Language">语言</sys:String>
+  <sys:String x:Key="Enabled">启用</sys:String><sys:String x:Key="Usage">使用次数</sys:String>
+  <sys:String x:Key="Save">保存</sys:String><sys:String x:Key="Cancel">取消</sys:String>
+  <sys:String x:Key="GeneralSettings">常规与检索</sys:String><sys:String x:Key="MinimumTrigger">最小触发字母数</sys:String>
+  <sys:String x:Key="MaximumSuggestions">最大候选数量</sys:String><sys:String x:Key="ClipboardDelay">剪贴板恢复延迟（毫秒）</sys:String>
+  <sys:String x:Key="Whitelist">应用白名单（每行一个 exe）</sys:String><sys:String x:Key="SwitchLanguage">English</sys:String>
+  <sys:String x:Key="CheckUpdates">检查更新</sys:String><sys:String x:Key="Version">版本 1.0.0</sys:String>
+  <sys:String x:Key="Privacy">话术搜索在本地完成；不会保存或上传完整键盘输入，也不会自动发送消息。</sys:String>
+  <sys:String x:Key="Empty">当前还没有话术。点击“新增话术”创建第一条话术。</sys:String>
+</ResourceDictionary>

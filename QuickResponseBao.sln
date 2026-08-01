@@ -1,0 +1,43 @@
+
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QuickResponseBao.Core", "src\QuickResponseBao.Core\QuickResponseBao.Core.csproj", "{9F103B7B-7FC4-47A0-9F92-0AE256D99C01}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QuickResponseBao.Infrastructure", "src\QuickResponseBao.Infrastructure\QuickResponseBao.Infrastructure.csproj", "{A73ACD4F-DF02-4D7C-A780-14B9C51B6585}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QuickResponseBao.App", "src\QuickResponseBao.App\QuickResponseBao.App.csproj", "{8DDBAA8A-E243-445B-AB9D-E7C5D39E8A04}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QuickResponseBao.Updater", "src\QuickResponseBao.Updater\QuickResponseBao.Updater.csproj", "{99A50E27-F3F8-4AB9-9B69-A29FA849E929}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QuickResponseBao.UnitTests", "tests\QuickResponseBao.UnitTests\QuickResponseBao.UnitTests.csproj", "{FDD15ADC-2C33-4EB5-97E4-6F99C14999B5}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{9F103B7B-7FC4-47A0-9F92-0AE256D99C01}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9F103B7B-7FC4-47A0-9F92-0AE256D99C01}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9F103B7B-7FC4-47A0-9F92-0AE256D99C01}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9F103B7B-7FC4-47A0-9F92-0AE256D99C01}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A73ACD4F-DF02-4D7C-A780-14B9C51B6585}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A73ACD4F-DF02-4D7C-A780-14B9C51B6585}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A73ACD4F-DF02-4D7C-A780-14B9C51B6585}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A73ACD4F-DF02-4D7C-A780-14B9C51B6585}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8DDBAA8A-E243-445B-AB9D-E7C5D39E8A04}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8DDBAA8A-E243-445B-AB9D-E7C5D39E8A04}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8DDBAA8A-E243-445B-AB9D-E7C5D39E8A04}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8DDBAA8A-E243-445B-AB9D-E7C5D39E8A04}.Release|Any CPU.Build.0 = Release|Any CPU
+		{99A50E27-F3F8-4AB9-9B69-A29FA849E929}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{99A50E27-F3F8-4AB9-9B69-A29FA849E929}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{99A50E27-F3F8-4AB9-9B69-A29FA849E929}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{99A50E27-F3F8-4AB9-9B69-A29FA849E929}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FDD15ADC-2C33-4EB5-97E4-6F99C14999B5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FDD15ADC-2C33-4EB5-97E4-6F99C14999B5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FDD15ADC-2C33-4EB5-97E4-6F99C14999B5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FDD15ADC-2C33-4EB5-97E4-6F99C14999B5}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal

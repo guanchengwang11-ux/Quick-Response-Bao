@@ -1,0 +1,16 @@
+[
+  {
+    "id": "cbe58f88-5df7-4fe9-9b0f-3f0eb923fcf1",
+    "summary": "Withdrawal pending",
+    "content": "I’m sorry for the delay. Could you please provide your withdrawal ID so I can check the latest status?",
+    "keywords": ["withdrawal", "pending", "delay"],
+    "category": "Withdrawal",
+    "language": "English",
+    "isEnabled": true,
+    "sortOrder": 0,
+    "usageCount": 0,
+    "createdAt": "2026-08-01T00:00:00+00:00",
+    "updatedAt": "2026-08-01T00:00:00+00:00",
+    "lastUsedAt": null
+  }
+]

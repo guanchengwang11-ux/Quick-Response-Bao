@@ -76,6 +76,12 @@ nunit-*.xml
 
 # Build Results of an ATL Project
 [Dd]ebugPS/
+.dotnet/
+.dotnet-install.ps1
+.dotnet-home/
+.nuget/
+.tools/
+innosetup-*.exe
 [Rr]eleasePS/
 dlldata.c
 
