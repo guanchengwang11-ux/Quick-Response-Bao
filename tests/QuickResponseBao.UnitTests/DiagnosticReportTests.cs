@@ -13,6 +13,7 @@ public sealed class DiagnosticReportTests
         {
             var snapshot = new DiagnosticSnapshot(DateTimeOffset.UtcNow, "Lark.exe", "LarkWebView.exe", secretTitle, true, true,
                 true, false, false, false, 12, CandidatePositionMethod.Caret, true, true,
+                "0x123", "0x123", true, 7, true, "Backspace + Clipboard + Ctrl+V",
                 4, 0, 40, "Lark.exe", true, string.Empty, @"C:\safe\logs");
             await new SafeDiagnosticReportService().ExportAsync(path, snapshot, "1.0.0"); var text = await File.ReadAllTextAsync(path);
             Assert.DoesNotContain(secretTitle, text); Assert.Contains("WindowTitleLength", text); Assert.Contains("SearchBufferLength", text);

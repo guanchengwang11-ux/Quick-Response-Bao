@@ -21,6 +21,7 @@ public sealed class AppSettings
     public bool AutoPasteEnabled { get; set; } = true;
     public bool PreserveClipboard { get; set; } = true;
     public bool RestoreClipboard { get; set; } = true;
+    public bool ReplaceTypedSearchText { get; set; } = true;
     public int ClipboardRestoreDelayMs { get; set; } = 500;
     public bool CheckUpdatesOnStartup { get; set; } = true;
     public bool AutoDownloadUpdates { get; set; }

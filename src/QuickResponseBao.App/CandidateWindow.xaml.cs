@@ -16,24 +16,35 @@ public partial class CandidateWindow : Window
     private IReadOnlyList<SearchResult> _results = [];
     private int _selected;
     private string _query = string.Empty;
+    private CandidateSearchContext? _context;
     public CandidatePositionMethod LastPositionMethod { get; private set; } = CandidatePositionMethod.CurrentMonitorBottomRight;
+    public nint WindowHandle => new WindowInteropHelper(this).EnsureHandle();
 
     public CandidateWindow() { InitializeComponent(); }
-    public event EventHandler<QuickResponse>? Confirmed;
+    public event EventHandler<CandidateConfirmationContext>? Confirmed;
     public event EventHandler<CandidatePositionMethod>? PositionMethodChanged;
 
-    public void ShowResults(string query, IReadOnlyList<SearchResult> results)
+    public void ShowResults(CandidateSearchContext context, IReadOnlyList<SearchResult> results)
     {
-        _query = query; _results = results; _selected = 0;
+        _context = context; _query = context.NormalizedQuery; _results = results; _selected = 0;
         Rebuild(); PositionNearCaret();
         if (!IsVisible) Show();
+    }
+
+    public void Dismiss()
+    {
+        _context = null; _results = []; _query = string.Empty; Hide();
     }
 
     public void Navigate(Infrastructure.Windows.NavigationKey key)
     {
         if (_results.Count == 0) return;
-        if (key == Infrastructure.Windows.NavigationKey.Cancel) { Hide(); return; }
-        if (key == Infrastructure.Windows.NavigationKey.Confirm) { Confirmed?.Invoke(this, _results[_selected].Response); return; }
+        if (key == Infrastructure.Windows.NavigationKey.Cancel) { Dismiss(); return; }
+        if (key is Infrastructure.Windows.NavigationKey.ConfirmEnter or Infrastructure.Windows.NavigationKey.ConfirmTab)
+        {
+            var method = key == Infrastructure.Windows.NavigationKey.ConfirmEnter ? CandidateConfirmationMethod.Enter : CandidateConfirmationMethod.Tab;
+            Confirm(method, _results[_selected].Response); return;
+        }
         var change = key switch
         {
             Infrastructure.Windows.NavigationKey.Up => -1,
@@ -63,9 +74,14 @@ public partial class CandidateWindow : Window
             };
             if (i == _selected) { border.SetResourceReference(Border.BackgroundProperty, "SelectionBrush"); border.SetResourceReference(Border.BorderBrushProperty, "PrimaryBrush"); }
             border.MouseEnter += (_, _) => { _selected = index; Rebuild(); };
-            border.MouseLeftButtonUp += (_, _) => Confirmed?.Invoke(this, response);
+            border.MouseLeftButtonUp += (_, _) => Confirm(CandidateConfirmationMethod.Mouse, response);
             ItemsPanel.Children.Add(border);
         }
+    }
+
+    private void Confirm(CandidateConfirmationMethod method, QuickResponse response)
+    {
+        if (_context is not null) Confirmed?.Invoke(this, _context.Confirm(response, method));
     }
 
     private TextBlock CreateHighlighted(string text, bool bold, double size = 13)

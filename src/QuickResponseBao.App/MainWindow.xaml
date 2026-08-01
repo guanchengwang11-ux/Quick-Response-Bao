@@ -124,7 +124,7 @@
         <TabItem x:Name="DiagnosticsTab">
           <ScrollViewer VerticalScrollBarVisibility="Auto"><Grid MaxWidth="900" HorizontalAlignment="Stretch">
             <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" MinWidth="245"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
-            <Grid.RowDefinitions><RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/></Grid.RowDefinitions>
+            <Grid.RowDefinitions><RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/></Grid.RowDefinitions>
             <TextBlock Grid.Row="0" Text="{DynamicResource ForegroundProcess}" Style="{StaticResource DiagnosticLabelStyle}"/><TextBox x:Name="ForegroundProcessValue" Grid.Row="0" Grid.Column="1" Style="{StaticResource ReadOnlyValueStyle}"/>
             <TextBlock Grid.Row="1" Text="{DynamicResource FocusProcess}" Style="{StaticResource DiagnosticLabelStyle}"/><TextBox x:Name="FocusProcessValue" Grid.Row="1" Grid.Column="1" Style="{StaticResource ReadOnlyValueStyle}"/>
             <TextBlock Grid.Row="2" Text="{DynamicResource WindowTitle}" Style="{StaticResource DiagnosticLabelStyle}"/><TextBox x:Name="WindowTitleValue" Grid.Row="2" Grid.Column="1" Style="{StaticResource ReadOnlyValueStyle}"/>
@@ -137,15 +137,21 @@
             <TextBlock Grid.Row="9" Text="{DynamicResource BufferLength}" Style="{StaticResource DiagnosticLabelStyle}"/><TextBlock x:Name="BufferLengthValue" Grid.Row="9" Grid.Column="1" Style="{StaticResource DiagnosticValueStyle}"/>
             <TextBlock Grid.Row="10" Text="{DynamicResource PositionMethod}" Style="{StaticResource DiagnosticLabelStyle}"/><TextBlock x:Name="PositionMethodValue" Grid.Row="10" Grid.Column="1" Style="{StaticResource DiagnosticValueStyle}"/>
             <TextBlock Grid.Row="11" Text="{DynamicResource LastPasteState}" Style="{StaticResource DiagnosticLabelStyle}"/><TextBlock x:Name="LastPasteValue" Grid.Row="11" Grid.Column="1" Style="{StaticResource DiagnosticValueStyle}"/>
-            <TextBlock Grid.Row="12" Text="{DynamicResource PasteSentCount}" Style="{StaticResource DiagnosticLabelStyle}"/><TextBlock x:Name="PasteSentCountValue" Grid.Row="12" Grid.Column="1" Style="{StaticResource DiagnosticValueStyle}"/>
-            <TextBlock Grid.Row="13" Text="{DynamicResource PasteErrorCode}" Style="{StaticResource DiagnosticLabelStyle}"/><TextBlock x:Name="PasteErrorCodeValue" Grid.Row="13" Grid.Column="1" Style="{StaticResource DiagnosticValueStyle}"/>
-            <TextBlock Grid.Row="14" Text="{DynamicResource PasteInputSize}" Style="{StaticResource DiagnosticLabelStyle}"/><TextBlock x:Name="PasteInputSizeValue" Grid.Row="14" Grid.Column="1" Style="{StaticResource DiagnosticValueStyle}"/>
-            <TextBlock Grid.Row="15" Text="{DynamicResource PasteTargetProcess}" Style="{StaticResource DiagnosticLabelStyle}"/><TextBox x:Name="PasteTargetProcessValue" Grid.Row="15" Grid.Column="1" Style="{StaticResource ReadOnlyValueStyle}"/>
-            <TextBlock Grid.Row="16" Text="{DynamicResource PasteSamePermission}" Style="{StaticResource DiagnosticLabelStyle}"/><TextBlock x:Name="PastePermissionValue" Grid.Row="16" Grid.Column="1" Style="{StaticResource DiagnosticValueStyle}"/>
-            <TextBlock Grid.Row="17" Text="{DynamicResource LastFailure}" Style="{StaticResource DiagnosticLabelStyle}"/><TextBox x:Name="LastFailureValue" Grid.Row="17" Grid.Column="1" Style="{StaticResource ReadOnlyValueStyle}" TextWrapping="Wrap"/>
-            <TextBlock Grid.Row="18" Text="{DynamicResource ClipboardRestored}" Style="{StaticResource DiagnosticLabelStyle}"/><TextBlock x:Name="ClipboardRestoredValue" Grid.Row="18" Grid.Column="1" Style="{StaticResource DiagnosticValueStyle}"/>
-            <TextBlock Grid.Row="19" Text="{DynamicResource LogDirectory}" Style="{StaticResource DiagnosticLabelStyle}"/><TextBox x:Name="LogDirectoryValue" Grid.Row="19" Grid.Column="1" Style="{StaticResource ReadOnlyValueStyle}" TextWrapping="Wrap"/>
-            <WrapPanel x:Name="DiagnosticActions" Grid.Row="20" Grid.ColumnSpan="2" Margin="0,18,0,0">
+            <TextBlock Grid.Row="12" Text="{DynamicResource CapturedTargetWindow}" Style="{StaticResource DiagnosticLabelStyle}"/><TextBox x:Name="CapturedTargetWindowValue" Grid.Row="12" Grid.Column="1" Style="{StaticResource ReadOnlyValueStyle}"/>
+            <TextBlock Grid.Row="13" Text="{DynamicResource ConfirmationTargetWindow}" Style="{StaticResource DiagnosticLabelStyle}"/><TextBox x:Name="ConfirmationTargetWindowValue" Grid.Row="13" Grid.Column="1" Style="{StaticResource ReadOnlyValueStyle}"/>
+            <TextBlock Grid.Row="14" Text="{DynamicResource FocusRestoreSucceeded}" Style="{StaticResource DiagnosticLabelStyle}"/><TextBlock x:Name="FocusRestoreValue" Grid.Row="14" Grid.Column="1" Style="{StaticResource DiagnosticValueStyle}"/>
+            <TextBlock Grid.Row="15" Text="{DynamicResource DeletedCharacterCount}" Style="{StaticResource DiagnosticLabelStyle}"/><TextBlock x:Name="DeletedCharacterCountValue" Grid.Row="15" Grid.Column="1" Style="{StaticResource DiagnosticValueStyle}"/>
+            <TextBlock Grid.Row="16" Text="{DynamicResource DeletionSucceeded}" Style="{StaticResource DiagnosticLabelStyle}"/><TextBlock x:Name="DeletionSucceededValue" Grid.Row="16" Grid.Column="1" Style="{StaticResource DiagnosticValueStyle}"/>
+            <TextBlock Grid.Row="17" Text="{DynamicResource ReplacementMethod}" Style="{StaticResource DiagnosticLabelStyle}"/><TextBox x:Name="ReplacementMethodValue" Grid.Row="17" Grid.Column="1" Style="{StaticResource ReadOnlyValueStyle}"/>
+            <TextBlock Grid.Row="18" Text="{DynamicResource PasteSentCount}" Style="{StaticResource DiagnosticLabelStyle}"/><TextBlock x:Name="PasteSentCountValue" Grid.Row="18" Grid.Column="1" Style="{StaticResource DiagnosticValueStyle}"/>
+            <TextBlock Grid.Row="19" Text="{DynamicResource PasteErrorCode}" Style="{StaticResource DiagnosticLabelStyle}"/><TextBlock x:Name="PasteErrorCodeValue" Grid.Row="19" Grid.Column="1" Style="{StaticResource DiagnosticValueStyle}"/>
+            <TextBlock Grid.Row="20" Text="{DynamicResource PasteInputSize}" Style="{StaticResource DiagnosticLabelStyle}"/><TextBlock x:Name="PasteInputSizeValue" Grid.Row="20" Grid.Column="1" Style="{StaticResource DiagnosticValueStyle}"/>
+            <TextBlock Grid.Row="21" Text="{DynamicResource PasteTargetProcess}" Style="{StaticResource DiagnosticLabelStyle}"/><TextBox x:Name="PasteTargetProcessValue" Grid.Row="21" Grid.Column="1" Style="{StaticResource ReadOnlyValueStyle}"/>
+            <TextBlock Grid.Row="22" Text="{DynamicResource PasteSamePermission}" Style="{StaticResource DiagnosticLabelStyle}"/><TextBlock x:Name="PastePermissionValue" Grid.Row="22" Grid.Column="1" Style="{StaticResource DiagnosticValueStyle}"/>
+            <TextBlock Grid.Row="23" Text="{DynamicResource LastFailure}" Style="{StaticResource DiagnosticLabelStyle}"/><TextBox x:Name="LastFailureValue" Grid.Row="23" Grid.Column="1" Style="{StaticResource ReadOnlyValueStyle}" TextWrapping="Wrap"/>
+            <TextBlock Grid.Row="24" Text="{DynamicResource ClipboardRestored}" Style="{StaticResource DiagnosticLabelStyle}"/><TextBlock x:Name="ClipboardRestoredValue" Grid.Row="24" Grid.Column="1" Style="{StaticResource DiagnosticValueStyle}"/>
+            <TextBlock Grid.Row="25" Text="{DynamicResource LogDirectory}" Style="{StaticResource DiagnosticLabelStyle}"/><TextBox x:Name="LogDirectoryValue" Grid.Row="25" Grid.Column="1" Style="{StaticResource ReadOnlyValueStyle}" TextWrapping="Wrap"/>
+            <WrapPanel x:Name="DiagnosticActions" Grid.Row="26" Grid.ColumnSpan="2" Margin="0,18,0,0">
               <Button Content="{DynamicResource TestCandidate}" Click="TestCandidate_Click"/><Button Content="{DynamicResource TestPaste}" Click="TestPaste_Click"/><Button Content="{DynamicResource OpenLogs}" Click="OpenLogs_Click"/><Button Content="{DynamicResource ExportDiagnostics}" Click="ExportDiagnostics_Click"/>
             </WrapPanel>
           </Grid></ScrollViewer>
@@ -154,16 +160,19 @@
         <TabItem>
           <ScrollViewer><Grid MaxWidth="820" HorizontalAlignment="Left">
             <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" MinWidth="270"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
-            <Grid.RowDefinitions><RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/></Grid.RowDefinitions>
+            <Grid.RowDefinitions><RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/></Grid.RowDefinitions>
             <TextBlock Grid.ColumnSpan="2" Text="{DynamicResource GeneralSettings}" FontSize="20" FontWeight="SemiBold" Margin="4,0,0,16"/>
             <TextBlock Grid.Row="1" Text="{DynamicResource MinimumTrigger}" VerticalAlignment="Center"/><TextBox Grid.Row="1" Grid.Column="1" Text="{Binding Settings.MinimumTriggerLength}"/>
             <TextBlock Grid.Row="2" Text="{DynamicResource MaximumSuggestions}" VerticalAlignment="Center"/><TextBox Grid.Row="2" Grid.Column="1" Text="{Binding Settings.MaximumSuggestions}"/>
             <TextBlock Grid.Row="3" Text="{DynamicResource ClipboardDelay}" VerticalAlignment="Center"/><TextBox Grid.Row="3" Grid.Column="1" Text="{Binding Settings.ClipboardRestoreDelayMs}"/>
-            <TextBlock Grid.Row="4" Grid.ColumnSpan="2" Text="{DynamicResource UpdateSettings}" FontSize="18" FontWeight="SemiBold" Margin="4,20,4,8"/>
-            <CheckBox x:Name="StartupUpdateCheckBox" Grid.Row="5" Grid.Column="1" Content="{DynamicResource CheckUpdatesOnStartup}" IsChecked="{Binding Settings.CheckUpdatesOnStartup}"/>
-            <TextBlock Grid.Row="6" Text="{DynamicResource UpdateBehavior}" VerticalAlignment="Center"/><ComboBox x:Name="UpdateBehaviorBox" Grid.Row="6" Grid.Column="1"><ComboBoxItem Tag="Notify" Content="{DynamicResource NotifyOnly}"/><ComboBoxItem Tag="Download" Content="{DynamicResource AutoDownload}"/></ComboBox>
-            <CheckBox x:Name="PrereleaseCheckBox" Grid.Row="7" Grid.Column="1" Content="{DynamicResource IncludePrerelease}" IsChecked="{Binding Settings.IncludePrereleaseUpdates}"/>
-            <WrapPanel Grid.Row="8" Grid.Column="1"><Button x:Name="SaveSettingsButton" Style="{StaticResource PrimaryButtonStyle}" Content="{DynamicResource Save}" Click="SaveSettings_Click"/><Button Content="{DynamicResource Backups}" Click="Backups_Click"/></WrapPanel>
+            <TextBlock Grid.Row="4" Grid.ColumnSpan="2" Text="{DynamicResource PasteSettings}" FontSize="18" FontWeight="SemiBold" Margin="4,20,4,8"/>
+            <CheckBox Grid.Row="5" Grid.ColumnSpan="2" Content="{DynamicResource ReplaceTypedSearchText}" IsChecked="{Binding Settings.ReplaceTypedSearchText}" Margin="4,6"/>
+            <TextBlock Grid.Row="6" Grid.ColumnSpan="2" Text="{DynamicResource ReplaceTypedSearchTextHint}" TextWrapping="Wrap" Foreground="{DynamicResource MutedTextBrush}" Margin="4,2,4,8"/>
+            <TextBlock Grid.Row="7" Grid.ColumnSpan="2" Text="{DynamicResource UpdateSettings}" FontSize="18" FontWeight="SemiBold" Margin="4,20,4,8"/>
+            <CheckBox x:Name="StartupUpdateCheckBox" Grid.Row="8" Grid.Column="1" Content="{DynamicResource CheckUpdatesOnStartup}" IsChecked="{Binding Settings.CheckUpdatesOnStartup}"/>
+            <TextBlock Grid.Row="9" Text="{DynamicResource UpdateBehavior}" VerticalAlignment="Center"/><ComboBox x:Name="UpdateBehaviorBox" Grid.Row="9" Grid.Column="1"><ComboBoxItem Tag="Notify" Content="{DynamicResource NotifyOnly}"/><ComboBoxItem Tag="Download" Content="{DynamicResource AutoDownload}"/></ComboBox>
+            <CheckBox x:Name="PrereleaseCheckBox" Grid.Row="10" Grid.Column="1" Content="{DynamicResource IncludePrerelease}" IsChecked="{Binding Settings.IncludePrereleaseUpdates}"/>
+            <WrapPanel Grid.Row="11" Grid.Column="1"><Button x:Name="SaveSettingsButton" Style="{StaticResource PrimaryButtonStyle}" Content="{DynamicResource Save}" Click="SaveSettings_Click"/><Button Content="{DynamicResource Backups}" Click="Backups_Click"/></WrapPanel>
           </Grid></ScrollViewer>
         </TabItem>
 

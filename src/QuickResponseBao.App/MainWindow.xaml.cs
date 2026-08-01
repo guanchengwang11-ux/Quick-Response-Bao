@@ -233,6 +233,12 @@ public partial class MainWindow : Window
         TextInputUnknownValue.Text = YesNo(snapshot.TextInputUnknown); PasswordFieldValue.Text = YesNo(snapshot.PasswordFieldDetected); UiAutomationValue.Text = YesNo(snapshot.UiAutomationUnavailable);
         BufferLengthValue.Text = snapshot.SearchBufferLength.ToString(); PositionMethodValue.Text = T($"Position{snapshot.CandidatePosition}");
         LastPasteValue.Text = snapshot.LastPasteSucceeded is null ? T("NotTested") : YesNo(snapshot.LastPasteSucceeded.Value); LastFailureValue.Text = Empty(snapshot.LastFailureReason);
+        CapturedTargetWindowValue.Text = Empty(snapshot.CapturedTargetWindow);
+        ConfirmationTargetWindowValue.Text = Empty(snapshot.ConfirmationTargetWindow);
+        FocusRestoreValue.Text = snapshot.LastFocusRestored is null ? T("NotTested") : YesNo(snapshot.LastFocusRestored.Value);
+        DeletedCharacterCountValue.Text = snapshot.LastDeletedCharacterCount.ToString();
+        DeletionSucceededValue.Text = snapshot.LastDeletionSucceeded is null ? T("NotTested") : YesNo(snapshot.LastDeletionSucceeded.Value);
+        ReplacementMethodValue.Text = Empty(snapshot.LastReplacementMethod);
         PasteSentCountValue.Text = snapshot.LastPasteSentCount?.ToString() ?? T("NotTested");
         PasteErrorCodeValue.Text = snapshot.LastPasteErrorCode?.ToString() ?? T("NotTested");
         PasteInputSizeValue.Text = snapshot.LastPasteInputSize?.ToString() ?? T("NotTested");

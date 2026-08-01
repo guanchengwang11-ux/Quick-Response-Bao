@@ -25,7 +25,7 @@ public sealed class Rc2UiRegressionTests
         var grid = actions.Parent!;
         var rowCount = grid.Element(presentation + "Grid.RowDefinitions")!.Elements(presentation + "RowDefinition").Count();
         var assignedRows = grid.Elements().Select(element => int.TryParse((string?)element.Attribute("Grid.Row"), out var row) ? row : 0);
-        Assert.Equal(21, rowCount);
+        Assert.Equal(27, rowCount);
         Assert.True(assignedRows.Max() < rowCount);
     }
 

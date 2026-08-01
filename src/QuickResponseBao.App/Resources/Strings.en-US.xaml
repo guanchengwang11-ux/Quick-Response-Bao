@@ -71,4 +71,11 @@
   <sys:String x:Key="PasteTargetProcess">Paste target process</sys:String><sys:String x:Key="PasteSamePermission">Same permission level</sys:String>
   <sys:String x:Key="CopySuffix">(copy)</sys:String><sys:String x:Key="TrayOpen">Open Quick Response Bao</sys:String><sys:String x:Key="TrayPause">Pause response search</sys:String><sys:String x:Key="TrayEnable">Enable response search</sys:String><sys:String x:Key="TrayAdd">Add response</sys:String><sys:String x:Key="TrayExit">Exit</sys:String>
   <sys:String x:Key="TrayStillRunning">Quick Response Bao is still running in the system tray.</sys:String><sys:String x:Key="CompatibilityTest">Compatibility test</sys:String><sys:String x:Key="CandidatePositionTest">Candidate window positioning test</sys:String>
+  <sys:String x:Key="PasteSettings">Paste behavior</sys:String><sys:String x:Key="ReplaceTypedSearchText">Replace typed search text when inserting a response</sys:String>
+  <sys:String x:Key="ReplaceTypedSearchTextHint">Recommended and enabled by default. Removes the actual characters typed for this search before pasting the complete response. Turn it off to insert at the current caret instead.</sys:String>
+  <sys:String x:Key="CapturedTargetWindow">Captured target window</sys:String><sys:String x:Key="ConfirmationTargetWindow">Foreground window at confirmation</sys:String><sys:String x:Key="FocusRestoreSucceeded">Target focus restored</sys:String>
+  <sys:String x:Key="DeletedCharacterCount">Characters selected for deletion</sys:String><sys:String x:Key="DeletionSucceeded">Trigger text deletion succeeded</sys:String><sys:String x:Key="ReplacementMethod">Response insertion method</sys:String>
+  <sys:String x:Key="ReplacementErrorContextInvalid">The original input context changed or is no longer safe. Nothing was deleted or pasted.</sys:String>
+  <sys:String x:Key="ReplacementErrorDeleteFailed">The typed search text could not be removed completely, so the response was not pasted. Any partially removed text was restored when possible.</sys:String>
+  <sys:String x:Key="ReplacementErrorPasteFailed">The search text was removed, but pasting failed. Quick Response Bao attempted to restore the original typed text.</sys:String>
 </ResourceDictionary>

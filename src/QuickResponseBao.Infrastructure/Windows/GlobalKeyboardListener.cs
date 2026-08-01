@@ -10,12 +10,17 @@ namespace QuickResponseBao.Infrastructure.Windows;
 public sealed class GlobalKeyboardListener : IDisposable
 {
     private const int WhKeyboardLl = 13;
+    private const int WhMouseLl = 14;
     private const int WmKeyDown = 0x0100;
     private const int WmSysKeyDown = 0x0104;
     private const uint LlkhfInjected = 0x10;
+    private const uint LlmhfInjected = 0x01;
+    private const int WmLeftButtonDown = 0x0201;
     private readonly SearchPhraseBuffer _buffer = new(64);
     private readonly HookProc _callback;
+    private readonly MouseHookProc _mouseCallback;
     private nint _hook;
+    private nint _mouseHook;
     private nint _lastForegroundWindow;
     private nint _cachedWindow;
     private DateTime _cachedAt;
@@ -26,14 +31,16 @@ public sealed class GlobalKeyboardListener : IDisposable
     {
         _settings = settings;
         _callback = HookCallback;
+        _mouseCallback = MouseHookCallback;
     }
 
-    public event EventHandler<string>? SearchTextChanged;
+    public event EventHandler<CandidateSearchContext>? SearchTextChanged;
     public event EventHandler? SearchCancelled;
     public event EventHandler<NavigationKey>? NavigationRequested;
     public bool IsRunning => _hook != 0;
     public bool SuggestionsVisible { get; set; }
     public int BufferLength => _buffer.Length;
+    public nint CandidateWindowHandle { get; set; }
 
     public void UpdateSettings(AppSettings settings) => _settings = settings;
 
@@ -45,12 +52,21 @@ public sealed class GlobalKeyboardListener : IDisposable
         _hook = SetWindowsHookEx(WhKeyboardLl, _callback,
             module is null ? 0 : GetModuleHandle(module.ModuleName), 0);
         if (_hook == 0) throw new InvalidOperationException($"Keyboard hook could not be installed ({Marshal.GetLastWin32Error()}).");
+        _mouseHook = SetWindowsMouseHookEx(WhMouseLl, _mouseCallback,
+            module is null ? 0 : GetModuleHandle(module.ModuleName), 0);
+        if (_mouseHook == 0)
+        {
+            var error = Marshal.GetLastWin32Error(); UnhookWindowsHookEx(_hook); _hook = 0;
+            throw new InvalidOperationException($"Mouse safety hook could not be installed ({error}).");
+        }
     }
 
     public void Stop()
     {
         if (_hook != 0) UnhookWindowsHookEx(_hook);
+        if (_mouseHook != 0) UnhookWindowsHookEx(_mouseHook);
         _hook = 0;
+        _mouseHook = 0;
         Reset();
     }
 
@@ -94,7 +110,7 @@ public sealed class GlobalKeyboardListener : IDisposable
             return CallNextHookEx(_hook, code, wParam, lParam);
 
         var data = Marshal.PtrToStructure<KbdLlHookStruct>(lParam);
-        if ((data.flags & LlkhfInjected) != 0) return CallNextHookEx(_hook, code, wParam, lParam);
+        if (ShouldIgnoreInjectedKeyboard(data.flags)) return CallNextHookEx(_hook, code, wParam, lParam);
 
         var foreground = GetForegroundWindow();
         if (_lastForegroundWindow != 0 && foreground != _lastForegroundWindow && _buffer.Length > 0) Reset();
@@ -120,16 +136,16 @@ public sealed class GlobalKeyboardListener : IDisposable
                 break;
             case VirtualKey.Back:
                 _buffer.Backspace();
-                Publish();
+                Publish(foreground, environment);
                 break;
             case VirtualKey.Space:
-                if (_buffer.AppendSpace()) Publish();
+                if (_buffer.AppendSpace()) Publish(foreground, environment);
                 break;
             default:
                 if (TryGetLetter(data.vkCode, out var letter))
                 {
                     _buffer.AppendLetter(letter);
-                    Publish();
+                    Publish(foreground, environment);
                 }
                 else if (key is not VirtualKey.Shift and not VirtualKey.Control and not VirtualKey.Menu)
                 {
@@ -140,11 +156,29 @@ public sealed class GlobalKeyboardListener : IDisposable
         return CallNextHookEx(_hook, code, wParam, lParam);
     }
 
-    private void Publish()
+    private void Publish(nint targetWindow, InputEnvironmentInfo environment)
     {
         if (_buffer.IsReady(_settings.MinimumTriggerLength))
-            SearchTextChanged?.Invoke(this, _buffer.Value);
+        {
+            GetWindowThreadProcessId(targetWindow, out var processId);
+            SearchTextChanged?.Invoke(this, new CandidateSearchContext(_buffer.Value, _buffer.RawTypedCharacterCount,
+                targetWindow, processId, environment.ProcessName, DateTimeOffset.UtcNow, _buffer.RawTypedText));
+        }
         else SearchCancelled?.Invoke(this, EventArgs.Empty);
+    }
+
+    private nint MouseHookCallback(int code, nint wParam, nint lParam)
+    {
+        if (code >= 0 && wParam == WmLeftButtonDown)
+        {
+            var data = Marshal.PtrToStructure<MouseLlHookStruct>(lParam);
+            if ((data.Flags & LlmhfInjected) == 0)
+            {
+                var clickedRoot = GetAncestor(WindowFromPoint(data.Point), 2);
+                if (clickedRoot != CandidateWindowHandle && _buffer.RawTypedCharacterCount > 0) Reset();
+            }
+        }
+        return CallNextHookEx(_mouseHook, code, wParam, lParam);
     }
 
     private static InputAssessment AssessInput(nint focus, bool hasGuiInfo, string topProcess, string focusProcess)
@@ -185,6 +219,8 @@ public sealed class GlobalKeyboardListener : IDisposable
     public static bool ShouldMonitor(InputEnvironmentInfo environment) => environment.IsWhitelisted &&
         !environment.PasswordFieldDetected && !environment.SecureSystemProcess;
 
+    public static bool ShouldIgnoreInjectedKeyboard(uint flags) => (flags & LlkhfInjected) != 0;
+
     private static string GetWindowProcessName(nint window)
     {
         GetWindowThreadProcessId(window, out var processId); return GetProcessName(processId);
@@ -214,8 +250,8 @@ public sealed class GlobalKeyboardListener : IDisposable
             VirtualKey.Down => NavigationKey.Down,
             VirtualKey.PageUp => NavigationKey.PageUp,
             VirtualKey.PageDown => NavigationKey.PageDown,
-            VirtualKey.Return => NavigationKey.Confirm,
-            VirtualKey.Tab => NavigationKey.Confirm,
+            VirtualKey.Return => NavigationKey.ConfirmEnter,
+            VirtualKey.Tab => NavigationKey.ConfirmTab,
             VirtualKey.Escape => NavigationKey.Cancel,
             _ => NavigationKey.None
         };
@@ -225,6 +261,7 @@ public sealed class GlobalKeyboardListener : IDisposable
     public void Dispose() { Stop(); GC.SuppressFinalize(this); }
 
     private delegate nint HookProc(int code, nint wParam, nint lParam);
+    private delegate nint MouseHookProc(int code, nint wParam, nint lParam);
     [StructLayout(LayoutKind.Sequential)]
     private struct KbdLlHookStruct { public uint vkCode, scanCode, flags, time; public nuint dwExtraInfo; }
     [StructLayout(LayoutKind.Sequential)]
@@ -234,6 +271,8 @@ public sealed class GlobalKeyboardListener : IDisposable
         public NativeRect CaretRect;
     }
     [StructLayout(LayoutKind.Sequential)] private struct NativeRect { public int Left, Top, Right, Bottom; }
+    [StructLayout(LayoutKind.Sequential)] private struct NativePoint { public int X, Y; }
+    [StructLayout(LayoutKind.Sequential)] private struct MouseLlHookStruct { public NativePoint Point; public uint MouseData, Flags, Time; public nuint ExtraInfo; }
     private enum VirtualKey : uint
     {
         Back = 0x08, Tab = 0x09, Return = 0x0D, Shift = 0x10, Control = 0x11, Menu = 0x12,
@@ -242,8 +281,11 @@ public sealed class GlobalKeyboardListener : IDisposable
     }
 
     [DllImport("user32.dll", SetLastError = true)] private static extern nint SetWindowsHookEx(int idHook, HookProc callback, nint module, uint threadId);
+    [DllImport("user32.dll", EntryPoint = "SetWindowsHookExW", SetLastError = true)] private static extern nint SetWindowsMouseHookEx(int idHook, MouseHookProc callback, nint module, uint threadId);
     [DllImport("user32.dll")] private static extern bool UnhookWindowsHookEx(nint hook);
     [DllImport("user32.dll")] private static extern nint CallNextHookEx(nint hook, int code, nint wParam, nint lParam);
+    [DllImport("user32.dll")] private static extern nint WindowFromPoint(NativePoint point);
+    [DllImport("user32.dll")] private static extern nint GetAncestor(nint window, uint flags);
     [DllImport("user32.dll")] private static extern nint GetForegroundWindow();
     [DllImport("user32.dll")] private static extern nint GetShellWindow();
     [DllImport("user32.dll")] private static extern uint GetWindowThreadProcessId(nint window, out uint processId);
@@ -257,7 +299,7 @@ public sealed class GlobalKeyboardListener : IDisposable
     [DllImport("kernel32.dll", CharSet = CharSet.Unicode)] private static extern nint GetModuleHandle(string? moduleName);
 }
 
-public enum NavigationKey { None, Up, Down, PageUp, PageDown, Confirm, Cancel }
+public enum NavigationKey { None, Up, Down, PageUp, PageDown, ConfirmEnter, ConfirmTab, Cancel }
 public sealed record InputEnvironmentInfo(string ProcessName, string FocusProcessName, string WindowTitle, bool IsWhitelisted,
     TextInputDetectionState TextInputState, bool PasswordFieldDetected, bool UiAutomationUnavailable, bool SecureSystemProcess)
 {

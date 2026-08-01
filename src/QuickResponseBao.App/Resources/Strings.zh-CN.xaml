@@ -71,4 +71,11 @@
   <sys:String x:Key="PasteTargetProcess">粘贴目标进程</sys:String><sys:String x:Key="PasteSamePermission">权限级别是否一致</sys:String>
   <sys:String x:Key="CopySuffix">（副本）</sys:String><sys:String x:Key="TrayOpen">打开 Quick Response Bao</sys:String><sys:String x:Key="TrayPause">暂停话术检索</sys:String><sys:String x:Key="TrayEnable">启用话术检索</sys:String><sys:String x:Key="TrayAdd">新增话术</sys:String><sys:String x:Key="TrayExit">退出</sys:String>
   <sys:String x:Key="TrayStillRunning">Quick Response Bao 将继续在系统托盘中运行。</sys:String><sys:String x:Key="CompatibilityTest">兼容性测试</sys:String><sys:String x:Key="CandidatePositionTest">候选窗口定位测试</sys:String>
+  <sys:String x:Key="PasteSettings">粘贴行为</sys:String><sys:String x:Key="ReplaceTypedSearchText">插入话术时替换检索文字</sys:String>
+  <sys:String x:Key="ReplaceTypedSearchTextHint">推荐并默认开启。粘贴完整话术前删除本次检索实际输入的字符；关闭后将在当前光标处直接插入。</sys:String>
+  <sys:String x:Key="CapturedTargetWindow">捕获的目标窗口</sys:String><sys:String x:Key="ConfirmationTargetWindow">确认时的前台窗口</sys:String><sys:String x:Key="FocusRestoreSucceeded">目标焦点是否恢复</sys:String>
+  <sys:String x:Key="DeletedCharacterCount">计划删除字符数</sys:String><sys:String x:Key="DeletionSucceeded">触发文字是否删除成功</sys:String><sys:String x:Key="ReplacementMethod">话术插入方式</sys:String>
+  <sys:String x:Key="ReplacementErrorContextInvalid">原输入上下文已变化或不再安全，未删除或粘贴任何内容。</sys:String>
+  <sys:String x:Key="ReplacementErrorDeleteFailed">无法完整删除检索文字，因此未继续粘贴话术；如有部分文字被删除，程序已尽可能恢复。</sys:String>
+  <sys:String x:Key="ReplacementErrorPasteFailed">检索文字已删除，但粘贴失败；Quick Response Bao 已尝试恢复原检索文字。</sys:String>
 </ResourceDictionary>

@@ -1,4 +1,4 @@
-# Quick Response Bao 1.0.0-rc.2 发布候选验证
+# Quick Response Bao 1.0.0-rc.3 发布候选验证
 
 ## 自动验证覆盖
 
@@ -13,7 +13,7 @@ Actions Artifact 在干净 Windows runner 上完成 Release / win-x64 自包含�
 | 3 | 勾选后创建桌面快捷方式 | Not Tested | | | |
 | 4 | 安装后存在开始菜单快捷方式 | Not Tested | | | |
 | 5 | 安装完成后程序正常启动 | Not Tested | | | |
-| 6 | 关于页显示 `1.0.0-rc.2` | Not Tested | | | |
+| 6 | 关于页显示 `1.0.0-rc.3` | Not Tested | | | |
 | 7 | 快捷方式和任务管理器中的主程序路径指向所选目录 | Not Tested | | | |
 | 8 | 安装目录存在 `unins000.exe` | Not Tested | | | |
 | 9 | 交互卸载会询问是否保留用户数据；分别验证“是/否” | Not Tested | | | |
@@ -52,6 +52,23 @@ Actions Artifact 在干净 Windows runner 上完成 Release / win-x64 自包含�
 | 10 | 诊断页在中英文及 100%/125%/150%/175% 缩放下无行重叠，长路径可选中复制 | Not Tested | | | |
 | 11 | 首页、话术库、分类、导入导出、白名单、诊断、设置、关于八页在浅/深色下布局与交互正常 | Not Tested | | | |
 | 12 | Lark、Telegram、Discord、Chrome、Edge 均完成自动粘贴且不会自动发送消息 | Not Tested | | | |
+
+## RC.2 重复触发文字回归
+
+以下项目分别在 Lark、Telegram、Discord、Chrome 和 Edge 执行，并覆盖 Enter、Tab 与鼠标确认。
+
+| # | 操作/预期 | 状态 | 实际结果 | 截图/日志 | 备注 |
+|---:|---|---|---|---|---|
+| 1 | 输入 `how to`，选择正文 `how to solve this problem`，最终仅出现一次完整正文 | Not Tested | | | |
+| 2 | 输入 `how  to`（两个空格），搜索按 `how to` 匹配，但实际删除 7 个字符 | Not Tested | | | |
+| 3 | 输入 `how `（末尾空格），末尾空格随触发文字一起删除，不产生额外空格 | Not Tested | | | |
+| 4 | 候选出现后继续输入或 Backspace，诊断中的删除字符数与实际输入同步 | Not Tested | | | |
+| 5 | 候选出现后按 Left/Right/Home/End 或点击输入框其他位置，旧候选取消且不删除其他内容 | Not Tested | | | |
+| 6 | 候选出现后切换窗口/应用或关闭目标程序，取消替换并显示明确提示 | Not Tested | | | |
+| 7 | 模拟删除注入失败，确认不继续粘贴；模拟粘贴失败，确认尝试恢复原触发文字 | Not Tested | | | |
+| 8 | Enter 确认不发送消息，Tab 确认不插入 Tab，鼠标确认结果与键盘一致 | Not Tested | | | |
+| 9 | 原剪贴板在成功替换后恢复，中文、英文及多行正文均完整 | Not Tested | | | |
+| 10 | 关闭“插入话术时替换检索文字”后，恢复在当前光标处直接插入的旧模式；重启后设置保留 | Not Tested | | | |
 
 ## 通过门槛
 

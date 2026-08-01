@@ -1,4 +1,4 @@
-# Quick Response Bao 1.0.0-rc.2 人工兼容性测试
+# Quick Response Bao 1.0.0-rc.3 人工兼容性测试
 
 ## 使用说明
 
