@@ -1,5 +1,6 @@
 using System.Runtime.InteropServices;
 using System.Windows;
+using QuickResponseBao.Infrastructure.Windows;
 
 namespace QuickResponseBao.App.Services;
 
@@ -7,6 +8,7 @@ public sealed class ClipboardPasteService
 {
     public async Task<PasteOperationResult> PasteAsync(string text, bool preserve, bool restore, int restoreDelayMs)
     {
+        var target = PasteTargetInspector.Capture();
         System.Windows.IDataObject? original = null;
         var captured = false;
         if (preserve)
@@ -16,8 +18,10 @@ public sealed class ClipboardPasteService
         }
 
         SetClipboardTextWithRetry(text);
-        SendPaste();
-        await Task.Delay(Math.Clamp(restoreDelayMs, 100, 5000));
+        var sent = SendPaste();
+        if (!sent.Success)
+            throw new PasteShortcutException(sent.SentCount, sent.ErrorCode, sent.InputSize, target);
+        await Task.Delay(PasteShortcutInput.RestoreDelay(restoreDelayMs));
         bool? restored = restore ? false : null;
         if (restore && original is not null)
         {
@@ -25,7 +29,7 @@ public sealed class ClipboardPasteService
             catch (ExternalException) { restored = false; }
         }
         else if (restore && !captured) restored = false;
-        return new PasteOperationResult(true, restored, "Clipboard + SendInput Ctrl+V");
+        return new PasteOperationResult(true, restored, "Clipboard + SendInput Ctrl+V", target, sent);
     }
 
     private static System.Windows.IDataObject? CaptureClipboard()
@@ -55,23 +59,25 @@ public sealed class ClipboardPasteService
         }
     }
 
-    private static void SendPaste()
+    private static PasteSendResult SendPaste()
     {
-        var inputs = new[]
-        {
-            new Input { Type = 1, Data = new InputUnion { Keyboard = new KeyboardInput { VirtualKey = 0x11 } } },
-            new Input { Type = 1, Data = new InputUnion { Keyboard = new KeyboardInput { VirtualKey = 0x56 } } },
-            new Input { Type = 1, Data = new InputUnion { Keyboard = new KeyboardInput { VirtualKey = 0x56, Flags = 2 } } },
-            new Input { Type = 1, Data = new InputUnion { Keyboard = new KeyboardInput { VirtualKey = 0x11, Flags = 2 } } }
-        };
-        if (SendInput((uint)inputs.Length, inputs, Marshal.SizeOf<Input>()) != inputs.Length)
-            throw new InvalidOperationException($"Ctrl+V could not be sent ({Marshal.GetLastWin32Error()}).");
+        var inputs = PasteShortcutInput.Create(); var size = PasteShortcutInput.StructureSize;
+        Marshal.SetLastPInvokeError(0);
+        var count = SendInput((uint)inputs.Length, inputs, size);
+        return new PasteSendResult(PasteShortcutInput.WasFullySent(count), count, Marshal.GetLastPInvokeError(), size);
     }
 
-    [StructLayout(LayoutKind.Sequential)] private struct Input { public uint Type; public InputUnion Data; }
-    [StructLayout(LayoutKind.Explicit)] private struct InputUnion { [FieldOffset(0)] public KeyboardInput Keyboard; }
-    [StructLayout(LayoutKind.Sequential)] private struct KeyboardInput { public ushort VirtualKey, ScanCode; public uint Flags, Time; public nuint ExtraInfo; }
-    [DllImport("user32.dll", SetLastError = true)] private static extern uint SendInput(uint count, Input[] inputs, int size);
+    [DllImport("user32.dll", SetLastError = true)] private static extern uint SendInput(uint count, NativeInput[] inputs, int size);
 }
 
-public sealed record PasteOperationResult(bool PasteSent, bool? ClipboardRestored, string Method);
+public sealed record PasteSendResult(bool Success, uint SentCount, int ErrorCode, int InputSize);
+public sealed record PasteOperationResult(bool PasteSent, bool? ClipboardRestored, string Method, PasteTargetInfo Target, PasteSendResult SendResult);
+
+public sealed class PasteShortcutException(uint sentCount, int errorCode, int inputSize, PasteTargetInfo target)
+    : Exception($"Paste shortcut send failed. sent={sentCount}/4, error={errorCode}, inputSize={inputSize}, target={target.ProcessName}, samePermission={target.SamePermissionLevel?.ToString() ?? "unknown"}")
+{
+    public uint SentCount { get; } = sentCount;
+    public int ErrorCode { get; } = errorCode;
+    public int InputSize { get; } = inputSize;
+    public PasteTargetInfo Target { get; } = target;
+}

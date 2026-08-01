@@ -1,4 +1,4 @@
-param([string]$Version = '1.0.0-rc.1')
+param([string]$Version = '1.0.0-rc.2')
 
 $ErrorActionPreference = 'Stop'
 if ($env:GITHUB_ACTIONS -ne 'true') { throw 'Package installation verification is restricted to an isolated GitHub Actions runner.' }

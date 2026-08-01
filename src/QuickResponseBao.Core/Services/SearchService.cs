@@ -11,7 +11,7 @@ public sealed class SearchService
     {
         options ??= new SearchOptions();
         if (string.IsNullOrWhiteSpace(query)) return [];
-        query = query.Trim();
+        query = query.TrimStart();
         var comparison = options.CaseSensitive
             ? StringComparison.Ordinal
             : StringComparison.OrdinalIgnoreCase;

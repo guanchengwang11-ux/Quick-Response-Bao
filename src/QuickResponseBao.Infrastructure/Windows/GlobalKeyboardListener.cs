@@ -13,9 +13,13 @@ public sealed class GlobalKeyboardListener : IDisposable
     private const int WmKeyDown = 0x0100;
     private const int WmSysKeyDown = 0x0104;
     private const uint LlkhfInjected = 0x10;
-    private readonly StringBuilder _buffer = new(64);
+    private readonly SearchPhraseBuffer _buffer = new(64);
     private readonly HookProc _callback;
     private nint _hook;
+    private nint _lastForegroundWindow;
+    private nint _cachedWindow;
+    private DateTime _cachedAt;
+    private InputEnvironmentInfo? _cachedEnvironment;
     private AppSettings _settings;
 
     public GlobalKeyboardListener(AppSettings settings)
@@ -59,13 +63,29 @@ public sealed class GlobalKeyboardListener : IDisposable
     public InputEnvironmentInfo InspectEnvironment()
     {
         var window = GetForegroundWindow();
-        if (window == 0 || window == GetShellWindow()) return new InputEnvironmentInfo(string.Empty, string.Empty, false, false);
-        GetWindowThreadProcessId(window, out var processId);
-        var processName = string.Empty;
-        try { using var process = Process.GetProcessById((int)processId); processName = $"{process.ProcessName}.exe"; } catch { }
+        return InspectEnvironmentCore(window);
+    }
+
+    private InputEnvironmentInfo InspectEnvironmentCached(nint window)
+    {
+        if (_cachedEnvironment is not null && window == _cachedWindow && DateTime.UtcNow - _cachedAt < TimeSpan.FromMilliseconds(750))
+            return _cachedEnvironment;
+        _cachedWindow = window; _cachedAt = DateTime.UtcNow; return _cachedEnvironment = InspectEnvironmentCore(window);
+    }
+
+    private InputEnvironmentInfo InspectEnvironmentCore(nint window)
+    {
+        if (window == 0 || window == GetShellWindow()) return InputEnvironmentInfo.Empty;
+        var thread = GetWindowThreadProcessId(window, out var processId);
+        var processName = GetProcessName(processId);
         var titleLength = GetWindowTextLength(window); var title = new StringBuilder(Math.Max(1, titleLength + 1)); GetWindowText(window, title, title.Capacity);
-        var whitelisted = ProcessWhitelist.Contains(_settings.AllowedProcesses, processName);
-        return new InputEnvironmentInfo(processName, title.ToString(), whitelisted, DetectTextInputEnvironment(window));
+        var gui = new GuiThreadInfo { Size = Marshal.SizeOf<GuiThreadInfo>() };
+        var hasGuiInfo = GetGUIThreadInfo(thread, ref gui);
+        var focusProcess = hasGuiInfo && gui.Focus != 0 ? GetWindowProcessName(gui.Focus) : string.Empty;
+        var whitelisted = ProcessWhitelist.Contains(_settings.AllowedProcesses, processName) || ProcessWhitelist.Contains(_settings.AllowedProcesses, focusProcess);
+        var assessment = AssessInput(gui.Focus, hasGuiInfo, processName, focusProcess);
+        return new InputEnvironmentInfo(processName, focusProcess, title.ToString(), whitelisted,
+            assessment.TextInputState, assessment.PasswordFieldDetected, assessment.UiAutomationUnavailable, assessment.SecureSystemProcess);
     }
 
     private nint HookCallback(int code, nint wParam, nint lParam)
@@ -76,7 +96,11 @@ public sealed class GlobalKeyboardListener : IDisposable
         var data = Marshal.PtrToStructure<KbdLlHookStruct>(lParam);
         if ((data.flags & LlkhfInjected) != 0) return CallNextHookEx(_hook, code, wParam, lParam);
 
-        if (!IsAllowedForegroundProcess() || IsSecureInput())
+        var foreground = GetForegroundWindow();
+        if (_lastForegroundWindow != 0 && foreground != _lastForegroundWindow && _buffer.Length > 0) Reset();
+        _lastForegroundWindow = foreground;
+        var environment = InspectEnvironmentCached(foreground);
+        if (!ShouldMonitor(environment))
         {
             if (_buffer.Length > 0) Reset();
             return CallNextHookEx(_hook, code, wParam, lParam);
@@ -95,14 +119,16 @@ public sealed class GlobalKeyboardListener : IDisposable
                 Reset();
                 break;
             case VirtualKey.Back:
-                if (_buffer.Length > 0) _buffer.Length--;
+                _buffer.Backspace();
                 Publish();
+                break;
+            case VirtualKey.Space:
+                if (_buffer.AppendSpace()) Publish();
                 break;
             default:
                 if (TryGetLetter(data.vkCode, out var letter))
                 {
-                    if (_buffer.Length == 64) _buffer.Remove(0, 1);
-                    _buffer.Append(letter);
+                    _buffer.AppendLetter(letter);
                     Publish();
                 }
                 else if (key is not VirtualKey.Shift and not VirtualKey.Control and not VirtualKey.Menu)
@@ -116,55 +142,58 @@ public sealed class GlobalKeyboardListener : IDisposable
 
     private void Publish()
     {
-        if (_buffer.Length >= _settings.MinimumTriggerLength)
-            SearchTextChanged?.Invoke(this, _buffer.ToString());
+        if (_buffer.IsReady(_settings.MinimumTriggerLength))
+            SearchTextChanged?.Invoke(this, _buffer.Value);
         else SearchCancelled?.Invoke(this, EventArgs.Empty);
     }
 
-    private bool IsAllowedForegroundProcess()
+    private static InputAssessment AssessInput(nint focus, bool hasGuiInfo, string topProcess, string focusProcess)
     {
-        var window = GetForegroundWindow();
-        if (window == 0 || window == GetShellWindow()) return false;
-        GetWindowThreadProcessId(window, out var processId);
+        if (IsSecureSystemProcess(topProcess) || IsSecureSystemProcess(focusProcess))
+            return new(TextInputDetectionState.Unknown, false, false, true);
+        if (hasGuiInfo && focus != 0)
+        {
+            var className = new StringBuilder(128); GetClassName(focus, className, className.Capacity);
+            var nativeEdit = className.ToString().Contains("Edit", StringComparison.OrdinalIgnoreCase) || className.ToString().Contains("Rich", StringComparison.OrdinalIgnoreCase);
+            if (nativeEdit && (GetWindowLong(focus, -16) & 0x20) != 0)
+                return new(TextInputDetectionState.NotDetected, true, false, false);
+            if (nativeEdit) return new(TextInputDetectionState.Detected, false, false, false);
+        }
+
         try
         {
-            using var process = Process.GetProcessById((int)processId);
-            var name = $"{process.ProcessName}.exe";
-            return ProcessWhitelist.Contains(_settings.AllowedProcesses, name);
+            var task = Task.Run(() =>
+            {
+                var element = AutomationElement.FocusedElement;
+                if (element is null) return new InputAssessment(TextInputDetectionState.Unknown, false, false, false);
+                if (element.GetCurrentPropertyValue(AutomationElement.IsPasswordProperty, true) is true)
+                    return new InputAssessment(TextInputDetectionState.NotDetected, true, false, false);
+                var detected = element.TryGetCurrentPattern(ValuePattern.Pattern, out _) || element.TryGetCurrentPattern(TextPattern.Pattern, out _) ||
+                    element.Current.ControlType == ControlType.Edit || element.Current.ControlType == ControlType.Document;
+                return new InputAssessment(detected ? TextInputDetectionState.Detected : TextInputDetectionState.NotDetected, false, false, false);
+            });
+            if (!task.Wait(150)) return new(TextInputDetectionState.Unknown, false, true, false);
+            return task.Result;
         }
-        catch { return false; }
+        catch { return new(TextInputDetectionState.Unknown, false, true, false); }
     }
 
-    private static bool IsSecureInput()
+    public static bool IsSecureSystemProcess(string processName) => processName is not null &&
+        new[] { "LogonUI.exe", "winlogon.exe", "CredentialUIBroker.exe", "consent.exe" }
+            .Contains(processName, StringComparer.OrdinalIgnoreCase);
+
+    public static bool ShouldMonitor(InputEnvironmentInfo environment) => environment.IsWhitelisted &&
+        !environment.PasswordFieldDetected && !environment.SecureSystemProcess;
+
+    private static string GetWindowProcessName(nint window)
     {
-        var foreground = GetForegroundWindow();
-        var thread = GetWindowThreadProcessId(foreground, out _);
-        var info = new GuiThreadInfo { Size = Marshal.SizeOf<GuiThreadInfo>() };
-        if (!GetGUIThreadInfo(thread, ref info) || info.Focus == 0) return true;
-        if ((GetWindowLong(info.Focus, -16) & 0x20) != 0) return true;
-        try
-        {
-            var element = AutomationElement.FocusedElement;
-            return element?.GetCurrentPropertyValue(AutomationElement.IsPasswordProperty, true) is true;
-        }
-        catch { return true; }
+        GetWindowThreadProcessId(window, out var processId); return GetProcessName(processId);
     }
 
-    private static bool DetectTextInputEnvironment(nint foreground)
+    private static string GetProcessName(uint processId)
     {
-        var thread = GetWindowThreadProcessId(foreground, out _);
-        var info = new GuiThreadInfo { Size = Marshal.SizeOf<GuiThreadInfo>() };
-        if (!GetGUIThreadInfo(thread, ref info) || info.Focus == 0 || (GetWindowLong(info.Focus, -16) & 0x20) != 0) return false;
-        try
-        {
-            var element = AutomationElement.FocusedElement;
-            if (element?.GetCurrentPropertyValue(AutomationElement.IsPasswordProperty, true) is true) return false;
-            if (element is not null && (element.TryGetCurrentPattern(ValuePattern.Pattern, out _) || element.TryGetCurrentPattern(TextPattern.Pattern, out _))) return true;
-            var type = element?.Current.ControlType; if (type == ControlType.Edit || type == ControlType.Document) return true;
-        }
-        catch { }
-        var className = new StringBuilder(128); GetClassName(info.Focus, className, className.Capacity);
-        return className.ToString().Contains("Edit", StringComparison.OrdinalIgnoreCase) || className.ToString().Contains("Rich", StringComparison.OrdinalIgnoreCase);
+        try { using var process = Process.GetProcessById((int)processId); return $"{process.ProcessName}.exe"; }
+        catch { return string.Empty; }
     }
 
     private static bool TryGetLetter(uint virtualKey, out char letter)
@@ -208,6 +237,7 @@ public sealed class GlobalKeyboardListener : IDisposable
     private enum VirtualKey : uint
     {
         Back = 0x08, Tab = 0x09, Return = 0x0D, Shift = 0x10, Control = 0x11, Menu = 0x12,
+        Space = 0x20,
         Escape = 0x1B, PageUp = 0x21, PageDown = 0x22, Up = 0x26, Down = 0x28
     }
 
@@ -228,4 +258,11 @@ public sealed class GlobalKeyboardListener : IDisposable
 }
 
 public enum NavigationKey { None, Up, Down, PageUp, PageDown, Confirm, Cancel }
-public sealed record InputEnvironmentInfo(string ProcessName, string WindowTitle, bool IsWhitelisted, bool TextInputDetected);
+public sealed record InputEnvironmentInfo(string ProcessName, string FocusProcessName, string WindowTitle, bool IsWhitelisted,
+    TextInputDetectionState TextInputState, bool PasswordFieldDetected, bool UiAutomationUnavailable, bool SecureSystemProcess)
+{
+    public bool TextInputDetected => TextInputState == TextInputDetectionState.Detected;
+    public static InputEnvironmentInfo Empty { get; } = new(string.Empty, string.Empty, string.Empty, false,
+        TextInputDetectionState.Unknown, false, true, false);
+}
+internal sealed record InputAssessment(TextInputDetectionState TextInputState, bool PasswordFieldDetected, bool UiAutomationUnavailable, bool SecureSystemProcess);

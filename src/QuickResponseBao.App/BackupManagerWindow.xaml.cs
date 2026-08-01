@@ -17,7 +17,7 @@ public partial class BackupManagerWindow : Window
     {
         Actions.IsEnabled = false; Feedback.Text = LocalizationService.Get("Loading");
         try { Feedback.Text = await action(); await RefreshAsync(); }
-        catch (Exception ex) { Feedback.Text = $"{LocalizationService.Get("OperationFailed")}: {ex.Message}"; }
+        catch (Exception ex) { Feedback.Text = $"{LocalizationService.Get("OperationFailed")}: {ex.Message}"; _ = ((App)System.Windows.Application.Current).LogSafeErrorAsync("Backup operation failed", ex); }
         finally { Actions.IsEnabled = true; }
     }
     private async void Create_Click(object sender, RoutedEventArgs e) => await RunAsync(async () =>
@@ -31,7 +31,7 @@ public partial class BackupManagerWindow : Window
     }
     private async void Browse_Click(object sender, RoutedEventArgs e)
     {
-        var dialog = new Microsoft.Win32.OpenFileDialog { Filter = "Quick Response Bao database|*.db|All files|*.*" }; if (dialog.ShowDialog(this) == true) await RestoreAsync(dialog.FileName);
+        var dialog = new Microsoft.Win32.OpenFileDialog { Filter = LocalizationService.Get("DatabaseFileFilter") }; if (dialog.ShowDialog(this) == true) await RestoreAsync(dialog.FileName);
     }
     private async Task RestoreAsync(string path)
     {

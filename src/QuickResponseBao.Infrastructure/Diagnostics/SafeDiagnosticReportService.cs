@@ -11,9 +11,12 @@ public sealed class SafeDiagnosticReportService
         var report = new
         {
             snapshot.CapturedAt, ApplicationVersion = applicationVersion, OperatingSystem = Environment.OSVersion.VersionString,
-            snapshot.ForegroundProcess, WindowTitleLength = snapshot.WindowTitle.Length, snapshot.IsWhitelisted, snapshot.HookRunning,
-            snapshot.TextInputDetected, snapshot.SearchBufferLength, CandidatePosition = snapshot.CandidatePosition.ToString(),
-            snapshot.LastPasteSucceeded, snapshot.LastClipboardRestored, LastFailureReason = safeFailure,
+            snapshot.ForegroundProcess, snapshot.FocusProcess, WindowTitleLength = snapshot.WindowTitle.Length, snapshot.IsWhitelisted, snapshot.HookRunning,
+            snapshot.TextInputDetected, snapshot.TextInputUnknown, snapshot.PasswordFieldDetected, snapshot.UiAutomationUnavailable,
+            snapshot.SearchBufferLength, CandidatePosition = snapshot.CandidatePosition.ToString(),
+            snapshot.LastPasteSucceeded, snapshot.LastClipboardRestored, snapshot.LastPasteSentCount,
+            snapshot.LastPasteErrorCode, snapshot.LastPasteInputSize, snapshot.LastPasteTargetProcess,
+            snapshot.LastPasteSamePermissionLevel, LastFailureReason = safeFailure,
             snapshot.LogDirectory,
             Privacy = "No keyboard buffer content, chat content, password, verification code, or clipboard content is included."
         };

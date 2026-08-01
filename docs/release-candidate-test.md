@@ -1,4 +1,4 @@
-# Quick Response Bao 1.0.0-rc.1 发布候选验证
+# Quick Response Bao 1.0.0-rc.2 发布候选验证
 
 ## 自动验证覆盖
 
@@ -13,7 +13,7 @@ Actions Artifact 在干净 Windows runner 上完成 Release / win-x64 自包含�
 | 3 | 勾选后创建桌面快捷方式 | Not Tested | | | |
 | 4 | 安装后存在开始菜单快捷方式 | Not Tested | | | |
 | 5 | 安装完成后程序正常启动 | Not Tested | | | |
-| 6 | 关于页显示 `1.0.0-rc.1` | Not Tested | | | |
+| 6 | 关于页显示 `1.0.0-rc.2` | Not Tested | | | |
 | 7 | 快捷方式和任务管理器中的主程序路径指向所选目录 | Not Tested | | | |
 | 8 | 安装目录存在 `unins000.exe` | Not Tested | | | |
 | 9 | 交互卸载会询问是否保留用户数据；分别验证“是/否” | Not Tested | | | |
@@ -35,6 +35,23 @@ Actions Artifact 在干净 Windows runner 上完成 Release / win-x64 自包含�
 | 6 | 放入普通用户可读但程序目录不可写的位置，数据仍写入 LocalAppData | Not Tested | | | |
 | 7 | 替换便携版程序文件升级，LocalAppData 用户数据保持不变 | Not Tested | | | |
 | 8 | 删除解压目录只删除程序文件，不影响其他目录或 LocalAppData 数据 | Not Tested | | | |
+
+## RC.1 阻塞问题回归
+
+| # | 操作/预期 | 状态 | 实际结果 | 截图/日志 | 备注 |
+|---:|---|---|---|---|---|
+| 1 | 在外部普通权限输入框执行“测试剪贴板粘贴”，完整粘贴且诊断显示发送 `4/4`、INPUT 大小 `40` | Not Tested | | | |
+| 2 | 目标程序以管理员权限运行、Bao 以普通权限运行时，出现明确权限级别提示且不误报成功 | Not Tested | | | |
+| 3 | 粘贴成功后原剪贴板按设置恢复；发送失败时不提前执行恢复逻辑 | Not Tested | | | |
+| 4 | Lark 真实前台进程可通过倒计时捕获并一键加入白名单 | Not Tested | | | |
+| 5 | Lark 的 UI Automation 状态为 Unknown/Unavailable 且无密码证据时仍可产生检索候选 | Not Tested | | | |
+| 6 | 原生密码框或 UIA `IsPassword=true` 时不记录检索缓冲，候选框不出现 | Not Tested | | | |
+| 7 | Lark 无 Caret 时依次降级到当前窗口右下角、当前显示器右下角，并在诊断页显示方式 | Not Tested | | | |
+| 8 | 输入 `how` 长度为 3 不触发；输入 `how ` 长度为 4 并匹配 `how to ...` | Not Tested | | | |
+| 9 | `solve   this` 将连续空格规范化并匹配 `solve this`；Backspace、Esc、Enter、切换应用按规则重置 | Not Tested | | | |
+| 10 | 诊断页在中英文及 100%/125%/150%/175% 缩放下无行重叠，长路径可选中复制 | Not Tested | | | |
+| 11 | 首页、话术库、分类、导入导出、白名单、诊断、设置、关于八页在浅/深色下布局与交互正常 | Not Tested | | | |
+| 12 | Lark、Telegram、Discord、Chrome、Edge 均完成自动粘贴且不会自动发送消息 | Not Tested | | | |
 
 ## 通过门槛
 

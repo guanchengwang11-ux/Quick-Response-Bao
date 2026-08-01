@@ -7,12 +7,12 @@
   <sys:String x:Key="Resume">恢复监听</sys:String><sys:String x:Key="Search">搜索摘要、正文、关键词或分类</sys:String>
   <sys:String x:Key="Add">新增话术</sys:String><sys:String x:Key="Edit">编辑</sys:String><sys:String x:Key="Delete">删除</sys:String>
   <sys:String x:Key="Duplicate">复制</sys:String><sys:String x:Key="Toggle">启用/停用</sys:String>
-  <sys:String x:Key="Import">导入 CSV/JSON</sys:String><sys:String x:Key="Export">导出</sys:String>
+  <sys:String x:Key="Import">导入 Excel / CSV / JSON</sys:String><sys:String x:Key="Export">导出</sys:String>
   <sys:String x:Key="Summary">摘要</sys:String><sys:String x:Key="Content">话术正文</sys:String>
   <sys:String x:Key="Category">分类</sys:String><sys:String x:Key="Language">语言</sys:String>
   <sys:String x:Key="Enabled">启用</sys:String><sys:String x:Key="Usage">使用次数</sys:String>
   <sys:String x:Key="Save">保存</sys:String><sys:String x:Key="Cancel">取消</sys:String>
-  <sys:String x:Key="GeneralSettings">常规与检索</sys:String><sys:String x:Key="MinimumTrigger">最小触发字母数</sys:String>
+  <sys:String x:Key="GeneralSettings">常规与检索</sys:String><sys:String x:Key="MinimumTrigger">最小触发字符数</sys:String>
   <sys:String x:Key="MaximumSuggestions">最大候选数量</sys:String><sys:String x:Key="ClipboardDelay">剪贴板恢复延迟（毫秒）</sys:String>
   <sys:String x:Key="Whitelist">应用白名单（每行一个 exe）</sys:String><sys:String x:Key="SwitchLanguage">English</sys:String>
   <sys:String x:Key="CheckUpdates">检查更新</sys:String><sys:String x:Key="Version">版本</sys:String>
@@ -47,5 +47,28 @@
   <sys:String x:Key="CheckingUpdates">正在检查更新…</sys:String><sys:String x:Key="NoPublishedRelease">没有适用的正式版本</sys:String><sys:String x:Key="LatestVersionMessage">当前已经是适用范围内的最新版本。</sys:String><sys:String x:Key="UpdateCheckFailed">检查更新失败</sys:String><sys:String x:Key="UpdateAvailable">发现新版本。</sys:String><sys:String x:Key="DownloadingUpdate">正在下载更新文件和校验清单…</sys:String><sys:String x:Key="DownloadVerified">下载完成，SHA-256 校验成功。</sys:String><sys:String x:Key="DownloadCanceled">下载已取消，临时文件已删除。</sys:String><sys:String x:Key="DownloadFailedRetry">下载失败，可以重试</sys:String>
   <sys:String x:Key="SetupSilentStrategy">Setup.exe 将在当前程序目录使用 Inno Setup /SILENT /SUPPRESSMSGBOXES /NORESTART /CLOSEAPPLICATIONS 静默升级；LocalAppData 用户数据会保留，完成后由更新器重启程序。</sys:String><sys:String x:Key="PackageUpdaterStrategy">独立更新器会等待主程序退出，在回滚保护下替换程序文件，保留用户数据并重新启动程序。</sys:String><sys:String x:Key="ConfirmInstallUpdate">是否关闭 Quick Response Bao 并开始安装？</sys:String><sys:String x:Key="InstallLaunchFailed">无法启动独立更新器</sys:String><sys:String x:Key="UpdateWindowOpened">更新页面已打开。</sys:String><sys:String x:Key="SettingsSaved">设置已保存。</sys:String><sys:String x:Key="ThemeApplied">主题已立即应用并保存。</sys:String>
   <sys:String x:Key="UpdateErrorMissingChecksums">该 Release 不包含 checksums.txt，已禁止安装。</sys:String><sys:String x:Key="UpdateErrorNoAsset">未找到明确支持的 x64 Setup.exe 或更新 ZIP；不会使用源代码压缩包。</sys:String><sys:String x:Key="UpdateErrorChecksumMismatch">SHA-256 校验不一致，损坏的更新文件已删除且禁止安装。</sys:String><sys:String x:Key="UpdateErrorChecksumEntryMissing">checksums.txt 中没有所选更新文件的有效记录，已禁止安装。</sys:String>
+  <sys:String x:Key="ImportExport">导入导出</sys:String><sys:String x:Key="ApplicationWhitelist">应用白名单</sys:String>
+  <sys:String x:Key="ListeningStatus">监听状态</sys:String><sys:String x:Key="TotalResponses">话术总数</sys:String><sys:String x:Key="TodayUsage">今日使用次数</sys:String><sys:String x:Key="RecentResponses">最近使用话术</sys:String>
+  <sys:String x:Key="CategoryManagementHint">完整管理分类的新增、重命名、删除和排序；删除分类不会删除其中的话术。</sys:String><sys:String x:Key="OpenCategoryManager">打开分类管理</sys:String>
+  <sys:String x:Key="ImportExportHint">导入前可预览并映射字段，导出格式化 .xlsx，也支持 CSV/JSON；无需安装 Microsoft Excel。</sys:String>
+  <sys:String x:Key="WhitelistHint">只监听白名单应用。可捕获真实前台进程，或从正在运行的应用中选择；进程名匹配不区分大小写。</sys:String>
+  <sys:String x:Key="CaptureForegroundApplication">捕获当前前台应用</sys:String><sys:String x:Key="RefreshRunningApplications">刷新运行中应用</sys:String><sys:String x:Key="AddSelectedApplication">添加所选应用</sys:String><sys:String x:Key="SaveWhitelist">保存白名单</sys:String>
+  <sys:String x:Key="FocusProcess">焦点子进程</sys:String><sys:String x:Key="TextInputDetected">检测到文本输入</sys:String><sys:String x:Key="TextInputUnknown">文本输入状态未知</sys:String><sys:String x:Key="PasswordFieldDetected">检测到密码输入框</sys:String><sys:String x:Key="UiAutomationUnavailable">UI Automation 不可用</sys:String>
+  <sys:String x:Key="Copy">复制</sys:String><sys:String x:Key="GitHubRepository">GitHub 仓库</sys:String>
+  <sys:String x:Key="CaptureCountdown">请切换到目标应用，将在 {0} 秒后捕获…</sys:String><sys:String x:Key="ApplicationCaptured">已捕获并添加：{0}</sys:String><sys:String x:Key="CaptureApplicationFailed">未能捕获前台应用。</sys:String><sys:String x:Key="ApplicationAlreadyAllowed">该应用已在白名单中。</sys:String><sys:String x:Key="WhitelistSaved">应用白名单已保存。</sys:String>
+  <sys:String x:Key="PasteFailedTitle">粘贴失败</sys:String><sys:String x:Key="PasteFailedWin32">粘贴失败：无法向目标窗口发送粘贴快捷键。错误代码：{0}。</sys:String><sys:String x:Key="PasteFailedElevation">粘贴失败：{0} 正以管理员身份运行，而 Quick Response Bao 不是。请让两个程序使用相同权限级别。</sys:String>
+  <sys:String x:Key="KeywordsHint">关键词（使用分号分隔）</sys:String><sys:String x:Key="ValidationSummary">摘要必须包含 2–150 个字符。</sys:String><sys:String x:Key="ValidationContent">话术正文为必填项。</sys:String><sys:String x:Key="EnglishLanguage">英文</sys:String><sys:String x:Key="ChineseLanguage">简体中文</sys:String><sys:String x:Key="Required">必填</sys:String>
+  <sys:String x:Key="GeneralCategory">常规</sys:String><sys:String x:Key="UncategorizedCategory">未分类</sys:String>
+  <sys:String x:Key="ResponseSaved">话术已保存。</sys:String><sys:String x:Key="ResponseUpdated">话术已更新。</sys:String><sys:String x:Key="ResponseDuplicated">话术已复制。</sys:String><sys:String x:Key="ResponseDeleted">话术已删除。</sys:String><sys:String x:Key="ResponseEnabled">话术已启用。</sys:String><sys:String x:Key="ResponseDisabled">话术已停用。</sys:String>
   <sys:String x:Key="LanguageUpdated">语言已切换。</sys:String>
+  <sys:String x:Key="ConfirmDeleteResponse">确定删除“{0}”吗？此操作不可撤销。</sys:String>
+  <sys:String x:Key="ImportFileFilter">Excel、CSV 或 JSON|*.xlsx;*.csv;*.json|Excel 工作簿|*.xlsx|CSV|*.csv|JSON|*.json</sys:String>
+  <sys:String x:Key="ExportFileFilter">Excel 工作簿|*.xlsx|JSON|*.json|CSV|*.csv</sys:String>
+  <sys:String x:Key="DatabaseFileFilter">Quick Response Bao 数据库|*.db|所有文件|*.*</sys:String>
+  <sys:String x:Key="ImportSucceededCount">已导入 {0} 条话术。</sys:String><sys:String x:Key="ImportFailed">导入失败</sys:String>
+  <sys:String x:Key="ExportSucceededCount">已导出 {0} 条话术。</sys:String><sys:String x:Key="ExportFailed">导出失败</sys:String>
+  <sys:String x:Key="PasteSentCount">SendInput 已发送事件数（应为 4）</sys:String><sys:String x:Key="PasteErrorCode">SendInput Win32 错误码</sys:String><sys:String x:Key="PasteInputSize">原生 INPUT 结构大小</sys:String>
+  <sys:String x:Key="PasteTargetProcess">粘贴目标进程</sys:String><sys:String x:Key="PasteSamePermission">权限级别是否一致</sys:String>
+  <sys:String x:Key="CopySuffix">（副本）</sys:String><sys:String x:Key="TrayOpen">打开 Quick Response Bao</sys:String><sys:String x:Key="TrayPause">暂停话术检索</sys:String><sys:String x:Key="TrayEnable">启用话术检索</sys:String><sys:String x:Key="TrayAdd">新增话术</sys:String><sys:String x:Key="TrayExit">退出</sys:String>
+  <sys:String x:Key="TrayStillRunning">Quick Response Bao 将继续在系统托盘中运行。</sys:String><sys:String x:Key="CompatibilityTest">兼容性测试</sys:String><sys:String x:Key="CandidatePositionTest">候选窗口定位测试</sys:String>
 </ResourceDictionary>

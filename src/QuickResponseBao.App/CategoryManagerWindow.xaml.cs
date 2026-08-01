@@ -17,7 +17,7 @@ public partial class CategoryManagerWindow : Window
     {
         ActionPanel.IsEnabled = false; Feedback.Text = LocalizationService.Get("Loading");
         try { await action(); await RefreshAsync(); Feedback.Text = success; }
-        catch (Exception ex) { Feedback.Text = $"{LocalizationService.Get("OperationFailed")}: {ex.Message}"; }
+        catch (Exception ex) { Feedback.Text = $"{LocalizationService.Get("OperationFailed")}: {ex.Message}"; _ = ((App)System.Windows.Application.Current).LogSafeErrorAsync("Category operation failed", ex); }
         finally { ActionPanel.IsEnabled = true; }
     }
     private async void Add_Click(object sender, RoutedEventArgs e)

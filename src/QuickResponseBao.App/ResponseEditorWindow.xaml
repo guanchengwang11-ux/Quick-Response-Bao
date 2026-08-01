@@ -1,10 +1,20 @@
 <Window x:Class="QuickResponseBao.App.ResponseEditorWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="{DynamicResource Add}" Width="620" Height="570" WindowStartupLocation="CenterOwner" ResizeMode="CanResize">
-  <Grid Margin="20"><Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
-    <TextBlock Text="{DynamicResource Summary}"/><TextBox x:Name="SummaryText" Grid.Row="1" MaxLength="150"/>
-    <Grid Grid.Row="2" Margin="0,10"><Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition/></Grid.RowDefinitions><TextBlock Text="{DynamicResource Content}"/><TextBox x:Name="ContentText" Grid.Row="1" AcceptsReturn="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto"/></Grid>
-    <Grid Grid.Row="3"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition/></Grid.ColumnDefinitions><StackPanel><TextBlock Text="Keywords (; separated)"/><TextBox x:Name="KeywordsText"/></StackPanel><StackPanel Grid.Column="1"><TextBlock Text="{DynamicResource Category}"/><TextBox x:Name="CategoryText"/></StackPanel></Grid>
-    <StackPanel Grid.Row="4" Orientation="Horizontal"><TextBlock Text="{DynamicResource Language}" VerticalAlignment="Center"/><ComboBox x:Name="LanguageBox" Width="160" Margin="8" SelectedIndex="0"><ComboBoxItem>English</ComboBoxItem><ComboBoxItem>简体中文</ComboBoxItem></ComboBox><CheckBox x:Name="EnabledBox" Content="{DynamicResource Enabled}" IsChecked="True" VerticalAlignment="Center"/></StackPanel>
-    <StackPanel Grid.Row="5" Orientation="Horizontal" HorizontalAlignment="Right"><Button Content="{DynamicResource Save}" Click="Save_Click" IsDefault="True"/><Button Content="{DynamicResource Cancel}" IsCancel="True"/></StackPanel>
-  </Grid>
+        Title="{DynamicResource Add}" Width="680" Height="650" MinWidth="540" MinHeight="560" WindowStartupLocation="CenterOwner" ResizeMode="CanResize" Icon="/assets/branding/QuickResponseBao.ico">
+  <ScrollViewer VerticalScrollBarVisibility="Auto"><Grid Margin="26" MaxWidth="760">
+    <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+    <TextBlock Text="{DynamicResource Summary}" FontWeight="SemiBold"/><TextBlock Text=" *" Foreground="{DynamicResource ErrorBrush}" Margin="70,0,0,0"/>
+    <StackPanel Grid.Row="1"><TextBox x:Name="SummaryText" MaxLength="150"/><TextBlock x:Name="SummaryError" Text="{DynamicResource ValidationSummary}" Foreground="{DynamicResource ErrorBrush}" Margin="5,2" Visibility="Collapsed" TextWrapping="Wrap"/></StackPanel>
+    <TextBlock Grid.Row="2" Text="{DynamicResource Content}" FontWeight="SemiBold" Margin="0,12,0,0"/>
+    <Grid Grid.Row="3"><Grid.RowDefinitions><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions><TextBox x:Name="ContentText" AcceptsReturn="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" MinHeight="190"/><TextBlock x:Name="ContentError" Grid.Row="1" Text="{DynamicResource ValidationContent}" Foreground="{DynamicResource ErrorBrush}" Margin="5,2" Visibility="Collapsed" TextWrapping="Wrap"/></Grid>
+    <Grid Grid.Row="4" Margin="0,14,0,0"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition/></Grid.ColumnDefinitions>
+      <StackPanel Margin="0,0,8,0"><TextBlock Text="{DynamicResource KeywordsHint}" FontWeight="SemiBold"/><TextBox x:Name="KeywordsText"/></StackPanel>
+      <StackPanel Grid.Column="1" Margin="8,0,0,0"><TextBlock Text="{DynamicResource Category}" FontWeight="SemiBold"/><TextBox x:Name="CategoryText"/></StackPanel>
+    </Grid>
+    <Grid Grid.Row="5" Margin="0,14,0,0"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition/></Grid.ColumnDefinitions>
+      <StackPanel><TextBlock Text="{DynamicResource Language}" FontWeight="SemiBold"/><ComboBox x:Name="LanguageBox" SelectedIndex="0"><ComboBoxItem Tag="English" Content="{DynamicResource EnglishLanguage}"/><ComboBoxItem Tag="简体中文" Content="{DynamicResource ChineseLanguage}"/></ComboBox></StackPanel>
+      <CheckBox x:Name="EnabledBox" Grid.Column="1" Content="{DynamicResource Enabled}" IsChecked="True" VerticalAlignment="Bottom" Margin="18,0,0,12"/>
+    </Grid>
+    <TextBlock Grid.Row="6" Text="{DynamicResource Required}" Foreground="{DynamicResource MutedTextBrush}" Margin="3,14,0,0"/>
+    <StackPanel Grid.Row="7" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,18,0,0"><Button Style="{StaticResource PrimaryButtonStyle}" Content="{DynamicResource Save}" Click="Save_Click" IsDefault="True"/><Button Content="{DynamicResource Cancel}" IsCancel="True"/></StackPanel>
+  </Grid></ScrollViewer>
 </Window>

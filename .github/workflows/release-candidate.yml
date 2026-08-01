@@ -12,7 +12,7 @@ jobs:
   build-verify-and-upload:
     runs-on: windows-latest
     env:
-      RC_VERSION: 1.0.0-rc.1
+      RC_VERSION: 1.0.0-rc.2
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-dotnet@v4
@@ -33,11 +33,11 @@ jobs:
         run: ./scripts/preflight-release.ps1 -Version $env:RC_VERSION -SkipBuildAndTests
       - uses: actions/upload-artifact@v4
         with:
-          name: Quick-Response-Bao-1.0.0-rc.1-x64
+          name: Quick-Response-Bao-1.0.0-rc.2-x64
           if-no-files-found: error
           retention-days: 30
           path: |
-            artifacts/Quick-Response-Bao-Setup-1.0.0-rc.1-x64.exe
-            artifacts/Quick-Response-Bao-Portable-1.0.0-rc.1-x64.zip
+            artifacts/Quick-Response-Bao-Setup-1.0.0-rc.2-x64.exe
+            artifacts/Quick-Response-Bao-Portable-1.0.0-rc.2-x64.zip
             artifacts/checksums.txt
-            docs/release-notes-1.0.0-rc.1.md
+            docs/release-notes-1.0.0-rc.2.md

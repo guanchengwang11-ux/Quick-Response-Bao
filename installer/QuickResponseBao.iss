@@ -1,5 +1,5 @@
 #define MyAppName "Quick Response Bao"
-#define MyAppVersion "1.0.0-rc.1"
+#define MyAppVersion "1.0.0-rc.2"
 #define MyAppPublisher "Quick Response Bao contributors"
 #define MyAppExeName "QuickResponseBao.exe"
 
@@ -18,6 +18,7 @@ WizardStyle=modern
 ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
 UninstallDisplayIcon={app}\{#MyAppExeName}
+SetupIconFile=..\assets\branding\QuickResponseBao.ico
 PrivilegesRequired=lowest
 
 [Languages]

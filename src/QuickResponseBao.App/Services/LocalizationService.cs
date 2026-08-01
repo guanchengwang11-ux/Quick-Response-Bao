@@ -7,6 +7,8 @@ public static class LocalizationService
     public static string Get(string key) => System.Windows.Application.Current.TryFindResource(key)?.ToString() ?? key;
     public static void Apply(string language)
     {
+        System.Windows.Application.Current.Resources["AppFontFamily"] = new System.Windows.Media.FontFamily(
+            language == "en-US" ? "Segoe UI, Microsoft YaHei UI" : "Microsoft YaHei UI, Segoe UI");
         var dictionaries = System.Windows.Application.Current.Resources.MergedDictionaries;
         var current = dictionaries.FirstOrDefault(x => x.Source?.OriginalString.Contains("Strings.") == true);
         var replacement = new ResourceDictionary
