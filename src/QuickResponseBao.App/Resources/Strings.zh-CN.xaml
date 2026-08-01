@@ -18,4 +18,24 @@
   <sys:String x:Key="CheckUpdates">检查更新</sys:String><sys:String x:Key="Version">版本 1.0.0</sys:String>
   <sys:String x:Key="Privacy">话术搜索在本地完成；不会保存或上传完整键盘输入，也不会自动发送消息。</sys:String>
   <sys:String x:Key="Empty">当前还没有话术。点击“新增话术”创建第一条话术。</sys:String>
+  <sys:String x:Key="Categories">分类管理</sys:String><sys:String x:Key="Backups">备份与恢复</sys:String>
+  <sys:String x:Key="SelectAll">全选</sys:String><sys:String x:Key="ClearSelection">取消全选</sys:String>
+  <sys:String x:Key="BatchEnable">批量启用</sys:String><sys:String x:Key="BatchDisable">批量停用</sys:String>
+  <sys:String x:Key="BatchMove">批量移动</sys:String><sys:String x:Key="BatchDelete">批量删除</sys:String>
+  <sys:String x:Key="ImportPreview">导入预览与字段映射</sys:String><sys:String x:Key="PreviewRows">数据预览</sys:String>
+  <sys:String x:Key="MapFields">字段映射</sys:String><sys:String x:Key="StartImport">执行导入</sys:String>
+  <sys:String x:Key="Total">总数</sys:String><sys:String x:Key="Succeeded">成功</sys:String><sys:String x:Key="Failed">失败</sys:String><sys:String x:Key="Skipped">跳过</sys:String>
+  <sys:String x:Key="Loading">处理中，请稍候…</sys:String><sys:String x:Key="OperationFailed">操作失败</sys:String>
+  <sys:String x:Key="NoSelection">请先选择至少一条话术。</sys:String><sys:String x:Key="ConfirmBatchDelete">确定删除所选话术吗？此操作不可撤销。</sys:String>
+  <sys:String x:Key="ChooseCategory">选择目标分类</sys:String><sys:String x:Key="Name">名称</sys:String>
+  <sys:String x:Key="Rename">重命名</sys:String><sys:String x:Key="MoveUp">上移</sys:String><sys:String x:Key="MoveDown">下移</sys:String>
+  <sys:String x:Key="ConfirmDeleteCategory">确定删除所选分类吗？</sys:String><sys:String x:Key="MoveAndDeleteCategory">该分类中仍有话术。是否将这些话术移动到“未分类”并删除分类？</sys:String>
+  <sys:String x:Key="CreateBackup">创建备份</sys:String><sys:String x:Key="RestoreBackup">恢复所选备份</sys:String><sys:String x:Key="BrowseBackup">选择其他备份</sys:String>
+  <sys:String x:Key="BackupTime">备份时间</sys:String><sys:String x:Key="FileSize">文件大小</sys:String><sys:String x:Key="Location">位置</sys:String>
+  <sys:String x:Key="ConfirmRestore">恢复会替换当前数据库，程序会先自动备份当前数据。是否继续？</sys:String>
+  <sys:String x:Key="Keywords">关键词</sys:String><sys:String x:Key="IsEnabled">启用状态</sys:String>
+  <sys:String x:Key="ImportComplete">导入完成</sys:String><sys:String x:Key="BatchComplete">批量操作完成</sys:String>
+  <sys:String x:Key="ActualProcessed">实际处理数量</sys:String><sys:String x:Key="Close">关闭</sys:String>
+  <sys:String x:Key="RequiredMapping">摘要和话术正文必须映射。</sys:String><sys:String x:Key="CategoryNamePrompt">请输入分类名称</sys:String>
+  <sys:String x:Key="BackupCreated">数据库备份已创建。</sys:String><sys:String x:Key="RestoreSucceeded">数据库恢复成功。</sys:String>
 </ResourceDictionary>

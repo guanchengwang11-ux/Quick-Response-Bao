@@ -4,6 +4,7 @@ namespace QuickResponseBao.App.Services;
 
 public static class LocalizationService
 {
+    public static string Get(string key) => System.Windows.Application.Current.TryFindResource(key)?.ToString() ?? key;
     public static void Apply(string language)
     {
         var dictionaries = System.Windows.Application.Current.Resources.MergedDictionaries;

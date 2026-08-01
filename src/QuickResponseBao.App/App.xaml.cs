@@ -24,6 +24,8 @@ public partial class App : System.Windows.Application
     public AppPaths Paths { get; private set; } = null!;
     public IQuickResponseRepository Repository { get; private set; } = null!;
     public JsonSettingsStore SettingsStore { get; private set; } = null!;
+    public ICategoryRepository CategoryRepository => (ICategoryRepository)Repository;
+    public IDatabaseBackupService BackupService { get; private set; } = null!;
     public AppSettings Settings { get; private set; } = null!;
     public GlobalKeyboardListener Listener { get; private set; } = null!;
     public MainWindow MainAppWindow { get; private set; } = null!;
@@ -35,6 +37,7 @@ public partial class App : System.Windows.Application
         Paths = new AppPaths(); SettingsStore = new JsonSettingsStore(Paths); Settings = await SettingsStore.LoadAsync();
         LocalizationService.Apply(Settings.Language);
         Repository = new SqliteQuickResponseRepository(Paths); await Repository.InitializeAsync();
+        BackupService = new DatabaseBackupService(Paths);
         _logger = new SafeFileLogger(Paths); await _logger.WriteAsync("Application started");
         await ReloadCacheAsync();
         _paste = new ClipboardPasteService(); _candidates = new CandidateWindow();

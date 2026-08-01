@@ -10,4 +10,7 @@ public interface IQuickResponseRepository
     Task UpsertAsync(QuickResponse response, CancellationToken cancellationToken = default);
     Task DeleteAsync(Guid id, CancellationToken cancellationToken = default);
     Task IncrementUsageAsync(Guid id, CancellationToken cancellationToken = default);
+    Task<BatchOperationResult> SetEnabledAsync(IReadOnlyCollection<Guid> ids, bool enabled, CancellationToken cancellationToken = default);
+    Task<BatchOperationResult> DeleteManyAsync(IReadOnlyCollection<Guid> ids, CancellationToken cancellationToken = default);
+    Task<BatchOperationResult> MoveToCategoryAsync(IReadOnlyCollection<Guid> ids, string category, CancellationToken cancellationToken = default);
 }

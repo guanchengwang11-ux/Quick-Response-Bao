@@ -18,4 +18,24 @@
   <sys:String x:Key="CheckUpdates">Check for updates</sys:String><sys:String x:Key="Version">Version 1.0.0</sys:String>
   <sys:String x:Key="Privacy">Search stays local. Complete keyboard input is never stored or uploaded, and messages are never sent automatically.</sys:String>
   <sys:String x:Key="Empty">There are no responses yet. Select “Add response” to create the first one.</sys:String>
+  <sys:String x:Key="Categories">Categories</sys:String><sys:String x:Key="Backups">Backup and restore</sys:String>
+  <sys:String x:Key="SelectAll">Select all</sys:String><sys:String x:Key="ClearSelection">Clear selection</sys:String>
+  <sys:String x:Key="BatchEnable">Enable selected</sys:String><sys:String x:Key="BatchDisable">Disable selected</sys:String>
+  <sys:String x:Key="BatchMove">Move selected</sys:String><sys:String x:Key="BatchDelete">Delete selected</sys:String>
+  <sys:String x:Key="ImportPreview">Import preview and field mapping</sys:String><sys:String x:Key="PreviewRows">Data preview</sys:String>
+  <sys:String x:Key="MapFields">Field mapping</sys:String><sys:String x:Key="StartImport">Start import</sys:String>
+  <sys:String x:Key="Total">Total</sys:String><sys:String x:Key="Succeeded">Succeeded</sys:String><sys:String x:Key="Failed">Failed</sys:String><sys:String x:Key="Skipped">Skipped</sys:String>
+  <sys:String x:Key="Loading">Working, please wait…</sys:String><sys:String x:Key="OperationFailed">Operation failed</sys:String>
+  <sys:String x:Key="NoSelection">Select at least one response first.</sys:String><sys:String x:Key="ConfirmBatchDelete">Delete the selected responses? This cannot be undone.</sys:String>
+  <sys:String x:Key="ChooseCategory">Choose destination category</sys:String><sys:String x:Key="Name">Name</sys:String>
+  <sys:String x:Key="Rename">Rename</sys:String><sys:String x:Key="MoveUp">Move up</sys:String><sys:String x:Key="MoveDown">Move down</sys:String>
+  <sys:String x:Key="ConfirmDeleteCategory">Delete the selected category?</sys:String><sys:String x:Key="MoveAndDeleteCategory">This category still contains responses. Move them to “Uncategorized” and delete the category?</sys:String>
+  <sys:String x:Key="CreateBackup">Create backup</sys:String><sys:String x:Key="RestoreBackup">Restore selected backup</sys:String><sys:String x:Key="BrowseBackup">Choose another backup</sys:String>
+  <sys:String x:Key="BackupTime">Backup time</sys:String><sys:String x:Key="FileSize">File size</sys:String><sys:String x:Key="Location">Location</sys:String>
+  <sys:String x:Key="ConfirmRestore">Restoring replaces the current database. The application will automatically back it up first. Continue?</sys:String>
+  <sys:String x:Key="Keywords">Keywords</sys:String><sys:String x:Key="IsEnabled">Enabled</sys:String>
+  <sys:String x:Key="ImportComplete">Import complete</sys:String><sys:String x:Key="BatchComplete">Batch operation complete</sys:String>
+  <sys:String x:Key="ActualProcessed">Actually processed</sys:String><sys:String x:Key="Close">Close</sys:String>
+  <sys:String x:Key="RequiredMapping">Summary and Content must be mapped.</sys:String><sys:String x:Key="CategoryNamePrompt">Enter a category name</sys:String>
+  <sys:String x:Key="BackupCreated">Database backup created.</sys:String><sys:String x:Key="RestoreSucceeded">Database restored successfully.</sys:String>
 </ResourceDictionary>

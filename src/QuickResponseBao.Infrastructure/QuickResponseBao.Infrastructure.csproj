@@ -2,6 +2,7 @@
   <ItemGroup>
     <ProjectReference Include="..\QuickResponseBao.Core\QuickResponseBao.Core.csproj" />
     <PackageReference Include="Microsoft.Data.Sqlite" Version="8.0.8" />
+    <PackageReference Include="ClosedXML" Version="0.105.1" />
     <FrameworkReference Include="Microsoft.WindowsDesktop.App.WPF" />
   </ItemGroup>
 </Project>

@@ -32,17 +32,21 @@
       <TabItem Header="{DynamicResource Library}">
         <Grid Margin="16">
           <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
-          <DockPanel>
-            <TextBox Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" MinWidth="320" ToolTip="{DynamicResource Search}"/>
-            <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" HorizontalAlignment="Right">
+          <StackPanel x:Name="LibraryToolbar">
+            <DockPanel><TextBox Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" MinWidth="320" ToolTip="{DynamicResource Search}"/></DockPanel>
+            <WrapPanel HorizontalAlignment="Left">
               <Button Content="{DynamicResource Add}" Click="Add_Click"/><Button Content="{DynamicResource Edit}" Click="Edit_Click"/>
               <Button Content="{DynamicResource Import}" Click="Import_Click"/><Button Content="{DynamicResource Export}" Click="Export_Click"/>
               <Button Content="{DynamicResource Duplicate}" Click="Duplicate_Click"/><Button Content="{DynamicResource Toggle}" Click="ToggleResponse_Click"/>
               <Button Content="{DynamicResource Delete}" Click="Delete_Click"/>
-            </StackPanel>
-          </DockPanel>
-          <DataGrid Grid.Row="1" Margin="4,12" ItemsSource="{Binding Responses}" SelectedItem="{Binding SelectedResponse}"
-                    AutoGenerateColumns="False" IsReadOnly="True" SelectionMode="Single" EnableRowVirtualization="True">
+              <Button Content="{DynamicResource Categories}" Click="Categories_Click"/><Button Content="{DynamicResource Backups}" Click="Backups_Click"/>
+              <Button Content="{DynamicResource SelectAll}" Click="SelectAll_Click"/><Button Content="{DynamicResource ClearSelection}" Click="ClearSelection_Click"/>
+              <Button Content="{DynamicResource BatchEnable}" Click="BatchEnable_Click"/><Button Content="{DynamicResource BatchDisable}" Click="BatchDisable_Click"/>
+              <Button Content="{DynamicResource BatchMove}" Click="BatchMove_Click"/><Button Content="{DynamicResource BatchDelete}" Click="BatchDelete_Click"/>
+            </WrapPanel>
+          </StackPanel>
+          <DataGrid x:Name="ResponsesGrid" Grid.Row="1" Margin="4,12" ItemsSource="{Binding Responses}" SelectedItem="{Binding SelectedResponse}"
+                    AutoGenerateColumns="False" IsReadOnly="True" SelectionMode="Extended" SelectionUnit="FullRow" EnableRowVirtualization="True">
             <DataGrid.Columns>
               <DataGridTextColumn Header="{DynamicResource Summary}" Binding="{Binding Summary}" Width="2*"/>
               <DataGridTextColumn Header="{DynamicResource Category}" Binding="{Binding Category}" Width="*"/>

@@ -14,6 +14,7 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 8.0.x
-      - run: dotnet restore QuickResponseBao.sln
-      - run: dotnet build QuickResponseBao.sln --configuration Release --no-restore
-      - run: dotnet test QuickResponseBao.sln --configuration Release --no-build --no-restore
+      - run: dotnet restore QuickResponseBao.sln --runtime win-x64
+      - run: dotnet build src/QuickResponseBao.App/QuickResponseBao.App.csproj --configuration Release --runtime win-x64 --no-restore
+      - run: dotnet build src/QuickResponseBao.Updater/QuickResponseBao.Updater.csproj --configuration Release --runtime win-x64 --no-restore
+      - run: dotnet test tests/QuickResponseBao.UnitTests/QuickResponseBao.UnitTests.csproj --configuration Release --runtime win-x64 --no-restore

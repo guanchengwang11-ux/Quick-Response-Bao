@@ -1,0 +1,8 @@
+<Window x:Class="QuickResponseBao.App.BackupManagerWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="{DynamicResource Backups}" Width="900" Height="540" WindowStartupLocation="CenterOwner">
+  <Grid Margin="18"><Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+    <StackPanel x:Name="Actions" Orientation="Horizontal"><Button Content="{DynamicResource CreateBackup}" Click="Create_Click"/><Button Content="{DynamicResource RestoreBackup}" Click="Restore_Click"/><Button Content="{DynamicResource BrowseBackup}" Click="Browse_Click"/></StackPanel>
+    <DataGrid x:Name="BackupsGrid" Grid.Row="1" Margin="4,12" AutoGenerateColumns="False" IsReadOnly="True" SelectionMode="Single"><DataGrid.Columns><DataGridTextColumn Header="{DynamicResource BackupTime}" Binding="{Binding CreatedAt, StringFormat={}{0:yyyy-MM-dd HH:mm:ss}}" Width="180"/><DataGridTextColumn Header="{DynamicResource FileSize}" Binding="{Binding Size}" Width="120"/><DataGridTextColumn Header="{DynamicResource Location}" Binding="{Binding Path}" Width="*"/></DataGrid.Columns></DataGrid>
+    <DockPanel Grid.Row="2"><TextBlock x:Name="Feedback" TextWrapping="Wrap" VerticalAlignment="Center"/><Button DockPanel.Dock="Right" Content="{DynamicResource Close}" IsCancel="True"/></DockPanel>
+  </Grid>
+</Window>

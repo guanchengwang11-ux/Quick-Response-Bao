@@ -82,6 +82,7 @@ nunit-*.xml
 .nuget/
 .tools/
 innosetup-*.exe
+outputs/
 [Rr]eleasePS/
 dlldata.c
 

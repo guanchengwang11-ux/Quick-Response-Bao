@@ -1,0 +1,19 @@
+# Third-party notices
+
+Quick Response Bao uses the following redistributable open-source packages:
+
+- ClosedXML 0.105.1 — MIT License — https://github.com/ClosedXML/ClosedXML
+- DocumentFormat.OpenXml — MIT License — https://github.com/dotnet/Open-XML-SDK
+- ClosedXML.Parser — MIT License — https://github.com/ClosedXML/ClosedXML.Parser
+- ExcelNumberFormat — MIT License — https://github.com/andersnm/ExcelNumberFormat
+- Microsoft.Data.Sqlite and SQLitePCLRaw — MIT License — https://github.com/dotnet/efcore and https://github.com/ericsink/SQLitePCL.raw
+
+The complete license notices for the Excel-related libraries are retained in the `licenses/` directory.
+
+The MIT License text applicable to these packages follows:
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the “Software”), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
