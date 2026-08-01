@@ -17,7 +17,12 @@ try {
     $status = git status --porcelain
     if ($status) { throw 'Git working tree is not clean.' }
     $branch = git branch --show-current
-    if ($branch -ne 'main') { throw "Expected branch main, found $branch." }
+    $expectedTag = "v$Version"
+    $isExactActionsTag = $env:GITHUB_ACTIONS -eq 'true' -and
+        $env:GITHUB_REF_TYPE -eq 'tag' -and $env:GITHUB_REF_NAME -eq $expectedTag
+    if ($branch -ne 'main' -and -not $isExactActionsTag) {
+        throw "Expected branch main or exact Actions tag $expectedTag, found '$branch'."
+    }
 
     if (-not $SkipBuildAndTests) {
         & (Join-Path $PSScriptRoot 'build-release-candidate.ps1') -Version $Version -SkipInstaller:$AllowMissingInstaller
