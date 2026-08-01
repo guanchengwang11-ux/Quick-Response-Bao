@@ -7,8 +7,9 @@ Quick Response Bao uses the following redistributable open-source packages:
 - ClosedXML.Parser — MIT License — https://github.com/ClosedXML/ClosedXML.Parser
 - ExcelNumberFormat — MIT License — https://github.com/andersnm/ExcelNumberFormat
 - Microsoft.Data.Sqlite and SQLitePCLRaw — MIT License — https://github.com/dotnet/efcore and https://github.com/ericsink/SQLitePCL.raw
+- Inno Setup Chinese Simplified Translation — MIT License — https://github.com/kira-96/Inno-Setup-Chinese-Simplified-Translation
 
-The complete license notices for the Excel-related libraries are retained in the `licenses/` directory.
+The complete license notices for the Excel-related libraries and installer translation are retained in the `licenses/` directory.
 
 The MIT License text applicable to these packages follows:
 

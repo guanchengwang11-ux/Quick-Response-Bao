@@ -34,6 +34,16 @@ Copy-Item -LiteralPath (Join-Path $updaterPublish 'QuickResponseBao.Updater.exe'
 Compress-Archive -Path (Join-Path $publish '*') -DestinationPath $portable -CompressionLevel Optimal
 
 if (-not $SkipInstaller) {
+    $languageDirectory = Join-Path $artifacts 'inno-languages'
+    $chineseLanguage = Join-Path $languageDirectory 'ChineseSimplified.isl'
+    $languageUrl = 'https://raw.githubusercontent.com/kira-96/Inno-Setup-Chinese-Simplified-Translation/6da09d23e14443d4cf8f07b1c5fd821bfe459788/ChineseSimplified.isl'
+    $languageHash = '869E43E7C7B8D20C7E4397C8E98F7D1B7CF0528803ACDF019AD350143EC85469'
+    New-Item -ItemType Directory -Force -Path $languageDirectory | Out-Null
+    Invoke-WebRequest -Uri $languageUrl -OutFile $chineseLanguage
+    if ((Get-FileHash -LiteralPath $chineseLanguage -Algorithm SHA256).Hash -ne $languageHash) {
+        Remove-Item -LiteralPath $chineseLanguage -Force
+        throw 'Inno Setup Chinese translation SHA-256 verification failed.'
+    }
     $iscc = if ($env:ISCC_PATH) { $env:ISCC_PATH } else { 'C:\Program Files (x86)\Inno Setup 6\ISCC.exe' }
     if (-not (Test-Path -LiteralPath $iscc)) { throw "Inno Setup compiler was not found at $iscc." }
     & $iscc (Join-Path $repositoryRoot 'installer\QuickResponseBao.iss')

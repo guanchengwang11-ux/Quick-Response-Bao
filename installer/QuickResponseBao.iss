@@ -22,7 +22,7 @@ PrivilegesRequired=lowest
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
-Name: "chinesesimplified"; MessagesFile: "compiler:Languages\ChineseSimplified.isl"
+Name: "chinesesimplified"; MessagesFile: "..\artifacts\inno-languages\ChineseSimplified.isl"
 
 [CustomMessages]
 english.RemoveUserData=Remove the Quick Response Bao user database, settings, backups and logs?%nChoose No to keep user data for reinstall or upgrade.
