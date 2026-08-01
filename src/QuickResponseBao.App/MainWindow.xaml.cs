@@ -25,6 +25,7 @@ public partial class MainWindow : Window
     public MainWindow(MainViewModel viewModel)
     {
         InitializeComponent(); DataContext = _viewModel = viewModel;
+        DashboardVersionValue.Text = ApplicationVersion.Current; AboutVersionValue.Text = $"{T("Version")} {ApplicationVersion.Current}";
         _diagnosticTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
         _diagnosticTimer.Tick += (_, _) => RefreshDiagnostics(); Loaded += (_, _) => _diagnosticTimer.Start(); Closed += (_, _) => _diagnosticTimer.Stop();
     }
@@ -174,6 +175,7 @@ public partial class MainWindow : Window
     {
         _viewModel.Settings.Language = _viewModel.Settings.Language == "en-US" ? "zh-CN" : "en-US";
         LocalizationService.Apply(_viewModel.Settings.Language); _updateWindow?.RefreshLocalization();
+        AboutVersionValue.Text = $"{T("Version")} {ApplicationVersion.Current}";
         await Runtime.SaveSettingsAsync(_viewModel.Settings); FeedbackText.Text = T("LanguageUpdated");
     }
     private async void SaveSettings_Click(object sender, RoutedEventArgs e)
@@ -204,7 +206,7 @@ public partial class MainWindow : Window
     public async Task ShowUpdateWindowAsync(UpdateCheckResult? initial = null, bool automaticDownload = false)
     {
         if (_updateWindow?.IsVisible == true) { _updateWindow.Activate(); return; }
-        var current = typeof(App).Assembly.GetName().Version?.ToString(3) ?? "1.0.0";
+        var current = ApplicationVersion.Current;
         _updateWindow = new UpdateWindow(Runtime.UpdatesClient, Runtime.Paths, current, _viewModel.Settings.IncludePrereleaseUpdates, initial);
         if (IsVisible) _updateWindow.Owner = this;
         _updateWindow.Closed += (_, _) => _updateWindow = null; _updateWindow.Show();
@@ -228,6 +230,8 @@ public partial class MainWindow : Window
         WhitelistStateValue.Text = YesNo(snapshot.IsWhitelisted); HookStateValue.Text = YesNo(snapshot.HookRunning); TextInputStateValue.Text = YesNo(snapshot.TextInputDetected);
         BufferLengthValue.Text = snapshot.SearchBufferLength.ToString(); PositionMethodValue.Text = T($"Position{snapshot.CandidatePosition}");
         LastPasteValue.Text = snapshot.LastPasteSucceeded is null ? T("NotTested") : YesNo(snapshot.LastPasteSucceeded.Value); LastFailureValue.Text = Empty(snapshot.LastFailureReason);
+        ClipboardRestoredValue.Text = snapshot.LastClipboardRestored is null ? T("NotTested") : YesNo(snapshot.LastClipboardRestored.Value);
+        LogDirectoryValue.Text = snapshot.LogDirectory;
     }
 
     private async void TestCandidate_Click(object sender, RoutedEventArgs e)
@@ -258,7 +262,7 @@ public partial class MainWindow : Window
         try
         {
             var value = Runtime.GetDiagnosticSnapshot();
-            await new SafeDiagnosticReportService().ExportAsync(dialog.FileName, value, typeof(App).Assembly.GetName().Version?.ToString(3)); FeedbackText.Text = T("DiagnosticsExported");
+            await new SafeDiagnosticReportService().ExportAsync(dialog.FileName, value, ApplicationVersion.Current); FeedbackText.Text = T("DiagnosticsExported");
         }
         catch (Exception ex) { FeedbackText.Text = $"{T("OperationFailed")}: {ex.Message}"; }
         finally { DiagnosticActions.IsEnabled = true; }

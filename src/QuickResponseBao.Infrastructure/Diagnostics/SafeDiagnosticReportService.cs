@@ -13,7 +13,8 @@ public sealed class SafeDiagnosticReportService
             snapshot.CapturedAt, ApplicationVersion = applicationVersion, OperatingSystem = Environment.OSVersion.VersionString,
             snapshot.ForegroundProcess, WindowTitleLength = snapshot.WindowTitle.Length, snapshot.IsWhitelisted, snapshot.HookRunning,
             snapshot.TextInputDetected, snapshot.SearchBufferLength, CandidatePosition = snapshot.CandidatePosition.ToString(),
-            snapshot.LastPasteSucceeded, LastFailureReason = safeFailure,
+            snapshot.LastPasteSucceeded, snapshot.LastClipboardRestored, LastFailureReason = safeFailure,
+            snapshot.LogDirectory,
             Privacy = "No keyboard buffer content, chat content, password, verification code, or clipboard content is included."
         };
         await File.WriteAllTextAsync(path, JsonSerializer.Serialize(report, new JsonSerializerOptions { WriteIndented = true }), token);

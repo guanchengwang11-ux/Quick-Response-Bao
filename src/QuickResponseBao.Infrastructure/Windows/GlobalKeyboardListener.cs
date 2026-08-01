@@ -3,6 +3,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Windows.Automation;
 using QuickResponseBao.Core.Models;
+using QuickResponseBao.Core.Services;
 
 namespace QuickResponseBao.Infrastructure.Windows;
 
@@ -63,7 +64,7 @@ public sealed class GlobalKeyboardListener : IDisposable
         var processName = string.Empty;
         try { using var process = Process.GetProcessById((int)processId); processName = $"{process.ProcessName}.exe"; } catch { }
         var titleLength = GetWindowTextLength(window); var title = new StringBuilder(Math.Max(1, titleLength + 1)); GetWindowText(window, title, title.Capacity);
-        var whitelisted = _settings.AllowedProcesses.Contains(processName, StringComparer.OrdinalIgnoreCase);
+        var whitelisted = ProcessWhitelist.Contains(_settings.AllowedProcesses, processName);
         return new InputEnvironmentInfo(processName, title.ToString(), whitelisted, DetectTextInputEnvironment(window));
     }
 
@@ -129,7 +130,7 @@ public sealed class GlobalKeyboardListener : IDisposable
         {
             using var process = Process.GetProcessById((int)processId);
             var name = $"{process.ProcessName}.exe";
-            return _settings.AllowedProcesses.Contains(name, StringComparer.OrdinalIgnoreCase);
+            return ProcessWhitelist.Contains(_settings.AllowedProcesses, name);
         }
         catch { return false; }
     }

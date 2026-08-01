@@ -23,6 +23,7 @@ public partial class App : System.Windows.Application
     private IReadOnlyList<QuickResponse> _cache = [];
     private bool _exiting;
     private bool? _lastPasteSucceeded;
+    private bool? _lastClipboardRestored;
     private string _lastFailureReason = string.Empty;
     private IReadOnlyList<string> _restartArguments = [];
     private static readonly HttpClient UpdateHttpClient = new() { Timeout = TimeSpan.FromMinutes(15) };
@@ -51,6 +52,7 @@ public partial class App : System.Windows.Application
         await ReloadCacheAsync();
         _paste = new ClipboardPasteService(); _candidates = new CandidateWindow();
         _candidates.Confirmed += CandidateConfirmed;
+        _candidates.PositionMethodChanged += (_, method) => _ = _logger?.WriteAsync($"Candidate positioning: {method}");
         Listener = new GlobalKeyboardListener(Settings);
         Listener.SearchTextChanged += (_, query) => Dispatcher.BeginInvoke(() => ShowSuggestions(query));
         Listener.SearchCancelled += (_, _) => Dispatcher.BeginInvoke(HideSuggestions);
@@ -99,14 +101,15 @@ public partial class App : System.Windows.Application
         if (!Settings.AutoPasteEnabled) return;
         try
         {
-            await _paste!.PasteAsync(response.Content, Settings.PreserveClipboard, Settings.RestoreClipboard, Settings.ClipboardRestoreDelayMs);
+            var paste = await _paste!.PasteAsync(response.Content, Settings.PreserveClipboard, Settings.RestoreClipboard, Settings.ClipboardRestoreDelayMs);
+            _lastClipboardRestored = paste.ClipboardRestored;
             _lastPasteSucceeded = true; _lastFailureReason = string.Empty;
             await Repository.IncrementUsageAsync(response.Id); await ReloadCacheAsync(); await MainAppWindow.RefreshAsync();
-            await (_logger?.WriteAsync("Paste succeeded") ?? Task.CompletedTask);
+            await (_logger?.WriteAsync($"Paste succeeded; method={paste.Method}; clipboardRestored={paste.ClipboardRestored?.ToString() ?? "not-requested"}") ?? Task.CompletedTask);
         }
         catch (Exception ex)
         {
-            _lastPasteSucceeded = false; _lastFailureReason = ex.Message;
+            _lastPasteSucceeded = false; _lastClipboardRestored = Settings.RestoreClipboard ? false : null; _lastFailureReason = ex.Message;
             await (_logger?.WriteAsync("Paste failed", ex) ?? Task.CompletedTask);
             System.Windows.MessageBox.Show($"Paste failed: {ex.Message}", "Quick Response Bao");
         }
@@ -149,8 +152,8 @@ public partial class App : System.Windows.Application
         var input = Listener.InspectEnvironment();
         return new DiagnosticSnapshot(DateTimeOffset.Now, input.ProcessName, input.WindowTitle, input.IsWhitelisted,
             Listener.IsRunning, input.TextInputDetected, Listener.BufferLength,
-            _candidates?.LastPositionMethod ?? CandidatePositionMethod.ScreenBottomRight,
-            _lastPasteSucceeded, _lastFailureReason);
+            _candidates?.LastPositionMethod ?? CandidatePositionMethod.CurrentMonitorBottomRight,
+            _lastPasteSucceeded, _lastClipboardRestored, _lastFailureReason, Paths.Logs);
     }
 
     public void TestCandidateWindow()
@@ -163,10 +166,11 @@ public partial class App : System.Windows.Application
     {
         try
         {
-            await _paste!.PasteAsync("Quick Response Bao paste test", Settings.PreserveClipboard, Settings.RestoreClipboard, Settings.ClipboardRestoreDelayMs);
+            var paste = await _paste!.PasteAsync("Quick Response Bao paste test", Settings.PreserveClipboard, Settings.RestoreClipboard, Settings.ClipboardRestoreDelayMs);
+            _lastClipboardRestored = paste.ClipboardRestored;
             _lastPasteSucceeded = true; _lastFailureReason = string.Empty;
         }
-        catch (Exception ex) { _lastPasteSucceeded = false; _lastFailureReason = ex.Message; throw; }
+        catch (Exception ex) { _lastPasteSucceeded = false; _lastClipboardRestored = Settings.RestoreClipboard ? false : null; _lastFailureReason = ex.Message; throw; }
     }
 
     public void InstallUpdate(string packagePath, ReleaseAssetKind kind)
@@ -179,7 +183,7 @@ public partial class App : System.Windows.Application
     {
         try
         {
-            var current = typeof(App).Assembly.GetName().Version?.ToString(3) ?? "1.0.0";
+            var current = ApplicationVersion.Current;
             var result = await new GitHubUpdateService(UpdateHttpClient).CheckAsync(current, Settings.IncludePrereleaseUpdates);
             if (!result.IsUpdateAvailable) return;
             var updateTask = await Dispatcher.InvokeAsync(() =>

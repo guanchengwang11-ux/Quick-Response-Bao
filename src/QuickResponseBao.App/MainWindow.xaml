@@ -23,7 +23,7 @@
           <UniformGrid Columns="3" Margin="0,20">
             <Border Background="{DynamicResource CardBlueBrush}" CornerRadius="8" Padding="18" Margin="5"><StackPanel><TextBlock Text="{DynamicResource Summary}"/><TextBlock Text="{Binding TotalCount}" FontSize="28" FontWeight="Bold"/></StackPanel></Border>
             <Border Background="{DynamicResource CardGreenBrush}" CornerRadius="8" Padding="18" Margin="5"><StackPanel><TextBlock Text="{DynamicResource Enabled}"/><TextBlock Text="{Binding EnabledCount}" FontSize="28" FontWeight="Bold"/></StackPanel></Border>
-            <Border Background="{DynamicResource CardAmberBrush}" CornerRadius="8" Padding="18" Margin="5"><StackPanel><TextBlock Text="{DynamicResource Version}"/><TextBlock Text="1.0.0" FontSize="28" FontWeight="Bold"/></StackPanel></Border>
+            <Border Background="{DynamicResource CardAmberBrush}" CornerRadius="8" Padding="18" Margin="5"><StackPanel><TextBlock Text="{DynamicResource Version}"/><TextBlock x:Name="DashboardVersionValue" FontSize="28" FontWeight="Bold"/></StackPanel></Border>
           </UniformGrid>
           <TextBlock Text="{DynamicResource Privacy}" TextWrapping="Wrap" FontSize="15" MaxWidth="700" HorizontalAlignment="Left"/>
         </StackPanel></ScrollViewer>
@@ -62,7 +62,7 @@
       <TabItem Header="{DynamicResource Settings}">
         <ScrollViewer><Grid Margin="24" MaxWidth="820" HorizontalAlignment="Left">
           <Grid.ColumnDefinitions><ColumnDefinition Width="300"/><ColumnDefinition Width="380"/></Grid.ColumnDefinitions>
-          <Grid.RowDefinitions><RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/></Grid.RowDefinitions>
+          <Grid.RowDefinitions><RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/></Grid.RowDefinitions>
           <TextBlock Grid.ColumnSpan="2" Text="{DynamicResource GeneralSettings}" FontSize="20" FontWeight="SemiBold" Margin="4,0,0,16"/>
           <TextBlock Grid.Row="1" Text="{DynamicResource MinimumTrigger}" VerticalAlignment="Center"/><TextBox Grid.Row="1" Grid.Column="1" Text="{Binding Settings.MinimumTriggerLength}"/>
           <TextBlock Grid.Row="2" Text="{DynamicResource MaximumSuggestions}" VerticalAlignment="Center"/><TextBox Grid.Row="2" Grid.Column="1" Text="{Binding Settings.MaximumSuggestions}"/>
@@ -95,7 +95,9 @@
           <TextBlock Grid.Row="7" Text="{DynamicResource PositionMethod}"/><TextBlock x:Name="PositionMethodValue" Grid.Row="7" Grid.Column="1"/>
           <TextBlock Grid.Row="8" Text="{DynamicResource LastPasteState}"/><TextBlock x:Name="LastPasteValue" Grid.Row="8" Grid.Column="1"/>
           <TextBlock Grid.Row="9" Text="{DynamicResource LastFailure}"/><TextBlock x:Name="LastFailureValue" Grid.Row="9" Grid.Column="1" TextWrapping="Wrap"/>
-          <WrapPanel x:Name="DiagnosticActions" Grid.Row="10" Grid.ColumnSpan="2" Margin="0,18,0,0">
+          <TextBlock Grid.Row="10" Text="{DynamicResource ClipboardRestored}"/><TextBlock x:Name="ClipboardRestoredValue" Grid.Row="10" Grid.Column="1"/>
+          <TextBlock Grid.Row="11" Text="{DynamicResource LogDirectory}"/><TextBlock x:Name="LogDirectoryValue" Grid.Row="11" Grid.Column="1" TextWrapping="Wrap"/>
+          <WrapPanel x:Name="DiagnosticActions" Grid.Row="12" Grid.ColumnSpan="2" Margin="0,18,0,0">
             <Button Content="{DynamicResource TestCandidate}" Click="TestCandidate_Click"/><Button Content="{DynamicResource TestPaste}" Click="TestPaste_Click"/>
             <Button Content="{DynamicResource OpenLogs}" Click="OpenLogs_Click"/><Button Content="{DynamicResource ExportDiagnostics}" Click="ExportDiagnostics_Click"/>
           </WrapPanel>
@@ -104,7 +106,7 @@
 
       <TabItem Header="{DynamicResource About}">
         <StackPanel Margin="32" MaxWidth="720" HorizontalAlignment="Left">
-          <TextBlock Text="{DynamicResource AppName}" FontSize="28" FontWeight="Bold"/><TextBlock Text="{DynamicResource Version}" FontSize="16" Margin="0,6,0,18"/>
+          <TextBlock Text="{DynamicResource AppName}" FontSize="28" FontWeight="Bold"/><TextBlock x:Name="AboutVersionValue" FontSize="16" Margin="0,6,0,18"/>
           <TextBlock Text="{DynamicResource Privacy}" TextWrapping="Wrap" FontSize="15"/>
           <Button Content="GitHub Repository" Click="OpenRepository_Click" HorizontalAlignment="Left" Margin="0,20,0,0"/>
           <Button x:Name="CheckUpdatesButton" Content="{DynamicResource CheckUpdates}" Click="CheckUpdates_Click" HorizontalAlignment="Left"/>

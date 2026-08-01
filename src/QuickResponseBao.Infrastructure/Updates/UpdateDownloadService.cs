@@ -100,7 +100,7 @@ public sealed class UpdateDownloadService(HttpClient client)
 
     private static HttpRequestMessage CreateRequest(Uri uri)
     {
-        var request = new HttpRequestMessage(HttpMethod.Get, uri); request.Headers.UserAgent.ParseAdd("QuickResponseBao/1.0.0"); return request;
+        var request = new HttpRequestMessage(HttpMethod.Get, uri); request.Headers.UserAgent.ParseAdd("QuickResponseBao-Updater/1"); return request;
     }
     private static string SafeFileName(string name) => Path.GetFileName(name) == name && !string.IsNullOrWhiteSpace(name)
         ? name : throw new InvalidDataException("The release asset has an unsafe file name.");

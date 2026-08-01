@@ -1,6 +1,14 @@
 namespace QuickResponseBao.Core.Models;
 
-public enum CandidatePositionMethod { Caret, WindowBottomRight, ScreenBottomRight }
+public enum CandidatePositionMethod { Caret, WindowBottomRight, CurrentMonitorBottomRight }
+
+public static class CandidatePositionFallback
+{
+    public static CandidatePositionMethod Resolve(bool caretAvailable, bool foregroundWindowAvailable) =>
+        caretAvailable ? CandidatePositionMethod.Caret :
+        foregroundWindowAvailable ? CandidatePositionMethod.WindowBottomRight :
+        CandidatePositionMethod.CurrentMonitorBottomRight;
+}
 
 public sealed record DiagnosticSnapshot(
     DateTimeOffset CapturedAt,
@@ -12,4 +20,6 @@ public sealed record DiagnosticSnapshot(
     int SearchBufferLength,
     CandidatePositionMethod CandidatePosition,
     bool? LastPasteSucceeded,
-    string LastFailureReason);
+    bool? LastClipboardRestored,
+    string LastFailureReason,
+    string LogDirectory);

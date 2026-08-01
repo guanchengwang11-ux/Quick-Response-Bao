@@ -5,23 +5,27 @@ namespace QuickResponseBao.App.Services;
 
 public sealed class ClipboardPasteService
 {
-    public async Task PasteAsync(string text, bool preserve, bool restore, int restoreDelayMs)
+    public async Task<PasteOperationResult> PasteAsync(string text, bool preserve, bool restore, int restoreDelayMs)
     {
         System.Windows.IDataObject? original = null;
+        var captured = false;
         if (preserve)
         {
-            try { original = CaptureClipboard(); }
+            try { original = CaptureClipboard(); captured = true; }
             catch (ExternalException) { }
         }
 
         SetClipboardTextWithRetry(text);
         SendPaste();
         await Task.Delay(Math.Clamp(restoreDelayMs, 100, 5000));
+        bool? restored = restore ? false : null;
         if (restore && original is not null)
         {
-            try { System.Windows.Clipboard.SetDataObject(original, true); }
-            catch (ExternalException) { }
+            try { System.Windows.Clipboard.SetDataObject(original, true); restored = true; }
+            catch (ExternalException) { restored = false; }
         }
+        else if (restore && !captured) restored = false;
+        return new PasteOperationResult(true, restored, "Clipboard + SendInput Ctrl+V");
     }
 
     private static System.Windows.IDataObject? CaptureClipboard()
@@ -69,3 +73,5 @@ public sealed class ClipboardPasteService
     [StructLayout(LayoutKind.Sequential)] private struct KeyboardInput { public ushort VirtualKey, ScanCode; public uint Flags, Time; public nuint ExtraInfo; }
     [DllImport("user32.dll", SetLastError = true)] private static extern uint SendInput(uint count, Input[] inputs, int size);
 }
+
+public sealed record PasteOperationResult(bool PasteSent, bool? ClipboardRestored, string Method);

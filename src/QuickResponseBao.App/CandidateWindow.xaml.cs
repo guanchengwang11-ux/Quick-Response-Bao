@@ -16,10 +16,11 @@ public partial class CandidateWindow : Window
     private IReadOnlyList<SearchResult> _results = [];
     private int _selected;
     private string _query = string.Empty;
-    public CandidatePositionMethod LastPositionMethod { get; private set; } = CandidatePositionMethod.ScreenBottomRight;
+    public CandidatePositionMethod LastPositionMethod { get; private set; } = CandidatePositionMethod.CurrentMonitorBottomRight;
 
     public CandidateWindow() { InitializeComponent(); }
     public event EventHandler<QuickResponse>? Confirmed;
+    public event EventHandler<CandidatePositionMethod>? PositionMethodChanged;
 
     public void ShowResults(string query, IReadOnlyList<SearchResult> results)
     {
@@ -80,11 +81,12 @@ public partial class CandidateWindow : Window
 
     private void PositionNearCaret()
     {
-        var position = NativeCaret.GetPosition(); LastPositionMethod = position.Method; var point = position.Point;
+        var position = NativeCaret.GetPosition(); LastPositionMethod = position.Method; PositionMethodChanged?.Invoke(this, position.Method); var point = position.Point;
         var source = PresentationSource.FromVisual(this);
         var scaleX = source?.CompositionTarget?.TransformFromDevice.M11 ?? 1;
         var scaleY = source?.CompositionTarget?.TransformFromDevice.M22 ?? 1;
-        var area = SystemParameters.WorkArea;
+        var area = new Rect(SystemParameters.VirtualScreenLeft, SystemParameters.VirtualScreenTop,
+            SystemParameters.VirtualScreenWidth, SystemParameters.VirtualScreenHeight);
         Left = Math.Clamp(point.X * scaleX, area.Left, Math.Max(area.Left, area.Right - Width));
         Top = Math.Clamp((point.Y + 24) * scaleY, area.Top, Math.Max(area.Top, area.Bottom - 500));
     }
@@ -108,17 +110,24 @@ public partial class CandidateWindow : Window
             }
             if (foreground != 0 && GetWindowRect(foreground, out var rect) && rect.Right > rect.Left && rect.Bottom > rect.Top)
                 return (new System.Windows.Point(rect.Right - 540, rect.Bottom - 520), CandidatePositionMethod.WindowBottomRight);
-            var area = SystemParameters.WorkArea;
-            return (new System.Windows.Point(area.Right - 540, area.Bottom - 520), CandidatePositionMethod.ScreenBottomRight);
+            var monitor = MonitorFromWindow(foreground, 2);
+            var monitorInfo = new MonitorInfo { Size = Marshal.SizeOf<MonitorInfo>() };
+            if (monitor != 0 && GetMonitorInfo(monitor, ref monitorInfo))
+                return (new System.Windows.Point(monitorInfo.WorkArea.Right - 540, monitorInfo.WorkArea.Bottom - 520), CandidatePositionMethod.CurrentMonitorBottomRight);
+            return (new System.Windows.Point(SystemParameters.VirtualScreenLeft + SystemParameters.VirtualScreenWidth - 540,
+                SystemParameters.VirtualScreenTop + SystemParameters.VirtualScreenHeight - 520), CandidatePositionMethod.CurrentMonitorBottomRight);
         }
         [StructLayout(LayoutKind.Sequential)] private struct GuiThreadInfo { public int Size; public uint Flags; public nint Active, Focus, Capture, MenuOwner, MoveSize, CaretWindow; public NativeRect CaretRect; }
         [StructLayout(LayoutKind.Sequential)] private struct NativeRect { public int Left, Top, Right, Bottom; }
         [StructLayout(LayoutKind.Sequential)] private struct NativePoint { public int X, Y; }
+        [StructLayout(LayoutKind.Sequential)] private struct MonitorInfo { public int Size; public NativeRect Monitor, WorkArea; public uint Flags; }
         [DllImport("user32.dll")] private static extern nint GetForegroundWindow();
         [DllImport("user32.dll")] private static extern uint GetWindowThreadProcessId(nint window, out uint process);
         [DllImport("user32.dll")] private static extern bool GetGUIThreadInfo(uint thread, ref GuiThreadInfo info);
         [DllImport("user32.dll")] private static extern bool ClientToScreen(nint window, ref NativePoint point);
         [DllImport("user32.dll")] private static extern bool GetWindowRect(nint window, out NativeRect rect);
+        [DllImport("user32.dll")] private static extern nint MonitorFromWindow(nint window, uint flags);
+        [DllImport("user32.dll", CharSet = CharSet.Auto)] private static extern bool GetMonitorInfo(nint monitor, ref MonitorInfo info);
     }
     [DllImport("user32.dll")] private static extern int GetWindowLong(nint window, int index);
     [DllImport("user32.dll")] private static extern int SetWindowLong(nint window, int index, int value);
