@@ -13,8 +13,10 @@ Quick Response Bao 是一款面向 Windows 10/11 x64 的本地话术快速搜索
 - 不抢焦点的候选窗、键盘/鼠标选择、全部匹配文字红色高亮
 - Unicode 剪贴板粘贴、延迟恢复原剪贴板，绝不模拟发送键
 - 简体中文/英文动态切换、设置持久化和双语托盘菜单
-- CSV/JSON 导入与导出、公开 GitHub Release 更新检查
-- 独立更新器、Inno Setup 安装配置、CI 与 Tag Release 工作流
+- XLSX/CSV/JSON 导入与导出、分类与批量管理、数据库备份恢复
+- 正式 GitHub Release 检查、可取消下载、SHA-256 强制校验及带回滚的独立更新器
+- 浅色、深色与跟随 Windows 主题，以及不含敏感内容的兼容性诊断页面
+- Inno Setup 安装配置、CI 与 Tag Release 工作流
 
 ## 系统与开发环境
 

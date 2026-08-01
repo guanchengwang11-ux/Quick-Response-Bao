@@ -9,18 +9,31 @@ using QuickResponseBao.Core.Models;
 using QuickResponseBao.Infrastructure.Updates;
 using QuickResponseBao.Infrastructure.ImportExport;
 using Microsoft.Win32;
+using System.Windows.Threading;
+using QuickResponseBao.Infrastructure.Diagnostics;
 
 namespace QuickResponseBao.App;
 
 public partial class MainWindow : Window
 {
     private readonly MainViewModel _viewModel;
+    private readonly DispatcherTimer _diagnosticTimer;
+    private bool _initialized;
+    private UpdateWindow? _updateWindow;
     private App Runtime => (App)System.Windows.Application.Current;
     private static string T(string key) => LocalizationService.Get(key);
-    public MainWindow(MainViewModel viewModel) { InitializeComponent(); DataContext = _viewModel = viewModel; }
+    public MainWindow(MainViewModel viewModel)
+    {
+        InitializeComponent(); DataContext = _viewModel = viewModel;
+        _diagnosticTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
+        _diagnosticTimer.Tick += (_, _) => RefreshDiagnostics(); Loaded += (_, _) => _diagnosticTimer.Start(); Closed += (_, _) => _diagnosticTimer.Stop();
+    }
     public async Task InitializeAsync(AppSettings settings)
     {
         _viewModel.Settings = settings; WhitelistText.Text = string.Join(Environment.NewLine, settings.AllowedProcesses);
+        SelectTag(ThemeBox, settings.Theme); SelectTag(UpdateBehaviorBox, settings.AutoDownloadUpdates ? "Download" : "Notify");
+        StartupUpdateCheckBox.IsChecked = settings.CheckUpdatesOnStartup; PrereleaseCheckBox.IsChecked = settings.IncludePrereleaseUpdates;
+        _initialized = true;
         await _viewModel.RefreshAsync(); UpdateListenerDisplay();
     }
     public Task RefreshAsync() => _viewModel.RefreshAsync();
@@ -154,29 +167,105 @@ public partial class MainWindow : Window
     private void ToggleListener_Click(object sender, RoutedEventArgs e) { if (Runtime.Listener.IsRunning) Runtime.PauseListener(); else Runtime.TryStartListener(); UpdateListenerDisplay(); }
     private void UpdateListenerDisplay()
     {
-        if (Runtime.Listener?.IsRunning == true) { ListenerStatus.SetResourceReference(TextBlock.TextProperty, "ListenerEnabled"); ListenerButton.SetResourceReference(ContentControl.ContentProperty, "Pause"); ListenerStatus.Foreground = System.Windows.Media.Brushes.ForestGreen; }
-        else { ListenerStatus.SetResourceReference(TextBlock.TextProperty, "ListenerPaused"); ListenerButton.SetResourceReference(ContentControl.ContentProperty, "Resume"); ListenerStatus.Foreground = System.Windows.Media.Brushes.DarkGoldenrod; }
+        if (Runtime.Listener?.IsRunning == true) { ListenerStatus.SetResourceReference(TextBlock.TextProperty, "ListenerEnabled"); ListenerButton.SetResourceReference(ContentControl.ContentProperty, "Pause"); ListenerStatus.SetResourceReference(TextBlock.ForegroundProperty, "SuccessBrush"); }
+        else { ListenerStatus.SetResourceReference(TextBlock.TextProperty, "ListenerPaused"); ListenerButton.SetResourceReference(ContentControl.ContentProperty, "Resume"); ListenerStatus.SetResourceReference(TextBlock.ForegroundProperty, "WarningBrush"); }
     }
     private async void SwitchLanguage_Click(object sender, RoutedEventArgs e)
     {
         _viewModel.Settings.Language = _viewModel.Settings.Language == "en-US" ? "zh-CN" : "en-US";
-        LocalizationService.Apply(_viewModel.Settings.Language); await Runtime.SaveSettingsAsync(_viewModel.Settings); FeedbackText.Text = "Language updated.";
+        LocalizationService.Apply(_viewModel.Settings.Language); _updateWindow?.RefreshLocalization();
+        await Runtime.SaveSettingsAsync(_viewModel.Settings); FeedbackText.Text = T("LanguageUpdated");
     }
     private async void SaveSettings_Click(object sender, RoutedEventArgs e)
     {
         _viewModel.Settings.AllowedProcesses = WhitelistText.Text.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList();
-        try { await Runtime.SaveSettingsAsync(_viewModel.Settings); FeedbackText.Text = "Settings saved."; }
-        catch (Exception ex) { FeedbackText.Text = $"Settings could not be saved: {ex.Message}"; }
+        _viewModel.Settings.CheckUpdatesOnStartup = StartupUpdateCheckBox.IsChecked == true;
+        _viewModel.Settings.AutoDownloadUpdates = SelectedTag(UpdateBehaviorBox) == "Download";
+        _viewModel.Settings.NotifyOnlyForUpdates = !_viewModel.Settings.AutoDownloadUpdates;
+        _viewModel.Settings.IncludePrereleaseUpdates = PrereleaseCheckBox.IsChecked == true;
+        SaveSettingsButton.IsEnabled = false; FeedbackText.Text = T("Loading");
+        try { await Runtime.SaveSettingsAsync(_viewModel.Settings); FeedbackText.Text = T("SettingsSaved"); }
+        catch (Exception ex) { FeedbackText.Text = $"{T("OperationFailed")}: {ex.Message}"; }
+        finally { SaveSettingsButton.IsEnabled = true; }
     }
     private void OpenRepository_Click(object sender, RoutedEventArgs e) => Process.Start(new ProcessStartInfo("https://github.com/guanchengwang11-ux/Quick-Response-Bao") { UseShellExecute = true });
     private async void CheckUpdates_Click(object sender, RoutedEventArgs e)
     {
-        FeedbackText.Text = "Checking for updates…";
+        CheckUpdatesButton.IsEnabled = false; FeedbackText.Text = T("CheckingUpdates");
         try
         {
-            var update = await new GitHubUpdateService(new HttpClient()).CheckAsync("1.0.0");
-            FeedbackText.Text = update is null ? (_viewModel.Settings.Language == "en-US" ? "You’re using the latest version." : "当前已经是最新版本。") : $"Version {update.Version} is available.";
+            await ShowUpdateWindowAsync();
+            FeedbackText.Text = T("UpdateWindowOpened");
         }
-        catch (Exception ex) { FeedbackText.Text = $"Update check failed: {ex.Message}"; }
+        catch (Exception ex) { FeedbackText.Text = $"{T("UpdateCheckFailed")}: {ex.Message}"; }
+        finally { CheckUpdatesButton.IsEnabled = true; }
     }
+
+    public async Task ShowUpdateWindowAsync(UpdateCheckResult? initial = null, bool automaticDownload = false)
+    {
+        if (_updateWindow?.IsVisible == true) { _updateWindow.Activate(); return; }
+        var current = typeof(App).Assembly.GetName().Version?.ToString(3) ?? "1.0.0";
+        _updateWindow = new UpdateWindow(Runtime.UpdatesClient, Runtime.Paths, current, _viewModel.Settings.IncludePrereleaseUpdates, initial);
+        if (IsVisible) _updateWindow.Owner = this;
+        _updateWindow.Closed += (_, _) => _updateWindow = null; _updateWindow.Show();
+        if (automaticDownload) await _updateWindow.StartAutomaticDownloadAsync();
+    }
+
+    private async void ThemeBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (!_initialized || SelectedTag(ThemeBox) is not { } theme) return;
+        _viewModel.Settings.Theme = theme; ThemeBox.IsEnabled = false;
+        try { await Runtime.SaveSettingsAsync(_viewModel.Settings); FeedbackText.Text = T("ThemeApplied"); }
+        catch (Exception ex) { FeedbackText.Text = $"{T("OperationFailed")}: {ex.Message}"; }
+        finally { ThemeBox.IsEnabled = true; }
+    }
+
+    private void RefreshDiagnostics()
+    {
+        if (!_initialized || MainTabs.SelectedItem != DiagnosticsTab) return;
+        var snapshot = Runtime.GetDiagnosticSnapshot();
+        ForegroundProcessValue.Text = Empty(snapshot.ForegroundProcess); WindowTitleValue.Text = Empty(snapshot.WindowTitle);
+        WhitelistStateValue.Text = YesNo(snapshot.IsWhitelisted); HookStateValue.Text = YesNo(snapshot.HookRunning); TextInputStateValue.Text = YesNo(snapshot.TextInputDetected);
+        BufferLengthValue.Text = snapshot.SearchBufferLength.ToString(); PositionMethodValue.Text = T($"Position{snapshot.CandidatePosition}");
+        LastPasteValue.Text = snapshot.LastPasteSucceeded is null ? T("NotTested") : YesNo(snapshot.LastPasteSucceeded.Value); LastFailureValue.Text = Empty(snapshot.LastFailureReason);
+    }
+
+    private async void TestCandidate_Click(object sender, RoutedEventArgs e)
+    {
+        DiagnosticActions.IsEnabled = false; FeedbackText.Text = T("SwitchToTargetHint");
+        try { WindowState = WindowState.Minimized; await Task.Delay(2000); Runtime.TestCandidateWindow(); FeedbackText.Text = T("Succeeded"); }
+        catch (Exception ex) { FeedbackText.Text = $"{T("OperationFailed")}: {ex.Message}"; }
+        finally { DiagnosticActions.IsEnabled = true; }
+    }
+    private async void TestPaste_Click(object sender, RoutedEventArgs e)
+    {
+        if (System.Windows.MessageBox.Show(T("PasteTestConfirm"), T("Diagnostics"), MessageBoxButton.YesNo, MessageBoxImage.Information) != MessageBoxResult.Yes) return;
+        DiagnosticActions.IsEnabled = false; FeedbackText.Text = T("SwitchToTargetHint"); WindowState = WindowState.Minimized;
+        try { await Task.Delay(2000); await Runtime.TestPasteAsync(); FeedbackText.Text = T("Succeeded"); }
+        catch (Exception ex) { FeedbackText.Text = $"{T("OperationFailed")}: {ex.Message}"; }
+        finally { DiagnosticActions.IsEnabled = true; RefreshDiagnostics(); }
+    }
+    private void OpenLogs_Click(object sender, RoutedEventArgs e)
+    {
+        try { Process.Start(new ProcessStartInfo("explorer.exe", Runtime.Paths.Logs) { UseShellExecute = true }); FeedbackText.Text = T("Succeeded"); }
+        catch (Exception ex) { FeedbackText.Text = $"{T("OperationFailed")}: {ex.Message}"; }
+    }
+    private async void ExportDiagnostics_Click(object sender, RoutedEventArgs e)
+    {
+        var dialog = new Microsoft.Win32.SaveFileDialog { Filter = "JSON|*.json", FileName = $"QuickResponseBao-diagnostics-{DateTime.Now:yyyyMMdd-HHmmss}.json" };
+        if (dialog.ShowDialog(this) != true) return;
+        DiagnosticActions.IsEnabled = false; FeedbackText.Text = T("Loading");
+        try
+        {
+            var value = Runtime.GetDiagnosticSnapshot();
+            await new SafeDiagnosticReportService().ExportAsync(dialog.FileName, value, typeof(App).Assembly.GetName().Version?.ToString(3)); FeedbackText.Text = T("DiagnosticsExported");
+        }
+        catch (Exception ex) { FeedbackText.Text = $"{T("OperationFailed")}: {ex.Message}"; }
+        finally { DiagnosticActions.IsEnabled = true; }
+    }
+
+    private static string? SelectedTag(System.Windows.Controls.ComboBox box) => (box.SelectedItem as ComboBoxItem)?.Tag?.ToString();
+    private static void SelectTag(System.Windows.Controls.ComboBox box, string value) => box.SelectedItem = box.Items.Cast<ComboBoxItem>().FirstOrDefault(x => string.Equals(x.Tag?.ToString(), value, StringComparison.OrdinalIgnoreCase));
+    private static string Empty(string value) => string.IsNullOrWhiteSpace(value) ? T("Unavailable") : value;
+    private static string YesNo(bool value) => T(value ? "Yes" : "No");
 }

@@ -1,4 +1,5 @@
 using System.Drawing;
+using System.Net.Http;
 using System.Windows;
 using QuickResponseBao.App.Services;
 using QuickResponseBao.App.ViewModels;
@@ -8,6 +9,7 @@ using QuickResponseBao.Core.Services;
 using QuickResponseBao.Infrastructure.Diagnostics;
 using QuickResponseBao.Infrastructure.Storage;
 using QuickResponseBao.Infrastructure.Windows;
+using QuickResponseBao.Infrastructure.Updates;
 using Forms = System.Windows.Forms;
 
 namespace QuickResponseBao.App;
@@ -20,6 +22,10 @@ public partial class App : System.Windows.Application
     private SafeFileLogger? _logger;
     private IReadOnlyList<QuickResponse> _cache = [];
     private bool _exiting;
+    private bool? _lastPasteSucceeded;
+    private string _lastFailureReason = string.Empty;
+    private IReadOnlyList<string> _restartArguments = [];
+    private static readonly HttpClient UpdateHttpClient = new() { Timeout = TimeSpan.FromMinutes(15) };
 
     public AppPaths Paths { get; private set; } = null!;
     public IQuickResponseRepository Repository { get; private set; } = null!;
@@ -30,12 +36,15 @@ public partial class App : System.Windows.Application
     public GlobalKeyboardListener Listener { get; private set; } = null!;
     public MainWindow MainAppWindow { get; private set; } = null!;
     public SearchService SearchService { get; } = new();
+    public ThemeService ThemeService { get; private set; } = null!;
+    public HttpClient UpdatesClient => UpdateHttpClient;
 
     protected override async void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e); ShutdownMode = ShutdownMode.OnExplicitShutdown;
+        _restartArguments = e.Args;
         Paths = new AppPaths(); SettingsStore = new JsonSettingsStore(Paths); Settings = await SettingsStore.LoadAsync();
-        LocalizationService.Apply(Settings.Language);
+        LocalizationService.Apply(Settings.Language); ThemeService = new ThemeService(this); ThemeService.ThemeChanged += (_, _) => UpdateTray(); ThemeService.Apply(Settings.Theme);
         Repository = new SqliteQuickResponseRepository(Paths); await Repository.InitializeAsync();
         BackupService = new DatabaseBackupService(Paths);
         _logger = new SafeFileLogger(Paths); await _logger.WriteAsync("Application started");
@@ -52,6 +61,7 @@ public partial class App : System.Windows.Application
         MainAppWindow.Closing += MainWindowClosing;
         await MainAppWindow.InitializeAsync(Settings);
         if (!Settings.StartMinimized) MainAppWindow.Show();
+        if (Settings.CheckUpdatesOnStartup) _ = CheckUpdatesOnStartupAsync();
         DispatcherUnhandledException += async (_, args) =>
         {
             await (_logger?.WriteAsync("Unhandled exception", args.Exception) ?? Task.CompletedTask);
@@ -62,15 +72,15 @@ public partial class App : System.Windows.Application
     public async Task ReloadCacheAsync() => _cache = await Repository.GetAllAsync();
     public void TryStartListener()
     {
-        try { Listener.Start(); }
-        catch (Exception ex) { _ = _logger?.WriteAsync("Listener failed", ex); }
+        try { Listener.Start(); if (Listener.IsRunning) _lastFailureReason = string.Empty; }
+        catch (Exception ex) { _lastFailureReason = $"Hook: {ex.Message}"; _ = _logger?.WriteAsync("Listener failed", ex); }
         UpdateTray();
     }
     public void PauseListener() { Listener.Stop(); HideSuggestions(); _ = _logger?.WriteAsync("Listener paused"); UpdateTray(); }
 
     public async Task SaveSettingsAsync(AppSettings settings)
     {
-        Settings = settings; await SettingsStore.SaveAsync(settings); Listener.UpdateSettings(settings); UpdateTray();
+        Settings = settings; ThemeService.Apply(settings.Theme); await SettingsStore.SaveAsync(settings); Listener.UpdateSettings(settings); UpdateTray();
     }
 
     private void ShowSuggestions(string query)
@@ -90,11 +100,13 @@ public partial class App : System.Windows.Application
         try
         {
             await _paste!.PasteAsync(response.Content, Settings.PreserveClipboard, Settings.RestoreClipboard, Settings.ClipboardRestoreDelayMs);
+            _lastPasteSucceeded = true; _lastFailureReason = string.Empty;
             await Repository.IncrementUsageAsync(response.Id); await ReloadCacheAsync(); await MainAppWindow.RefreshAsync();
             await (_logger?.WriteAsync("Paste succeeded") ?? Task.CompletedTask);
         }
         catch (Exception ex)
         {
+            _lastPasteSucceeded = false; _lastFailureReason = ex.Message;
             await (_logger?.WriteAsync("Paste failed", ex) ?? Task.CompletedTask);
             System.Windows.MessageBox.Show($"Paste failed: {ex.Message}", "Quick Response Bao");
         }
@@ -109,11 +121,14 @@ public partial class App : System.Windows.Application
     {
         if (_tray is null) return; var chinese = Settings.Language != "en-US";
         var menu = new Forms.ContextMenuStrip();
+        var surface = (System.Windows.Media.SolidColorBrush)FindResource("SurfaceBrush"); var text = (System.Windows.Media.SolidColorBrush)FindResource("TextBrush");
+        menu.BackColor = Color.FromArgb(surface.Color.A, surface.Color.R, surface.Color.G, surface.Color.B); menu.ForeColor = Color.FromArgb(text.Color.A, text.Color.R, text.Color.G, text.Color.B);
         menu.Items.Add(chinese ? "打开 Quick Response Bao" : "Open Quick Response Bao", null, (_, _) => ShowMainWindow());
         menu.Items.Add(Listener?.IsRunning == true ? (chinese ? "暂停话术检索" : "Pause response search") : (chinese ? "启用话术检索" : "Enable response search"), null, (_, _) => { if (Listener?.IsRunning == true) PauseListener(); else TryStartListener(); });
         menu.Items.Add(chinese ? "新增话术" : "Add response", null, (_, _) => { ShowMainWindow(); MainAppWindow.AddResponse(); });
         menu.Items.Add(chinese ? "设置" : "Settings", null, (_, _) => { ShowMainWindow(); MainAppWindow.OpenSettings(); });
         menu.Items.Add(chinese ? "退出" : "Exit", null, (_, _) => ExitApplication());
+        foreach (Forms.ToolStripItem item in menu.Items) { item.BackColor = menu.BackColor; item.ForeColor = menu.ForeColor; }
         _tray.ContextMenuStrip?.Dispose(); _tray.ContextMenuStrip = menu;
     }
     private void ShowMainWindow() { MainAppWindow.Show(); MainAppWindow.WindowState = WindowState.Normal; MainAppWindow.Activate(); }
@@ -125,7 +140,52 @@ public partial class App : System.Windows.Application
     }
     public async void ExitApplication()
     {
-        _exiting = true; Listener?.Dispose(); _tray?.Dispose(); _candidates?.Close();
+        _exiting = true; Listener?.Dispose(); ThemeService?.Dispose(); _tray?.Dispose(); _candidates?.Close();
         await (_logger?.WriteAsync("Application exited") ?? Task.CompletedTask); MainAppWindow?.Close(); Shutdown();
+    }
+
+    public DiagnosticSnapshot GetDiagnosticSnapshot()
+    {
+        var input = Listener.InspectEnvironment();
+        return new DiagnosticSnapshot(DateTimeOffset.Now, input.ProcessName, input.WindowTitle, input.IsWhitelisted,
+            Listener.IsRunning, input.TextInputDetected, Listener.BufferLength,
+            _candidates?.LastPositionMethod ?? CandidatePositionMethod.ScreenBottomRight,
+            _lastPasteSucceeded, _lastFailureReason);
+    }
+
+    public void TestCandidateWindow()
+    {
+        var sample = new QuickResponse { Summary = Settings.Language == "en-US" ? "Compatibility test" : "兼容性测试", Content = Settings.Language == "en-US" ? "Candidate window positioning test" : "候选窗口定位测试", Keywords = ["test"] };
+        _candidates!.ShowResults("test", [new SearchResult(sample, 1)]); Listener.SuggestionsVisible = true;
+    }
+
+    public async Task TestPasteAsync()
+    {
+        try
+        {
+            await _paste!.PasteAsync("Quick Response Bao paste test", Settings.PreserveClipboard, Settings.RestoreClipboard, Settings.ClipboardRestoreDelayMs);
+            _lastPasteSucceeded = true; _lastFailureReason = string.Empty;
+        }
+        catch (Exception ex) { _lastPasteSucceeded = false; _lastFailureReason = ex.Message; throw; }
+    }
+
+    public void InstallUpdate(string packagePath, ReleaseAssetKind kind)
+    {
+        new UpdateInstallerLauncher(Paths).Launch(packagePath, kind, AppContext.BaseDirectory, "QuickResponseBao.exe", _restartArguments);
+        ExitApplication();
+    }
+
+    private async Task CheckUpdatesOnStartupAsync()
+    {
+        try
+        {
+            var current = typeof(App).Assembly.GetName().Version?.ToString(3) ?? "1.0.0";
+            var result = await new GitHubUpdateService(UpdateHttpClient).CheckAsync(current, Settings.IncludePrereleaseUpdates);
+            if (!result.IsUpdateAvailable) return;
+            var updateTask = await Dispatcher.InvokeAsync(() =>
+                MainAppWindow.ShowUpdateWindowAsync(result, Settings.AutoDownloadUpdates));
+            await updateTask;
+        }
+        catch (Exception ex) { await (_logger?.WriteAsync("Startup update check failed", ex) ?? Task.CompletedTask); }
     }
 }

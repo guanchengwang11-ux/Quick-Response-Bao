@@ -25,6 +25,7 @@ public sealed class AppSettings
     public bool CheckUpdatesOnStartup { get; set; } = true;
     public bool AutoDownloadUpdates { get; set; }
     public bool NotifyOnlyForUpdates { get; set; } = true;
+    public bool IncludePrereleaseUpdates { get; set; }
     public List<string> AllowedProcesses { get; set; } =
         ["Lark.exe", "Telegram.exe", "Discord.exe", "chrome.exe", "msedge.exe"];
 
@@ -33,6 +34,8 @@ public sealed class AppSettings
         MinimumTriggerLength = Math.Clamp(MinimumTriggerLength, 2, 20);
         MaximumSuggestions = Math.Clamp(MaximumSuggestions, 3, 30);
         ClipboardRestoreDelayMs = Math.Clamp(ClipboardRestoreDelayMs, 100, 5000);
+        Theme = ThemeMode.Normalize(Theme);
+        if (AutoDownloadUpdates) NotifyOnlyForUpdates = false;
         AllowedProcesses = AllowedProcesses.Where(x => !string.IsNullOrWhiteSpace(x))
             .Select(x => x.Trim()).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
     }

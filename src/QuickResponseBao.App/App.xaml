@@ -6,6 +6,7 @@
     <ResourceDictionary>
       <ResourceDictionary.MergedDictionaries>
         <ResourceDictionary Source="Resources/Theme.xaml" />
+        <ResourceDictionary Source="Resources/Themes/Light.xaml" />
         <ResourceDictionary Source="Resources/Strings.zh-CN.xaml" />
       </ResourceDictionary.MergedDictionaries>
       <converters:ZeroToVisibilityConverter x:Key="ZeroToVisibilityConverter" />

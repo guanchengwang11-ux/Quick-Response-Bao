@@ -16,6 +16,7 @@ public partial class CandidateWindow : Window
     private IReadOnlyList<SearchResult> _results = [];
     private int _selected;
     private string _query = string.Empty;
+    public CandidatePositionMethod LastPositionMethod { get; private set; } = CandidatePositionMethod.ScreenBottomRight;
 
     public CandidateWindow() { InitializeComponent(); }
     public event EventHandler<QuickResponse>? Confirmed;
@@ -56,10 +57,10 @@ public partial class CandidateWindow : Window
             var border = new Border
             {
                 Child = stack, Padding = new Thickness(12, 9, 12, 9), Margin = new Thickness(2), CornerRadius = new CornerRadius(5),
-                Background = i == _selected ? new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(232, 240, 254)) : System.Windows.Media.Brushes.Transparent,
-                BorderBrush = i == _selected ? (System.Windows.Media.Brush)FindResource("PrimaryBrush") : System.Windows.Media.Brushes.Transparent,
+                Background = System.Windows.Media.Brushes.Transparent, BorderBrush = System.Windows.Media.Brushes.Transparent,
                 BorderThickness = new Thickness(i == _selected ? 1 : 0)
             };
+            if (i == _selected) { border.SetResourceReference(Border.BackgroundProperty, "SelectionBrush"); border.SetResourceReference(Border.BorderBrushProperty, "PrimaryBrush"); }
             border.MouseEnter += (_, _) => { _selected = index; Rebuild(); };
             border.MouseLeftButtonUp += (_, _) => Confirmed?.Invoke(this, response);
             ItemsPanel.Children.Add(border);
@@ -69,13 +70,17 @@ public partial class CandidateWindow : Window
     private TextBlock CreateHighlighted(string text, bool bold, double size = 13)
     {
         var block = new TextBlock { TextWrapping = TextWrapping.Wrap, FontSize = size, FontWeight = bold ? FontWeights.SemiBold : FontWeights.Normal, Margin = new Thickness(0, 1, 0, 3) };
-        foreach (var part in _highlight.Split(text, _query)) block.Inlines.Add(new Run(part.Text) { Foreground = part.IsMatch ? (System.Windows.Media.Brush)FindResource("HighlightBrush") : (System.Windows.Media.Brush)FindResource("TextBrush"), FontWeight = part.IsMatch ? FontWeights.Bold : block.FontWeight });
+        foreach (var part in _highlight.Split(text, _query))
+        {
+            var run = new Run(part.Text) { FontWeight = part.IsMatch ? FontWeights.Bold : block.FontWeight };
+            run.SetResourceReference(TextElement.ForegroundProperty, part.IsMatch ? "HighlightBrush" : "TextBrush"); block.Inlines.Add(run);
+        }
         return block;
     }
 
     private void PositionNearCaret()
     {
-        var point = NativeCaret.GetPosition();
+        var position = NativeCaret.GetPosition(); LastPositionMethod = position.Method; var point = position.Point;
         var source = PresentationSource.FromVisual(this);
         var scaleX = source?.CompositionTarget?.TransformFromDevice.M11 ?? 1;
         var scaleY = source?.CompositionTarget?.TransformFromDevice.M22 ?? 1;
@@ -92,16 +97,19 @@ public partial class CandidateWindow : Window
 
     private static class NativeCaret
     {
-        public static System.Windows.Point GetPosition()
+        public static (System.Windows.Point Point, CandidatePositionMethod Method) GetPosition()
         {
             var foreground = GetForegroundWindow(); GetWindowThreadProcessId(foreground, out _);
             var info = new GuiThreadInfo { Size = Marshal.SizeOf<GuiThreadInfo>() };
             if (GetGUIThreadInfo(0, ref info) && info.CaretWindow != 0)
             {
                 var p = new NativePoint { X = info.CaretRect.Left, Y = info.CaretRect.Bottom };
-                ClientToScreen(info.CaretWindow, ref p); return new System.Windows.Point(p.X, p.Y);
+                ClientToScreen(info.CaretWindow, ref p); return (new System.Windows.Point(p.X, p.Y), CandidatePositionMethod.Caret);
             }
-            GetWindowRect(foreground, out var rect); return new System.Windows.Point(rect.Right - 540, rect.Bottom - 520);
+            if (foreground != 0 && GetWindowRect(foreground, out var rect) && rect.Right > rect.Left && rect.Bottom > rect.Top)
+                return (new System.Windows.Point(rect.Right - 540, rect.Bottom - 520), CandidatePositionMethod.WindowBottomRight);
+            var area = SystemParameters.WorkArea;
+            return (new System.Windows.Point(area.Right - 540, area.Bottom - 520), CandidatePositionMethod.ScreenBottomRight);
         }
         [StructLayout(LayoutKind.Sequential)] private struct GuiThreadInfo { public int Size; public uint Flags; public nint Active, Focus, Capture, MenuOwner, MoveSize, CaretWindow; public NativeRect CaretRect; }
         [StructLayout(LayoutKind.Sequential)] private struct NativeRect { public int Left, Top, Right, Bottom; }

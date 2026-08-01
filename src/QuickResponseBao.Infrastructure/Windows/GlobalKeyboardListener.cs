@@ -28,6 +28,7 @@ public sealed class GlobalKeyboardListener : IDisposable
     public event EventHandler<NavigationKey>? NavigationRequested;
     public bool IsRunning => _hook != 0;
     public bool SuggestionsVisible { get; set; }
+    public int BufferLength => _buffer.Length;
 
     public void UpdateSettings(AppSettings settings) => _settings = settings;
 
@@ -52,6 +53,18 @@ public sealed class GlobalKeyboardListener : IDisposable
     {
         _buffer.Clear();
         SearchCancelled?.Invoke(this, EventArgs.Empty);
+    }
+
+    public InputEnvironmentInfo InspectEnvironment()
+    {
+        var window = GetForegroundWindow();
+        if (window == 0 || window == GetShellWindow()) return new InputEnvironmentInfo(string.Empty, string.Empty, false, false);
+        GetWindowThreadProcessId(window, out var processId);
+        var processName = string.Empty;
+        try { using var process = Process.GetProcessById((int)processId); processName = $"{process.ProcessName}.exe"; } catch { }
+        var titleLength = GetWindowTextLength(window); var title = new StringBuilder(Math.Max(1, titleLength + 1)); GetWindowText(window, title, title.Capacity);
+        var whitelisted = _settings.AllowedProcesses.Contains(processName, StringComparer.OrdinalIgnoreCase);
+        return new InputEnvironmentInfo(processName, title.ToString(), whitelisted, DetectTextInputEnvironment(window));
     }
 
     private nint HookCallback(int code, nint wParam, nint lParam)
@@ -136,6 +149,23 @@ public sealed class GlobalKeyboardListener : IDisposable
         catch { return true; }
     }
 
+    private static bool DetectTextInputEnvironment(nint foreground)
+    {
+        var thread = GetWindowThreadProcessId(foreground, out _);
+        var info = new GuiThreadInfo { Size = Marshal.SizeOf<GuiThreadInfo>() };
+        if (!GetGUIThreadInfo(thread, ref info) || info.Focus == 0 || (GetWindowLong(info.Focus, -16) & 0x20) != 0) return false;
+        try
+        {
+            var element = AutomationElement.FocusedElement;
+            if (element?.GetCurrentPropertyValue(AutomationElement.IsPasswordProperty, true) is true) return false;
+            if (element is not null && (element.TryGetCurrentPattern(ValuePattern.Pattern, out _) || element.TryGetCurrentPattern(TextPattern.Pattern, out _))) return true;
+            var type = element?.Current.ControlType; if (type == ControlType.Edit || type == ControlType.Document) return true;
+        }
+        catch { }
+        var className = new StringBuilder(128); GetClassName(info.Focus, className, className.Capacity);
+        return className.ToString().Contains("Edit", StringComparison.OrdinalIgnoreCase) || className.ToString().Contains("Rich", StringComparison.OrdinalIgnoreCase);
+    }
+
     private static bool TryGetLetter(uint virtualKey, out char letter)
     {
         letter = default;
@@ -190,7 +220,11 @@ public sealed class GlobalKeyboardListener : IDisposable
     [DllImport("user32.dll")] private static extern short GetKeyState(int key);
     [DllImport("user32.dll")] private static extern bool GetGUIThreadInfo(uint thread, ref GuiThreadInfo info);
     [DllImport("user32.dll")] private static extern int GetWindowLong(nint window, int index);
+    [DllImport("user32.dll", CharSet = CharSet.Unicode)] private static extern int GetWindowText(nint window, StringBuilder text, int maximumCount);
+    [DllImport("user32.dll")] private static extern int GetWindowTextLength(nint window);
+    [DllImport("user32.dll", CharSet = CharSet.Unicode)] private static extern int GetClassName(nint window, StringBuilder className, int maximumCount);
     [DllImport("kernel32.dll", CharSet = CharSet.Unicode)] private static extern nint GetModuleHandle(string? moduleName);
 }
 
 public enum NavigationKey { None, Up, Down, PageUp, PageDown, Confirm, Cancel }
+public sealed record InputEnvironmentInfo(string ProcessName, string WindowTitle, bool IsWhitelisted, bool TextInputDetected);
