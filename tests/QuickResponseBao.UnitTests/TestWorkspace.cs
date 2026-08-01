@@ -13,5 +13,23 @@ internal sealed class TestWorkspace : IDisposable
     public string Root { get; }
     public AppPaths Paths { get; }
     public SqliteQuickResponseRepository Repository { get; }
-    public void Dispose() { if (Directory.Exists(Root)) Directory.Delete(Root, true); }
+    public void Dispose()
+    {
+        for (var attempt = 0; Directory.Exists(Root); attempt++)
+        {
+            try
+            {
+                Directory.Delete(Root, true);
+                return;
+            }
+            catch (IOException) when (attempt < 19)
+            {
+                Thread.Sleep(50 * (attempt + 1));
+            }
+            catch (UnauthorizedAccessException) when (attempt < 19)
+            {
+                Thread.Sleep(50 * (attempt + 1));
+            }
+        }
+    }
 }
