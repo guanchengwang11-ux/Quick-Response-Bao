@@ -77,25 +77,22 @@ public partial class MainWindow : Window
         try
         {
             FeedbackText.Text = T("Loading"); LibraryToolbar.IsEnabled = false;
+            ExcelImportOutcome outcome;
             if (Path.GetExtension(dialog.FileName).Equals(".xlsx", StringComparison.OrdinalIgnoreCase))
             {
                 var excel = new ExcelQuickResponseService(); var preview = await excel.PreviewAsync(dialog.FileName);
                 var mapping = new ImportPreviewWindow(preview, excel.SuggestMapping(preview.Headers)) { Owner = this };
                 if (mapping.ShowDialog() != true) return;
-                var outcome = await excel.ImportAsync(dialog.FileName, mapping.Mapping);
-                var persisted = 0; var failures = outcome.Result.Failures.ToList();
-                foreach (var item in outcome.Items)
-                {
-                    try { await Runtime.Repository.UpsertAsync(item.Response); persisted++; }
-                    catch (Exception ex) { failures.Add(new ImportFailure(item.RowNumber, ex.Message)); }
-                }
-                var result = outcome.Result with { Succeeded = persisted, Failed = failures.Count, Failures = failures };
-                await Runtime.ReloadCacheAsync(); await _viewModel.RefreshAsync(); ShowImportResult(result); return;
+                outcome = await excel.ImportAsync(dialog.FileName, mapping.Mapping);
             }
-            var files = new QuickResponseFileService(); var items = Path.GetExtension(dialog.FileName).Equals(".json", StringComparison.OrdinalIgnoreCase)
-                ? await files.ImportJsonAsync(dialog.FileName) : await files.ImportCsvAsync(dialog.FileName);
-            foreach (var item in items) await Runtime.Repository.UpsertAsync(item);
-            await ChangedAsync(string.Format(T("ImportSucceededCount"), items.Count));
+            else
+            {
+                var files = new QuickResponseFileService();
+                outcome = Path.GetExtension(dialog.FileName).Equals(".json", StringComparison.OrdinalIgnoreCase)
+                    ? await files.ImportJsonOutcomeAsync(dialog.FileName) : await files.ImportCsvOutcomeAsync(dialog.FileName);
+            }
+            var result = await new QuickResponseImportCoordinator(Runtime.Repository).PersistAsync(outcome);
+            await Runtime.ReloadCacheAsync(); await _viewModel.RefreshAsync(); ShowImportResult(result);
         }
         catch (Exception ex) { ReportError("Import failed", T("ImportFailed"), ex); }
         finally { LibraryToolbar.IsEnabled = true; }
@@ -118,10 +115,17 @@ public partial class MainWindow : Window
     }
     private void ShowImportResult(DetailedImportResult result)
     {
-        var details = string.Join(Environment.NewLine, result.Failures.Take(10).Select(x => $"#{x.RowNumber}: {x.Reason}"));
-        var text = $"{T("Total")}: {result.Total}\n{T("Succeeded")}: {result.Succeeded}\n{T("Failed")}: {result.Failed}\n{T("Skipped")}: {result.Skipped}";
+        var details = string.Join(Environment.NewLine, result.Failures.Concat(result.SkippedDetails ?? []).Take(20)
+            .Select(x => $"#{x.RowNumber}: {ImportReason(x)}"));
+        var text = $"{T("Total")}: {result.Total}\n{T("Succeeded")}: {result.Succeeded}\n{T("ValidationFailed")}: {result.Failed}\n{T("DuplicateSkipped")}: {result.DuplicateSkipped}\n{T("OtherSkipped")}: {result.OtherSkipped}";
         if (details.Length > 0) text += $"\n\n{details}";
         FeedbackText.Text = text.ReplaceLineEndings(" · "); System.Windows.MessageBox.Show(text, T("ImportComplete"));
+    }
+
+    private static string ImportReason(ImportFailure failure)
+    {
+        var localized = T(failure.Reason);
+        return failure.ReferenceRow is { } row ? string.Format(localized, row) : localized;
     }
 
     private IReadOnlyList<Guid> SelectedIds() => ResponsesGrid.SelectedItems.Cast<QuickResponse>().Select(x => x.Id).Distinct().ToList();

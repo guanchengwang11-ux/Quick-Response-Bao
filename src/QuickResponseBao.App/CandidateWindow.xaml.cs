@@ -5,6 +5,7 @@ using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media;
+using System.Windows.Threading;
 using QuickResponseBao.Core.Models;
 using QuickResponseBao.Core.Services;
 
@@ -17,6 +18,7 @@ public partial class CandidateWindow : Window
     private int _selected;
     private string _query = string.Empty;
     private CandidateSearchContext? _context;
+    private readonly List<Border> _itemBorders = [];
     public CandidatePositionMethod LastPositionMethod { get; private set; } = CandidatePositionMethod.CurrentMonitorBottomRight;
     public nint WindowHandle => new WindowInteropHelper(this).EnsureHandle();
 
@@ -29,6 +31,11 @@ public partial class CandidateWindow : Window
         _context = context; _query = context.NormalizedQuery; _results = results; _selected = 0;
         Rebuild(); PositionNearCaret();
         if (!IsVisible) Show();
+        Dispatcher.BeginInvoke(DispatcherPriority.Loaded, () =>
+        {
+            Scroller.ScrollToTop();
+            EnsureSelectedVisible();
+        });
     }
 
     public void Dismiss()
@@ -53,12 +60,16 @@ public partial class CandidateWindow : Window
             Infrastructure.Windows.NavigationKey.PageDown => 5,
             _ => 0
         };
-        _selected = Math.Clamp(_selected + change, 0, _results.Count - 1); Rebuild();
+        var previous = _selected;
+        _selected = Math.Clamp(_selected + change, 0, _results.Count - 1);
+        UpdateSelection(previous, _selected);
+        EnsureSelectedVisible();
     }
 
     private void Rebuild()
     {
         ItemsPanel.Children.Clear();
+        _itemBorders.Clear();
         for (var i = 0; i < _results.Count; i++)
         {
             var index = i; var response = _results[i].Response;
@@ -73,10 +84,48 @@ public partial class CandidateWindow : Window
                 BorderThickness = new Thickness(i == _selected ? 1 : 0)
             };
             if (i == _selected) { border.SetResourceReference(Border.BackgroundProperty, "SelectionBrush"); border.SetResourceReference(Border.BorderBrushProperty, "PrimaryBrush"); }
-            border.MouseEnter += (_, _) => { _selected = index; Rebuild(); };
+            border.MouseEnter += (_, _) =>
+            {
+                var previous = _selected;
+                _selected = index;
+                UpdateSelection(previous, _selected);
+            };
             border.MouseLeftButtonUp += (_, _) => Confirm(CandidateConfirmationMethod.Mouse, response);
-            ItemsPanel.Children.Add(border);
+            _itemBorders.Add(border); ItemsPanel.Children.Add(border);
         }
+    }
+
+    private void CandidateWindow_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
+    {
+        Scroller.ScrollToVerticalOffset(ScrollViewportPolicy.WheelOffset(
+            Scroller.VerticalOffset, e.Delta, Scroller.ScrollableHeight));
+        e.Handled = true;
+    }
+
+    private void UpdateSelection(int previous, int current)
+    {
+        if (previous >= 0 && previous < _itemBorders.Count) ApplySelection(_itemBorders[previous], false);
+        if (current >= 0 && current < _itemBorders.Count) ApplySelection(_itemBorders[current], true);
+    }
+
+    private static void ApplySelection(Border border, bool selected)
+    {
+        border.BorderThickness = new Thickness(selected ? 1 : 0);
+        if (selected)
+        {
+            border.SetResourceReference(Border.BackgroundProperty, "SelectionBrush");
+            border.SetResourceReference(Border.BorderBrushProperty, "PrimaryBrush");
+        }
+        else
+        {
+            border.Background = System.Windows.Media.Brushes.Transparent;
+            border.BorderBrush = System.Windows.Media.Brushes.Transparent;
+        }
+    }
+
+    private void EnsureSelectedVisible()
+    {
+        if (_selected >= 0 && _selected < _itemBorders.Count) _itemBorders[_selected].BringIntoView();
     }
 
     private void Confirm(CandidateConfirmationMethod method, QuickResponse response)

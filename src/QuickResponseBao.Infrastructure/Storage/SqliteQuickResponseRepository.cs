@@ -3,6 +3,7 @@ using System.Text.Json;
 using Microsoft.Data.Sqlite;
 using QuickResponseBao.Core.Interfaces;
 using QuickResponseBao.Core.Models;
+using QuickResponseBao.Core.Services;
 
 namespace QuickResponseBao.Infrastructure.Storage;
 
@@ -75,8 +76,10 @@ public sealed class SqliteQuickResponseRepository(AppPaths paths) : IQuickRespon
 
     public async Task UpsertAsync(QuickResponse item, CancellationToken cancellationToken = default)
     {
-        if (item.Summary.Trim().Length is < 2 or > 150) throw new ArgumentException("Summary must contain 2-150 characters.");
+        if (!QuickResponseRules.IsSummaryValid(item.Summary)) throw new ArgumentException("Summary must contain 2-150 characters.");
         if (string.IsNullOrWhiteSpace(item.Content)) throw new ArgumentException("Content is required.");
+        if (item.Content.Length > QuickResponseRules.MaximumContentLength) throw new ArgumentException("Response content must not exceed 300 characters.");
+        item.Keywords = KeywordNormalizer.Normalize(item.Keywords);
         item.Category = NormalizeCategoryName(string.IsNullOrWhiteSpace(item.Category) ? "General" : item.Category);
         item.UpdatedAt = DateTimeOffset.UtcNow;
         await using var connection = await OpenAsync(cancellationToken);
@@ -330,7 +333,7 @@ public sealed class SqliteQuickResponseRepository(AppPaths paths) : IQuickRespon
         Id = Guid.Parse(r.GetString(r.GetOrdinal("id"))),
         Summary = r.GetString(r.GetOrdinal("summary")),
         Content = r.GetString(r.GetOrdinal("content")),
-        Keywords = JsonSerializer.Deserialize<List<string>>(r.GetString(r.GetOrdinal("keywords_json"))) ?? [],
+        Keywords = KeywordNormalizer.Normalize(JsonSerializer.Deserialize<List<string>>(r.GetString(r.GetOrdinal("keywords_json"))) ?? []),
         Category = r.GetString(r.GetOrdinal("category")),
         Language = r.GetString(r.GetOrdinal("language")),
         IsEnabled = r.GetInt32(r.GetOrdinal("is_enabled")) != 0,

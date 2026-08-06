@@ -2,6 +2,7 @@ using System.Windows;
 using System.Windows.Controls;
 using QuickResponseBao.App.Services;
 using QuickResponseBao.Core.Models;
+using QuickResponseBao.Core.Services;
 
 namespace QuickResponseBao.App;
 
@@ -16,20 +17,39 @@ public partial class ResponseEditorWindow : Window
         KeywordsText.Text = string.Join("; ", Response.Keywords); CategoryText.Text = DisplayCategory(Response.Category);
         EnabledBox.IsChecked = Response.IsEnabled;
         LanguageBox.SelectedIndex = Response.Language == "简体中文" ? 1 : 0;
+        RefreshContentFeedback();
     }
     public QuickResponse Response { get; }
     private void Save_Click(object sender, RoutedEventArgs e)
     {
-        var summaryValid = SummaryText.Text.Trim().Length is >= 2 and <= 150;
-        var contentValid = !string.IsNullOrWhiteSpace(ContentText.Text);
+        var summaryValid = QuickResponseRules.IsSummaryValid(SummaryText.Text);
+        var contentValid = QuickResponseRules.IsContentValid(ContentText.Text);
         SummaryError.Visibility = summaryValid ? Visibility.Collapsed : Visibility.Visible;
         ContentError.Visibility = contentValid ? Visibility.Collapsed : Visibility.Visible;
+        ContentError.Text = string.IsNullOrWhiteSpace(ContentText.Text)
+            ? LocalizationService.Get("ValidationContent") : LocalizationService.Get("ValidationContentLength");
         if (!summaryValid || !contentValid) return;
         Response.Summary = SummaryText.Text.Trim(); Response.Content = ContentText.Text;
-        Response.Keywords = KeywordsText.Text.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+        Response.Keywords = KeywordNormalizer.Parse(KeywordsText.Text);
         Response.Category = StorageCategory(CategoryText.Text);
         Response.Language = (LanguageBox.SelectedItem as ComboBoxItem)?.Tag?.ToString() ?? "English";
         Response.IsEnabled = EnabledBox.IsChecked == true; DialogResult = true;
+    }
+
+    private void ContentText_TextChanged(object sender, TextChangedEventArgs e) => RefreshContentFeedback();
+
+    private void RefreshContentFeedback()
+    {
+        if (ContentCounter is null || ContentError is null) return;
+        ContentCounter.Text = $"{ContentText.Text.Length} / {QuickResponseRules.MaximumContentLength}";
+        var tooLong = ContentText.Text.Length > QuickResponseRules.MaximumContentLength;
+        ContentCounter.SetResourceReference(TextBlock.ForegroundProperty, tooLong ? "ErrorBrush" : "MutedTextBrush");
+        if (tooLong)
+        {
+            ContentError.Text = LocalizationService.Get("ValidationContentLength");
+            ContentError.Visibility = Visibility.Visible;
+        }
+        else if (!string.IsNullOrWhiteSpace(ContentText.Text)) ContentError.Visibility = Visibility.Collapsed;
     }
 
     private static string DisplayCategory(string value) => value.Equals("General", StringComparison.OrdinalIgnoreCase)

@@ -11,6 +11,7 @@
       <StackPanel Margin="4"><TextBlock Text="{DynamicResource Category}"/><ComboBox x:Name="CategoryBox"/></StackPanel>
       <StackPanel Margin="4"><TextBlock Text="{DynamicResource Language}"/><ComboBox x:Name="LanguageBox"/></StackPanel>
       <StackPanel Margin="4"><TextBlock Text="{DynamicResource IsEnabled}"/><ComboBox x:Name="EnabledBox"/></StackPanel>
+      <StackPanel Margin="4"><TextBlock Text="{DynamicResource SortOrder}"/><ComboBox x:Name="SortOrderBox"/></StackPanel>
     </UniformGrid>
     <DockPanel Grid.Row="4"><TextBlock x:Name="SummaryText" VerticalAlignment="Center"/><StackPanel DockPanel.Dock="Right" Orientation="Horizontal" HorizontalAlignment="Right"><Button Content="{DynamicResource StartImport}" Click="Import_Click" IsDefault="True"/><Button Content="{DynamicResource Cancel}" IsCancel="True"/></StackPanel></DockPanel>
   </Grid>

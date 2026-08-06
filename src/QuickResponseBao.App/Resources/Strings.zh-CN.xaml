@@ -57,7 +57,7 @@
   <sys:String x:Key="Copy">复制</sys:String><sys:String x:Key="GitHubRepository">GitHub 仓库</sys:String>
   <sys:String x:Key="CaptureCountdown">请切换到目标应用，将在 {0} 秒后捕获…</sys:String><sys:String x:Key="ApplicationCaptured">已捕获并添加：{0}</sys:String><sys:String x:Key="CaptureApplicationFailed">未能捕获前台应用。</sys:String><sys:String x:Key="ApplicationAlreadyAllowed">该应用已在白名单中。</sys:String><sys:String x:Key="WhitelistSaved">应用白名单已保存。</sys:String>
   <sys:String x:Key="PasteFailedTitle">粘贴失败</sys:String><sys:String x:Key="PasteFailedWin32">粘贴失败：无法向目标窗口发送粘贴快捷键。错误代码：{0}。</sys:String><sys:String x:Key="PasteFailedElevation">粘贴失败：{0} 正以管理员身份运行，而 Quick Response Bao 不是。请让两个程序使用相同权限级别。</sys:String>
-  <sys:String x:Key="KeywordsHint">关键词（使用分号分隔）</sys:String><sys:String x:Key="ValidationSummary">摘要必须包含 2–150 个字符。</sys:String><sys:String x:Key="ValidationContent">话术正文为必填项。</sys:String><sys:String x:Key="EnglishLanguage">英文</sys:String><sys:String x:Key="ChineseLanguage">简体中文</sys:String><sys:String x:Key="Required">必填</sys:String>
+  <sys:String x:Key="KeywordsHint">关键词（支持中英文分号、逗号或换行分隔）</sys:String><sys:String x:Key="ValidationSummary">摘要必须包含 2–150 个字符。</sys:String><sys:String x:Key="ValidationContent">话术正文为必填项。</sys:String><sys:String x:Key="ValidationContentLength">话术正文不能超过 300 个字符。</sys:String><sys:String x:Key="EnglishLanguage">英文</sys:String><sys:String x:Key="ChineseLanguage">简体中文</sys:String><sys:String x:Key="Required">必填</sys:String>
   <sys:String x:Key="GeneralCategory">常规</sys:String><sys:String x:Key="UncategorizedCategory">未分类</sys:String>
   <sys:String x:Key="ResponseSaved">话术已保存。</sys:String><sys:String x:Key="ResponseUpdated">话术已更新。</sys:String><sys:String x:Key="ResponseDuplicated">话术已复制。</sys:String><sys:String x:Key="ResponseDeleted">话术已删除。</sys:String><sys:String x:Key="ResponseEnabled">话术已启用。</sys:String><sys:String x:Key="ResponseDisabled">话术已停用。</sys:String>
   <sys:String x:Key="LanguageUpdated">语言已切换。</sys:String>
@@ -66,6 +66,8 @@
   <sys:String x:Key="ExportFileFilter">Excel 工作簿|*.xlsx|JSON|*.json|CSV|*.csv</sys:String>
   <sys:String x:Key="DatabaseFileFilter">Quick Response Bao 数据库|*.db|所有文件|*.*</sys:String>
   <sys:String x:Key="ImportSucceededCount">已导入 {0} 条话术。</sys:String><sys:String x:Key="ImportFailed">导入失败</sys:String>
+  <sys:String x:Key="SortOrder">排序权重</sys:String><sys:String x:Key="ValidationFailed">验证失败</sys:String><sys:String x:Key="DuplicateSkipped">重复跳过</sys:String><sys:String x:Key="OtherSkipped">其他跳过</sys:String>
+  <sys:String x:Key="ImportSummaryInvalid">摘要必须包含 2–150 个字符。</sys:String><sys:String x:Key="ImportContentRequired">话术正文为必填项。</sys:String><sys:String x:Key="ImportContentTooLong">话术正文超过 300 个字符。</sys:String><sys:String x:Key="ImportEnabledInvalid">无法识别启用状态。</sys:String><sys:String x:Key="ImportSortOrderInvalid">排序权重必须是整数。</sys:String><sys:String x:Key="ImportRowMustBeObject">JSON 记录必须是对象。</sys:String><sys:String x:Key="ImportDuplicateExisting">与话术库中已有记录完全一致。</sys:String><sys:String x:Key="ImportDuplicateCurrent">与本次导入的第 {0} 行完全一致。</sys:String>
   <sys:String x:Key="ExportSucceededCount">已导出 {0} 条话术。</sys:String><sys:String x:Key="ExportFailed">导出失败</sys:String>
   <sys:String x:Key="PasteSentCount">SendInput 已发送事件数（应为 4）</sys:String><sys:String x:Key="PasteErrorCode">SendInput Win32 错误码</sys:String><sys:String x:Key="PasteInputSize">原生 INPUT 结构大小</sys:String>
   <sys:String x:Key="PasteTargetProcess">粘贴目标进程</sys:String><sys:String x:Key="PasteSamePermission">权限级别是否一致</sys:String>

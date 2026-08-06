@@ -8,47 +8,92 @@ public sealed record ImportResult(int Total, int Succeeded, int Failed, IReadOnl
 
 public sealed class QuickResponseFileService
 {
-    private static readonly JsonSerializerOptions JsonOptions = new() { WriteIndented = true };
+    private static readonly JsonSerializerOptions JsonOptions = new() { WriteIndented = true, PropertyNameCaseInsensitive = true };
 
     public async Task ExportJsonAsync(string path, IEnumerable<QuickResponse> items, CancellationToken token = default) =>
         await File.WriteAllTextAsync(path, JsonSerializer.Serialize(items, JsonOptions), Encoding.UTF8, token);
 
     public async Task<IReadOnlyList<QuickResponse>> ImportJsonAsync(string path, CancellationToken token = default)
-    {
-        await using var stream = File.OpenRead(path);
-        return await JsonSerializer.DeserializeAsync<List<QuickResponse>>(stream, JsonOptions, token) ?? [];
-    }
+        => (await ImportJsonOutcomeAsync(path, token)).Items.Select(x => x.Response).ToList();
 
     public async Task ExportCsvAsync(string path, IEnumerable<QuickResponse> items, CancellationToken token = default)
     {
-        var rows = new List<string> { "Summary,Content,Keywords,Category,Language,IsEnabled" };
+        var rows = new List<string> { "Summary,Content,Keywords,Category,Language,IsEnabled,SortOrder" };
         rows.AddRange(items.Select(x => string.Join(',', Csv(x.Summary), Csv(x.Content),
-            Csv(string.Join(';', x.Keywords)), Csv(x.Category), Csv(x.Language), x.IsEnabled)));
+            Csv(string.Join(';', x.Keywords)), Csv(x.Category), Csv(x.Language), x.IsEnabled, x.SortOrder)));
         await File.WriteAllLinesAsync(path, rows, new UTF8Encoding(true), token);
     }
 
     public async Task<IReadOnlyList<QuickResponse>> ImportCsvAsync(string path, CancellationToken token = default)
+        => (await ImportCsvOutcomeAsync(path, token)).Items.Select(x => x.Response).ToList();
+
+    public async Task<ExcelImportOutcome> ImportJsonOutcomeAsync(string path, CancellationToken token = default)
     {
-        var text = await File.ReadAllTextAsync(path, token);
-        var rows = ParseCsv(text); if (rows.Count == 0) return [];
-        var headers = rows[0].Select((name, index) => (name: name.Trim(), index))
-            .ToDictionary(x => x.name, x => x.index, StringComparer.OrdinalIgnoreCase);
-        string Field(IReadOnlyList<string> row, string name) => headers.TryGetValue(name, out var i) && i < row.Count ? row[i] : string.Empty;
-        var result = new List<QuickResponse>();
-        foreach (var row in rows.Skip(1))
+        await using var stream = File.OpenRead(path);
+        using var document = await JsonDocument.ParseAsync(stream, cancellationToken: token);
+        if (document.RootElement.ValueKind != JsonValueKind.Array) throw new InvalidDataException("JSON import root must be an array.");
+        var items = new List<ExcelImportItem>(); var failures = new List<ImportFailure>(); var rowNumber = 0;
+        foreach (var element in document.RootElement.EnumerateArray())
         {
-            var summary = Field(row, "Summary"); var content = Field(row, "Content");
-            if (summary.Trim().Length < 2 || string.IsNullOrWhiteSpace(content)) continue;
-            result.Add(new QuickResponse
+            token.ThrowIfCancellationRequested(); rowNumber++;
+            try
             {
-                Summary = summary.Trim(), Content = content,
-                Keywords = Field(row, "Keywords").Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList(),
-                Category = string.IsNullOrWhiteSpace(Field(row, "Category")) ? "General" : Field(row, "Category"),
-                Language = string.IsNullOrWhiteSpace(Field(row, "Language")) ? "English" : Field(row, "Language"),
-                IsEnabled = !bool.TryParse(Field(row, "IsEnabled"), out var enabled) || enabled
-            });
+                if (element.ValueKind != JsonValueKind.Object) throw new InvalidDataException("ImportRowMustBeObject");
+                var properties = element.EnumerateObject().ToList();
+                var mapping = QuickResponseImportParser.SuggestMapping(properties.Select(x => x.Name));
+                EnsureRequired(mapping);
+                string Field(QuickResponseField field) => mapping.Get(field) is { } name
+                    ? JsonValue(properties.First(x => x.Name == name).Value) : string.Empty;
+                var includesSortOrder = mapping.Get(QuickResponseField.SortOrder) is not null;
+                items.Add(new ExcelImportItem(rowNumber, QuickResponseImportParser.Create(Field(QuickResponseField.Summary),
+                    Field(QuickResponseField.Content), Field(QuickResponseField.Keywords), Field(QuickResponseField.Category),
+                    Field(QuickResponseField.Language), Field(QuickResponseField.IsEnabled), Field(QuickResponseField.SortOrder), includesSortOrder), includesSortOrder));
+            }
+            catch (Exception ex) when (ex is InvalidDataException or FormatException)
+            { failures.Add(new ImportFailure(rowNumber, ex.Message)); }
         }
-        return result;
+        return new ExcelImportOutcome(items, new DetailedImportResult(rowNumber, items.Count, failures.Count, 0, failures));
+    }
+
+    public async Task<ExcelImportOutcome> ImportCsvOutcomeAsync(string path, CancellationToken token = default)
+    {
+        var rows = ParseCsv(await File.ReadAllTextAsync(path, token));
+        if (rows.Count == 0) return new ExcelImportOutcome([], new DetailedImportResult(0, 0, 0, 0, []));
+        var headers = rows[0]; var mapping = QuickResponseImportParser.SuggestMapping(headers); EnsureRequired(mapping);
+        var columns = headers.Select((name, index) => (normalized: QuickResponseImportParser.NormalizeHeader(name), index))
+            .ToDictionary(x => x.normalized, x => x.index, StringComparer.Ordinal);
+        string Field(IReadOnlyList<string> row, QuickResponseField field) => mapping.Get(field) is { } name &&
+            columns.TryGetValue(QuickResponseImportParser.NormalizeHeader(name), out var index) && index < row.Count ? row[index] : string.Empty;
+        var items = new List<ExcelImportItem>(); var failures = new List<ImportFailure>();
+        for (var index = 1; index < rows.Count; index++)
+        {
+            token.ThrowIfCancellationRequested(); var row = rows[index]; var rowNumber = index + 1;
+            try
+            {
+                var includesSortOrder = mapping.Get(QuickResponseField.SortOrder) is not null;
+                items.Add(new ExcelImportItem(rowNumber, QuickResponseImportParser.Create(Field(row, QuickResponseField.Summary),
+                    Field(row, QuickResponseField.Content), Field(row, QuickResponseField.Keywords), Field(row, QuickResponseField.Category),
+                    Field(row, QuickResponseField.Language), Field(row, QuickResponseField.IsEnabled), Field(row, QuickResponseField.SortOrder), includesSortOrder), includesSortOrder));
+            }
+            catch (Exception ex) when (ex is InvalidDataException or FormatException)
+            { failures.Add(new ImportFailure(rowNumber, ex.Message)); }
+        }
+        return new ExcelImportOutcome(items, new DetailedImportResult(rows.Count - 1, items.Count, failures.Count, 0, failures));
+    }
+
+    private static string JsonValue(JsonElement value) => value.ValueKind switch
+    {
+        JsonValueKind.String => value.GetString() ?? string.Empty,
+        JsonValueKind.True => "true",
+        JsonValueKind.False => "false",
+        JsonValueKind.Null => string.Empty,
+        _ => value.GetRawText()
+    };
+
+    private static void EnsureRequired(ImportFieldMapping mapping)
+    {
+        if (mapping.Get(QuickResponseField.Summary) is null || mapping.Get(QuickResponseField.Content) is null)
+            throw new InvalidDataException("RequiredMapping");
     }
 
     private static List<List<string>> ParseCsv(string text)

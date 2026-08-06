@@ -5,7 +5,10 @@
     <TextBlock Text="{DynamicResource Summary}" FontWeight="SemiBold"/><TextBlock Text=" *" Foreground="{DynamicResource ErrorBrush}" Margin="70,0,0,0"/>
     <StackPanel Grid.Row="1"><TextBox x:Name="SummaryText" MaxLength="150"/><TextBlock x:Name="SummaryError" Text="{DynamicResource ValidationSummary}" Foreground="{DynamicResource ErrorBrush}" Margin="5,2" Visibility="Collapsed" TextWrapping="Wrap"/></StackPanel>
     <TextBlock Grid.Row="2" Text="{DynamicResource Content}" FontWeight="SemiBold" Margin="0,12,0,0"/>
-    <Grid Grid.Row="3"><Grid.RowDefinitions><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions><TextBox x:Name="ContentText" AcceptsReturn="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" MinHeight="190"/><TextBlock x:Name="ContentError" Grid.Row="1" Text="{DynamicResource ValidationContent}" Foreground="{DynamicResource ErrorBrush}" Margin="5,2" Visibility="Collapsed" TextWrapping="Wrap"/></Grid>
+    <Grid Grid.Row="3"><Grid.RowDefinitions><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+      <TextBox x:Name="ContentText" AcceptsReturn="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" MinHeight="190" TextChanged="ContentText_TextChanged"/>
+      <DockPanel Grid.Row="1" Margin="5,2"><TextBlock x:Name="ContentError" Text="{DynamicResource ValidationContent}" Foreground="{DynamicResource ErrorBrush}" Visibility="Collapsed" TextWrapping="Wrap"/><TextBlock x:Name="ContentCounter" DockPanel.Dock="Right" HorizontalAlignment="Right" Foreground="{DynamicResource MutedTextBrush}"/></DockPanel>
+    </Grid>
     <Grid Grid.Row="4" Margin="0,14,0,0"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition/></Grid.ColumnDefinitions>
       <StackPanel Margin="0,0,8,0"><TextBlock Text="{DynamicResource KeywordsHint}" FontWeight="SemiBold"/><TextBox x:Name="KeywordsText"/></StackPanel>
       <StackPanel Grid.Column="1" Margin="8,0,0,0"><TextBlock Text="{DynamicResource Category}" FontWeight="SemiBold"/><TextBox x:Name="CategoryText"/></StackPanel>

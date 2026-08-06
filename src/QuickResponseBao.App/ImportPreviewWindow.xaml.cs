@@ -20,6 +20,7 @@ public partial class ImportPreviewWindow : Window
         Select(SummaryBox, suggested.Get(QuickResponseField.Summary)); Select(ContentBox, suggested.Get(QuickResponseField.Content));
         Select(KeywordsBox, suggested.Get(QuickResponseField.Keywords)); Select(CategoryBox, suggested.Get(QuickResponseField.Category));
         Select(LanguageBox, suggested.Get(QuickResponseField.Language)); Select(EnabledBox, suggested.Get(QuickResponseField.IsEnabled));
+        Select(SortOrderBox, suggested.Get(QuickResponseField.SortOrder));
         SummaryText.Text = $"{LocalizationService.Get("Total")}: {preview.TotalRows}";
     }
     public ImportFieldMapping Mapping { get; private set; } = new(new Dictionary<QuickResponseField, string>());
@@ -28,10 +29,10 @@ public partial class ImportPreviewWindow : Window
         if (string.IsNullOrWhiteSpace(SummaryBox.SelectedItem?.ToString()) || string.IsNullOrWhiteSpace(ContentBox.SelectedItem?.ToString()))
         { System.Windows.MessageBox.Show(LocalizationService.Get("RequiredMapping"), LocalizationService.Get("ImportPreview")); return; }
         var pairs = new Dictionary<QuickResponseField, string>(); Add(pairs, QuickResponseField.Summary, SummaryBox); Add(pairs, QuickResponseField.Content, ContentBox);
-        Add(pairs, QuickResponseField.Keywords, KeywordsBox); Add(pairs, QuickResponseField.Category, CategoryBox); Add(pairs, QuickResponseField.Language, LanguageBox); Add(pairs, QuickResponseField.IsEnabled, EnabledBox);
+        Add(pairs, QuickResponseField.Keywords, KeywordsBox); Add(pairs, QuickResponseField.Category, CategoryBox); Add(pairs, QuickResponseField.Language, LanguageBox); Add(pairs, QuickResponseField.IsEnabled, EnabledBox); Add(pairs, QuickResponseField.SortOrder, SortOrderBox);
         Mapping = new ImportFieldMapping(pairs); DialogResult = true;
     }
-    private IEnumerable<ComboBox> Boxes() => [SummaryBox, ContentBox, KeywordsBox, CategoryBox, LanguageBox, EnabledBox];
+    private IEnumerable<ComboBox> Boxes() => [SummaryBox, ContentBox, KeywordsBox, CategoryBox, LanguageBox, EnabledBox, SortOrderBox];
     private static void Select(ComboBox box, string? value) => box.SelectedItem = value ?? string.Empty;
     private static void Add(IDictionary<QuickResponseField, string> target, QuickResponseField field, ComboBox box)
     { if (box.SelectedItem?.ToString() is { Length: > 0 } value) target[field] = value; }
