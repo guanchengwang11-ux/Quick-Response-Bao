@@ -57,6 +57,9 @@ jobs:
           gh release download v1.0.1 --dir artifacts/release-download --pattern 'Quick-Response-Bao-Setup-1.0.1-x64.exe' --pattern 'Quick-Response-Bao-Portable-1.0.1-x64.zip' --pattern 'checksums.txt'
       - name: Verify downloaded checksums, installation, startup and user-data retention
         shell: pwsh
+        timeout-minutes: 10
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           $download = Join-Path $PWD 'artifacts/release-download'
           $manifest = Get-Content (Join-Path $download 'checksums.txt') -Raw

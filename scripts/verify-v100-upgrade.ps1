@@ -55,7 +55,10 @@ try {
         Set-Content -LiteralPath $path -Value $relative -Encoding utf8
     }
 
-    $latest = Invoke-RestMethod -Uri 'https://api.github.com/repos/guanchengwang11-ux/Quick-Response-Bao/releases/latest'
+    Write-Host 'Checking the authenticated public latest-release endpoint.'
+    $releaseHeaders = @{ Accept = 'application/vnd.github+json'; 'User-Agent' = 'QuickResponseBao-upgrade-verification' }
+    if ($env:GH_TOKEN) { $releaseHeaders.Authorization = "Bearer $env:GH_TOKEN" }
+    $latest = Invoke-RestMethod -Uri 'https://api.github.com/repos/guanchengwang11-ux/Quick-Response-Bao/releases/latest' -Headers $releaseHeaders -TimeoutSec 30
     if ($latest.tag_name -ne 'v1.0.1' -or $latest.draft -or $latest.prerelease) { throw 'The public latest-release endpoint did not return stable v1.0.1.' }
     $requiredAssets = @('Quick-Response-Bao-Setup-1.0.1-x64.exe', 'Quick-Response-Bao-Portable-1.0.1-x64.zip', 'checksums.txt')
     foreach ($name in $requiredAssets) {
