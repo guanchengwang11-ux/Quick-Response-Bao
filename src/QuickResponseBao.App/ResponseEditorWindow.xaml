@@ -7,7 +7,7 @@
     <TextBlock Grid.Row="2" Text="{DynamicResource Content}" FontWeight="SemiBold" Margin="0,12,0,0"/>
     <Grid Grid.Row="3"><Grid.RowDefinitions><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
       <TextBox x:Name="ContentText" AcceptsReturn="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" MinHeight="190" TextChanged="ContentText_TextChanged"/>
-      <DockPanel Grid.Row="1" Margin="5,2"><TextBlock x:Name="ContentError" Text="{DynamicResource ValidationContent}" Foreground="{DynamicResource ErrorBrush}" Visibility="Collapsed" TextWrapping="Wrap"/><TextBlock x:Name="ContentCounter" DockPanel.Dock="Right" HorizontalAlignment="Right" Foreground="{DynamicResource MutedTextBrush}"/></DockPanel>
+      <DockPanel Grid.Row="1" Margin="5,2"><TextBlock x:Name="ContentError" Text="{DynamicResource ValidationContent}" Foreground="{DynamicResource ErrorBrush}" Visibility="Collapsed" TextWrapping="Wrap"/><TextBlock x:Name="ContentCounter" DockPanel.Dock="Right" HorizontalAlignment="Right" Foreground="{DynamicResource MutedTextBrush}" TextWrapping="Wrap" TextAlignment="Right"/></DockPanel>
     </Grid>
     <Grid Grid.Row="4" Margin="0,14,0,0"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition/></Grid.ColumnDefinitions>
       <StackPanel Margin="0,0,8,0"><TextBlock Text="{DynamicResource KeywordsHint}" FontWeight="SemiBold"/><TextBox x:Name="KeywordsText"/></StackPanel>

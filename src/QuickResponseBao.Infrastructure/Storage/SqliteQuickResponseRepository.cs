@@ -78,7 +78,8 @@ public sealed class SqliteQuickResponseRepository(AppPaths paths) : IQuickRespon
     {
         if (!QuickResponseRules.IsSummaryValid(item.Summary)) throw new ArgumentException("Summary must contain 2-150 characters.");
         if (string.IsNullOrWhiteSpace(item.Content)) throw new ArgumentException("Content is required.");
-        if (item.Content.Length > QuickResponseRules.MaximumContentLength) throw new ArgumentException("Response content must not exceed 300 characters.");
+        var contentValidationError = QuickResponseRules.GetContentValidationErrorCode(item.Content);
+        if (!string.IsNullOrEmpty(contentValidationError)) throw new ArgumentException(contentValidationError);
         item.Keywords = KeywordNormalizer.Normalize(item.Keywords);
         item.Category = NormalizeCategoryName(string.IsNullOrWhiteSpace(item.Category) ? "General" : item.Category);
         item.UpdatedAt = DateTimeOffset.UtcNow;

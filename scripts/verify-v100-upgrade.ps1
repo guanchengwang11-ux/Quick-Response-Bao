@@ -48,7 +48,7 @@ try {
     if (-not (Test-Path -LiteralPath $database)) { throw 'v1.0.0 did not create the user database.' }
     $databaseHash = (Get-FileHash -LiteralPath $database -Algorithm SHA256).Hash
 
-    $sentinels = @('config\upgrade-101.json', 'backups\upgrade-101.bak', 'logs\upgrade-101.log')
+    $sentinels = @('config\upgrade-102.json', 'backups\upgrade-102.bak', 'logs\upgrade-102.log')
     foreach ($relative in $sentinels) {
         $path = Join-Path $userData $relative
         New-Item -ItemType Directory -Force -Path (Split-Path $path) | Out-Null
@@ -59,20 +59,20 @@ try {
     $releaseHeaders = @{ Accept = 'application/vnd.github+json'; 'User-Agent' = 'QuickResponseBao-upgrade-verification' }
     if ($env:GH_TOKEN) { $releaseHeaders.Authorization = "Bearer $env:GH_TOKEN" }
     $latest = Invoke-RestMethod -Uri 'https://api.github.com/repos/guanchengwang11-ux/Quick-Response-Bao/releases/latest' -Headers $releaseHeaders -TimeoutSec 30
-    if ($latest.tag_name -ne 'v1.0.1' -or $latest.draft -or $latest.prerelease) { throw 'The public latest-release endpoint did not return stable v1.0.1.' }
-    $requiredAssets = @('Quick-Response-Bao-Setup-1.0.1-x64.exe', 'Quick-Response-Bao-Portable-1.0.1-x64.zip', 'checksums.txt')
+    if ($latest.tag_name -ne 'v1.0.2' -or $latest.draft -or $latest.prerelease) { throw 'The public latest-release endpoint did not return stable v1.0.2.' }
+    $requiredAssets = @('Quick-Response-Bao-Setup-1.0.2-x64.exe', 'Quick-Response-Bao-Portable-1.0.2-x64.zip', 'checksums.txt')
     foreach ($name in $requiredAssets) {
         if ($latest.assets.name -notcontains $name) { throw "The update release is missing asset $name" }
     }
 
-    Invoke-Installer $currentSetupPath 'v1.0.1 upgrade'
-    if ((Get-Item $app).VersionInfo.ProductVersion -notlike '1.0.1*') { throw 'The upgrade did not install v1.0.1.' }
-    if ((Get-FileHash -LiteralPath $database -Algorithm SHA256).Hash -ne $databaseHash) { throw 'The v1.0.1 installer changed the existing database.' }
+    Invoke-Installer $currentSetupPath 'v1.0.2 upgrade'
+    if ((Get-Item $app).VersionInfo.ProductVersion -notlike '1.0.2*') { throw 'The upgrade did not install v1.0.2.' }
+    if ((Get-FileHash -LiteralPath $database -Algorithm SHA256).Hash -ne $databaseHash) { throw 'The v1.0.2 installer changed the existing database.' }
     foreach ($relative in $sentinels) {
         if ((Get-Content -LiteralPath (Join-Path $userData $relative) -Raw).Trim() -ne $relative) { throw "Upgrade changed user data: $relative" }
     }
-    Start-And-Stop $app 'upgraded v1.0.1 application'
-    Write-Host 'Public update discovery and v1.0.0-to-v1.0.1 upgrade verification passed.'
+    Start-And-Stop $app 'upgraded v1.0.2 application'
+    Write-Host 'Public update discovery and v1.0.0-to-v1.0.2 upgrade verification passed.'
 }
 finally {
     $uninstaller = Join-Path $install 'unins000.exe'

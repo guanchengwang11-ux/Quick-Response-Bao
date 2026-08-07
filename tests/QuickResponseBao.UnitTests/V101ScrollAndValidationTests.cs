@@ -32,43 +32,43 @@ public sealed class V101ScrollAndValidationTests : IDisposable
         Assert.Contains("e.Handled = true", code); Assert.Contains("BringIntoView", code); Assert.Contains("ScrollToTop", code);
     }
 
-    [Theory][InlineData(299, true)][InlineData(300, true)][InlineData(301, false)]
-    public void ContentLimit_UsesThreeHundredCharacters(int length, bool expected) =>
+    [Theory][InlineData(2999, true)][InlineData(3000, true)][InlineData(3001, false)]
+    public void ContentLimit_UsesCjkCharacterLimit(int length, bool expected) =>
         Assert.Equal(expected, QuickResponseRules.IsContentValid(new string('内', length)));
 
     [Fact]
-    public async Task Repository_PreservesThreeHundredCharacterMultilineContent()
+    public async Task Repository_PreservesLongMultilineContent()
     {
         using var workspace = new TestWorkspace(); await workspace.Repository.InitializeAsync();
-        var content = new string('a', 149) + "\n" + new string('中', 150);
+        var content = string.Join("\n", Enumerable.Repeat("a", 600)) + "\n" + new string('中', 3000);
         var item = new QuickResponse { Summary = "Long multiline", Content = content };
         await workspace.Repository.UpsertAsync(item);
         Assert.Equal(content, (await workspace.Repository.GetAsync(item.Id))!.Content);
     }
 
     [Fact]
-    public async Task Repository_RejectsThreeHundredAndOneCharacters()
+    public async Task Repository_RejectsCjkContentOverThreeThousandCharacters()
     {
         using var workspace = new TestWorkspace(); await workspace.Repository.InitializeAsync();
-        var item = new QuickResponse { Summary = "Too long", Content = new string('x', 301) };
+        var item = new QuickResponse { Summary = "Too long", Content = new string('中', 3001) };
         await Assert.ThrowsAsync<ArgumentException>(() => workspace.Repository.UpsertAsync(item));
     }
 
     [Fact]
-    public async Task Excel_ImportsThreeHundredAndRejectsThreeHundredAndOneWithoutStoppingValidRows()
+    public async Task Excel_ImportsThreeThousandCjkAndRejectsThreeThousandAndOneWithoutStoppingValidRows()
     {
         var path = Path.Combine(_root, "limits.xlsx");
         using (var workbook = new XLWorkbook())
         {
             var sheet = workbook.Worksheets.Add("Data"); sheet.Cell(1, 1).Value = "Summary"; sheet.Cell(1, 2).Value = "Content";
-            sheet.Cell(2, 1).Value = "Maximum"; sheet.Cell(2, 2).Value = new string('x', 300);
-            sheet.Cell(3, 1).Value = "Too long"; sheet.Cell(3, 2).Value = new string('x', 301);
+            sheet.Cell(2, 1).Value = "Maximum"; sheet.Cell(2, 2).Value = new string('中', 3000);
+            sheet.Cell(3, 1).Value = "Too long"; sheet.Cell(3, 2).Value = new string('中', 3001);
             sheet.Cell(4, 1).Value = "Still valid"; sheet.Cell(4, 2).Value = "continues"; workbook.SaveAs(path);
         }
         var service = new ExcelQuickResponseService(); var preview = await service.PreviewAsync(path);
         var outcome = await service.ImportAsync(path, service.SuggestMapping(preview.Headers));
         Assert.Equal(2, outcome.Items.Count); Assert.Single(outcome.Result.Failures);
-        Assert.Equal(3, outcome.Result.Failures[0].RowNumber); Assert.Equal("ImportContentTooLong", outcome.Result.Failures[0].Reason);
+        Assert.Equal(3, outcome.Result.Failures[0].RowNumber); Assert.Equal("ImportContentCjkLimitExceeded", outcome.Result.Failures[0].Reason);
     }
 
     private static string FindRepositoryRoot()

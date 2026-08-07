@@ -1,5 +1,5 @@
 #define MyAppName "Quick Response Bao"
-#define MyAppVersion "1.0.1"
+#define MyAppVersion "1.0.2"
 #define MyAppPublisher "Quick Response Bao contributors"
 #define MyAppExeName "QuickResponseBao.exe"
 

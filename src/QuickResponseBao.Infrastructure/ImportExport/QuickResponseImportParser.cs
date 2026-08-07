@@ -37,7 +37,8 @@ public static class QuickResponseImportParser
         summary = summary.Trim();
         if (!QuickResponseRules.IsSummaryValid(summary)) throw new InvalidDataException("ImportSummaryInvalid");
         if (string.IsNullOrWhiteSpace(content)) throw new InvalidDataException("ImportContentRequired");
-        if (content.Length > QuickResponseRules.MaximumContentLength) throw new InvalidDataException("ImportContentTooLong");
+        var contentValidationError = QuickResponseRules.GetContentValidationErrorCode(content);
+        if (!string.IsNullOrEmpty(contentValidationError)) throw new InvalidDataException($"Import{contentValidationError}");
         return new QuickResponse
         {
             Summary = summary, Content = content, Keywords = KeywordNormalizer.Parse(keywords),

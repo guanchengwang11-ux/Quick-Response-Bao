@@ -21,14 +21,14 @@ jobs:
         shell: pwsh
         run: |
           $env:ISCC_PATH = 'C:\Program Files (x86)\Inno Setup 6\ISCC.exe'
-          ./scripts/build-release-candidate.ps1 -Version 1.0.1
+          ./scripts/build-release-candidate.ps1 -Version 1.0.2
       - name: Run clean-tree release preflight
         shell: pwsh
-        run: ./scripts/preflight-release.ps1 -Version 1.0.1 -SkipBuildAndTests
+        run: ./scripts/preflight-release.ps1 -Version 1.0.2 -SkipBuildAndTests
       - name: Verify locally built installer and portable package
         shell: pwsh
         timeout-minutes: 5
-        run: ./scripts/verify-rc-packages.ps1 -Version 1.0.1
+        run: ./scripts/verify-rc-packages.ps1 -Version 1.0.2
       - name: Download v1.0.0 installer for upgrade verification
         shell: pwsh
         env:
@@ -39,15 +39,15 @@ jobs:
       - name: Create stable GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          name: Quick Response Bao v1.0.1
-          body_path: docs/release-notes-1.0.1.md
+          name: Quick Response Bao v1.0.2
+          body_path: docs/release-notes-1.0.2.md
           draft: false
           prerelease: false
           make_latest: true
           fail_on_unmatched_files: true
           files: |
-            artifacts/Quick-Response-Bao-Setup-1.0.1-x64.exe
-            artifacts/Quick-Response-Bao-Portable-1.0.1-x64.zip
+            artifacts/Quick-Response-Bao-Setup-1.0.2-x64.exe
+            artifacts/Quick-Response-Bao-Portable-1.0.2-x64.zip
             artifacts/checksums.txt
       - name: Download assets back from GitHub Release
         shell: pwsh
@@ -55,7 +55,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           New-Item -ItemType Directory -Force -Path artifacts/release-download | Out-Null
-          gh release download v1.0.1 --dir artifacts/release-download --pattern 'Quick-Response-Bao-Setup-1.0.1-x64.exe' --pattern 'Quick-Response-Bao-Portable-1.0.1-x64.zip' --pattern 'checksums.txt'
+          gh release download v1.0.2 --dir artifacts/release-download --pattern 'Quick-Response-Bao-Setup-1.0.2-x64.exe' --pattern 'Quick-Response-Bao-Portable-1.0.2-x64.zip' --pattern 'checksums.txt'
       - name: Verify downloaded checksums, installation, startup and user-data retention
         shell: pwsh
         timeout-minutes: 10
@@ -64,9 +64,9 @@ jobs:
         run: |
           $download = Join-Path $PWD 'artifacts/release-download'
           $manifest = Get-Content (Join-Path $download 'checksums.txt') -Raw
-          foreach ($name in @('Quick-Response-Bao-Setup-1.0.1-x64.exe', 'Quick-Response-Bao-Portable-1.0.1-x64.zip')) {
+          foreach ($name in @('Quick-Response-Bao-Setup-1.0.2-x64.exe', 'Quick-Response-Bao-Portable-1.0.2-x64.zip')) {
             $hash = (Get-FileHash (Join-Path $download $name) -Algorithm SHA256).Hash
             if ($manifest -notmatch "(?im)^$hash\s+$([regex]::Escape($name))\s*$") { throw "Downloaded SHA-256 mismatch: $name" }
           }
-          ./scripts/verify-rc-packages.ps1 -Version 1.0.1 -PackageDirectory $download
-          ./scripts/verify-v100-upgrade.ps1 -PreviousSetup artifacts/previous-release/Quick-Response-Bao-Setup-1.0.0-x64.exe -CurrentSetup artifacts/release-download/Quick-Response-Bao-Setup-1.0.1-x64.exe
+          ./scripts/verify-rc-packages.ps1 -Version 1.0.2 -PackageDirectory $download
+          ./scripts/verify-v100-upgrade.ps1 -PreviousSetup artifacts/previous-release/Quick-Response-Bao-Setup-1.0.0-x64.exe -CurrentSetup artifacts/release-download/Quick-Response-Bao-Setup-1.0.2-x64.exe

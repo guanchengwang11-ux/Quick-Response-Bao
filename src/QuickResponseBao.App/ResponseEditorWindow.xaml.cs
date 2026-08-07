@@ -26,8 +26,7 @@ public partial class ResponseEditorWindow : Window
         var contentValid = QuickResponseRules.IsContentValid(ContentText.Text);
         SummaryError.Visibility = summaryValid ? Visibility.Collapsed : Visibility.Visible;
         ContentError.Visibility = contentValid ? Visibility.Collapsed : Visibility.Visible;
-        ContentError.Text = string.IsNullOrWhiteSpace(ContentText.Text)
-            ? LocalizationService.Get("ValidationContent") : LocalizationService.Get("ValidationContentLength");
+        ContentError.Text = GetContentValidationMessage();
         if (!summaryValid || !contentValid) return;
         Response.Summary = SummaryText.Text.Trim(); Response.Content = ContentText.Text;
         Response.Keywords = KeywordNormalizer.Parse(KeywordsText.Text);
@@ -41,15 +40,39 @@ public partial class ResponseEditorWindow : Window
     private void RefreshContentFeedback()
     {
         if (ContentCounter is null || ContentError is null) return;
-        ContentCounter.Text = $"{ContentText.Text.Length} / {QuickResponseRules.MaximumContentLength}";
-        var tooLong = ContentText.Text.Length > QuickResponseRules.MaximumContentLength;
-        ContentCounter.SetResourceReference(TextBlock.ForegroundProperty, tooLong ? "ErrorBrush" : "MutedTextBrush");
+        var metrics = QuickResponseRules.GetContentMetrics(ContentText.Text);
+        ContentCounter.Text = BuildContentCounter(metrics);
+        var errorCode = QuickResponseRules.GetContentValidationErrorCode(ContentText.Text);
+        var tooLong = !string.IsNullOrEmpty(errorCode);
+        var approachingLimit = metrics.WordCount >= QuickResponseRules.MaximumContentWordCount * 0.9
+            || metrics.CjkCharacterCount >= QuickResponseRules.MaximumContentCjkCharacterCount * 0.9;
+        ContentCounter.SetResourceReference(TextBlock.ForegroundProperty, tooLong ? "ErrorBrush" : approachingLimit ? "WarningBrush" : "MutedTextBrush");
         if (tooLong)
         {
-            ContentError.Text = LocalizationService.Get("ValidationContentLength");
+            ContentError.Text = GetContentValidationMessage();
             ContentError.Visibility = Visibility.Visible;
         }
         else if (!string.IsNullOrWhiteSpace(ContentText.Text)) ContentError.Visibility = Visibility.Collapsed;
+    }
+
+    private static string BuildContentCounter(ContentMetrics metrics)
+    {
+        var words = string.Format(LocalizationService.Get("ContentWordCounter"), metrics.WordCount, QuickResponseRules.MaximumContentWordCount);
+        var cjk = string.Format(LocalizationService.Get("ContentCjkCounter"), metrics.CjkCharacterCount, QuickResponseRules.MaximumContentCjkCharacterCount);
+        return metrics.WordCount > 0 && metrics.CjkCharacterCount > 0 ? $"{words}{Environment.NewLine}{cjk}"
+            : metrics.CjkCharacterCount > 0 ? cjk : words;
+    }
+
+    private string GetContentValidationMessage()
+    {
+        if (string.IsNullOrWhiteSpace(ContentText.Text)) return LocalizationService.Get("ValidationContent");
+        return QuickResponseRules.GetContentValidationErrorCode(ContentText.Text) switch
+        {
+            "ContentWordLimitExceeded" => LocalizationService.Get("ValidationContentWordLimit"),
+            "ContentCjkLimitExceeded" => LocalizationService.Get("ValidationContentCjkLimit"),
+            "ContentLengthLimitExceeded" => LocalizationService.Get("ValidationContentLengthLimit"),
+            _ => LocalizationService.Get("ValidationContent")
+        };
     }
 
     private static string DisplayCategory(string value) => value.Equals("General", StringComparison.OrdinalIgnoreCase)
