@@ -27,6 +27,7 @@ jobs:
         run: ./scripts/preflight-release.ps1 -Version 1.0.1 -SkipBuildAndTests
       - name: Verify locally built installer and portable package
         shell: pwsh
+        timeout-minutes: 5
         run: ./scripts/verify-rc-packages.ps1 -Version 1.0.1
       - name: Download v1.0.0 installer for upgrade verification
         shell: pwsh
