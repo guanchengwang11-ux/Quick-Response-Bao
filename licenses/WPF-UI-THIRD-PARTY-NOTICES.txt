@@ -1,0 +1,62 @@
+WPF-UI
+
+THIRD-PARTY SOFTWARE NOTICES AND INFORMATION
+Do Not Translate or Localize
+
+WPF UI 4.3.0 incorporates components from these projects:
+
+1. sbaeumlisberger/VirtualizingWrapPanel 2.0.6 — https://github.com/sbaeumlisberger/VirtualizingWrapPanel
+2. microsoft/fluentui-system-icons 1.1.242 — https://github.com/microsoft/fluentui-system-icons
+3. dotnet/wpf 8.0 — https://github.com/dotnet/wpf
+4. microsoft/microsoft-ui-xaml 3.0 — https://github.com/microsoft/microsoft-ui-xaml
+5. microsoft/segoe-fluent-icons-font 3.0 — https://learn.microsoft.com/en-us/windows/apps/design/style/segoe-fluent-icons-font
+
+VirtualizingWrapPanel
+MIT License
+Copyright (c) 2019 S. Bäumlisberger
+
+Fluent UI System Icons
+MIT License
+Copyright (c) 2020 Microsoft Corporation
+
+.NET WPF
+The MIT License (MIT)
+Copyright (c) .NET Foundation and Contributors
+
+Microsoft UI XAML
+MIT License
+Copyright (c) Microsoft Corporation. All rights reserved.
+
+For each MIT-licensed component above:
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+Segoe Fluent Icons Font
+
+You may use the Segoe and icon fonts, or glyphs included in this file
+("Software") solely to design, develop and test your programs that run on a
+Microsoft Platform. A Microsoft Platform includes but is not limited to any
+hardware or software product or service branded by trademark, trade dress,
+copyright or some other recognized means as a product or service of Microsoft.
+This license does not grant you the right to distribute or sublicense all or
+part of the Software to any third party. By using the Software, you agree to
+these terms. If you do not agree to these terms, do not use the Software.
+
+This file is retained with Quick Response Bao to reproduce the notices shipped
+in the WPF UI 4.3.0 NuGet package.

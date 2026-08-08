@@ -1,0 +1,85 @@
+<Window x:Class="QuickResponseBao.App.Views.DesignSystemPreviewWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:controls="clr-namespace:QuickResponseBao.App.Controls"
+        xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+        Title="Quick Response Bao — Design System" Width="1180" Height="790"
+        Background="{DynamicResource QrbBackgroundBrush}">
+  <ScrollViewer VerticalScrollBarVisibility="Auto">
+    <Grid Margin="24">
+      <Grid.ColumnDefinitions><ColumnDefinition Width="1.1*" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+      <StackPanel Grid.Column="0" Margin="0,0,12,0">
+        <TextBlock Text="Quick Response Bao" Style="{DynamicResource QrbDisplayTextStyle}" />
+        <TextBlock Text="Design system foundation · 设计系统基础" Style="{DynamicResource QrbCaptionTextStyle}" Margin="0,0,0,16" />
+
+        <Border Style="{DynamicResource QrbCardStyle}">
+          <StackPanel>
+            <TextBlock Text="Typography · 字体层级" Style="{DynamicResource QrbSectionTitleTextStyle}" Margin="0,0,0,12" />
+            <TextBlock Text="Display / 展示标题" Style="{DynamicResource QrbDisplayTextStyle}" />
+            <TextBlock Text="Page title / 页面标题" Style="{DynamicResource QrbPageTitleTextStyle}" />
+            <TextBlock Text="Section title / 分区标题" Style="{DynamicResource QrbSectionTitleTextStyle}" />
+            <TextBlock Text="Body strong · Customer support workspace" Style="{DynamicResource QrbBodyStrongTextStyle}" />
+            <TextBlock Text="Body · 清晰、舒适，适合客服人员长时间阅读。" Style="{DynamicResource QrbBodyTextStyle}" />
+            <TextBlock Text="Caption · Secondary context and helper text" Style="{DynamicResource QrbCaptionTextStyle}" />
+          </StackPanel>
+        </Border>
+
+        <Border Style="{DynamicResource QrbCardStyle}">
+          <StackPanel>
+            <TextBlock Text="Buttons · 按钮状态" Style="{DynamicResource QrbSectionTitleTextStyle}" Margin="0,0,0,8" />
+            <WrapPanel>
+              <Button Content="Primary" Style="{DynamicResource QrbPrimaryButtonStyle}" />
+              <Button Content="Secondary" Style="{DynamicResource QrbSecondaryButtonStyle}" />
+              <Button Content="Ghost" Style="{DynamicResource QrbGhostButtonStyle}" />
+              <Button Content="Delete" Style="{DynamicResource QrbDangerButtonStyle}" />
+              <Button ToolTip="Settings" Style="{DynamicResource QrbIconButtonStyle}"><ui:SymbolIcon Symbol="Settings20" Style="{DynamicResource QrbIcon20Style}" /></Button>
+            </WrapPanel>
+            <WrapPanel>
+              <Button Content="Disabled" Style="{DynamicResource QrbPrimaryButtonStyle}" IsEnabled="False" />
+              <controls:AsyncButton Content="Save" LoadingContent="Saving…" IsLoading="True" Style="{DynamicResource QrbAsyncButtonStyle}" MinWidth="120" />
+              <Button x:Name="FocusDemoButton" Content="Keyboard focus" Style="{DynamicResource QrbSecondaryButtonStyle}" Focusable="True" />
+            </WrapPanel>
+          </StackPanel>
+        </Border>
+      </StackPanel>
+
+      <StackPanel Grid.Column="1" Margin="12,0,0,0">
+        <Border Style="{DynamicResource QrbCardStyle}">
+          <StackPanel>
+            <TextBlock Text="Inputs · 输入控件" Style="{DynamicResource QrbSectionTitleTextStyle}" Margin="0,0,0,8" />
+            <TextBlock Text="Search responses / 搜索话术" Style="{DynamicResource QrbCaptionTextStyle}" />
+            <TextBox Text="refund status" Style="{DynamicResource QrbSearchBoxStyle}" />
+            <TextBlock Text="Response category / 话术分类" Style="{DynamicResource QrbCaptionTextStyle}" Margin="0,8,0,0" />
+            <ComboBox Style="{DynamicResource QrbComboBoxStyle}" SelectedIndex="0"><ComboBoxItem Content="Customer care" /><ComboBoxItem Content="Account" /></ComboBox>
+            <CheckBox Content="Restore clipboard / 恢复剪贴板" IsChecked="True" Style="{DynamicResource QrbCheckBoxStyle}" />
+            <ui:ToggleSwitch Content="Global search / 全局搜索" IsChecked="True" Style="{DynamicResource QrbToggleSwitchStyle}" />
+            <TextBox Text="Disabled input" IsEnabled="False" Style="{DynamicResource QrbTextBoxStyle}" />
+          </StackPanel>
+        </Border>
+
+        <Border Style="{DynamicResource QrbCardStyle}">
+          <StackPanel>
+            <TextBlock Text="Status and feedback · 状态与反馈" Style="{DynamicResource QrbSectionTitleTextStyle}" Margin="0,0,0,10" />
+            <WrapPanel>
+              <Border Style="{DynamicResource QrbSuccessBadgeStyle}" Margin="0,0,8,8"><TextBlock Text="Ready / 就绪" Foreground="{DynamicResource QrbSuccessBrush}" /></Border>
+              <Border Style="{DynamicResource QrbWarningBadgeStyle}" Margin="0,0,8,8"><TextBlock Text="Attention / 注意" Foreground="{DynamicResource QrbWarningBrush}" /></Border>
+              <Border Style="{DynamicResource QrbErrorBadgeStyle}" Margin="0,0,8,8"><TextBlock Text="Failed / 失败" Foreground="{DynamicResource QrbErrorBrush}" /></Border>
+            </WrapPanel>
+            <ui:InfoBar Title="Import complete / 导入完成" Message="24 succeeded · 1 skipped" Severity="Success" IsOpen="True" IsClosable="False" Style="{DynamicResource QrbInfoBarStyle}" />
+            <ui:InfoBar Title="Check required / 需要检查" Message="The report includes a recoverable warning." Severity="Warning" IsOpen="True" IsClosable="False" Style="{DynamicResource QrbInfoBarStyle}" />
+          </StackPanel>
+        </Border>
+
+        <Border Style="{DynamicResource QrbCardStyle}" MinHeight="120">
+          <ContentControl Style="{DynamicResource QrbEmptyStateStyle}">
+            <StackPanel HorizontalAlignment="Center">
+              <ui:SymbolIcon Symbol="Search24" Style="{DynamicResource QrbIcon24Style}" HorizontalAlignment="Center" />
+              <TextBlock Text="No responses yet / 暂无话术" Style="{DynamicResource QrbBodyStrongTextStyle}" HorizontalAlignment="Center" Margin="0,8,0,2" />
+              <TextBlock Text="Create a response or import an existing library." Style="{DynamicResource QrbCaptionTextStyle}" HorizontalAlignment="Center" />
+            </StackPanel>
+          </ContentControl>
+        </Border>
+      </StackPanel>
+    </Grid>
+  </ScrollViewer>
+</Window>
