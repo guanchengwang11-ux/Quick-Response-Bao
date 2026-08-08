@@ -80,4 +80,7 @@
   <sys:String x:Key="ReplacementErrorContextInvalid">原输入上下文已变化或不再安全，未删除或粘贴任何内容。</sys:String>
   <sys:String x:Key="ReplacementErrorDeleteFailed">无法完整删除检索文字，因此未继续粘贴话术；如有部分文字被删除，程序已尽可能恢复。</sys:String>
   <sys:String x:Key="ReplacementErrorPasteFailed">检索文字已删除，但粘贴失败；Quick Response Bao 已尝试恢复原检索文字。</sys:String>
+  <sys:String x:Key="QuickActions">快捷操作</sys:String><sys:String x:Key="OpenDiagnostics">打开诊断</sys:String>
+  <sys:String x:Key="Active">运行正常</sys:String><sys:String x:Key="LastUsed">最近使用</sys:String><sys:String x:Key="Never">从未使用</sys:String>
+  <sys:String x:Key="AddResponseAction">新增话术</sys:String><sys:String x:Key="ImportResponsesAction">导入话术</sys:String>
 </ResourceDictionary>

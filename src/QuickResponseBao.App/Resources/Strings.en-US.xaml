@@ -80,4 +80,7 @@
   <sys:String x:Key="ReplacementErrorContextInvalid">The original input context changed or is no longer safe. Nothing was deleted or pasted.</sys:String>
   <sys:String x:Key="ReplacementErrorDeleteFailed">The typed search text could not be removed completely, so the response was not pasted. Any partially removed text was restored when possible.</sys:String>
   <sys:String x:Key="ReplacementErrorPasteFailed">The search text was removed, but pasting failed. Quick Response Bao attempted to restore the original typed text.</sys:String>
+  <sys:String x:Key="QuickActions">Quick actions</sys:String><sys:String x:Key="OpenDiagnostics">Open diagnostics</sys:String>
+  <sys:String x:Key="Active">Active</sys:String><sys:String x:Key="LastUsed">Last used</sys:String><sys:String x:Key="Never">Never</sys:String>
+  <sys:String x:Key="AddResponseAction">Add response</sys:String><sys:String x:Key="ImportResponsesAction">Import responses</sys:String>
 </ResourceDictionary>

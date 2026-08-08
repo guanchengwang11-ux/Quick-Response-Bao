@@ -1,3 +1,60 @@
-<Page x:Class="QuickResponseBao.App.Views.Pages.DashboardPage" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Background="{DynamicResource QrbBackgroundBrush}">
-  <Grid Margin="{DynamicResource QrbSpacing24}"><TextBlock Text="{DynamicResource Dashboard}" Style="{DynamicResource QrbSectionTitleTextStyle}" /></Grid>
+<Page x:Class="QuickResponseBao.App.Views.Pages.DashboardPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+      Background="{DynamicResource QrbBackgroundBrush}">
+  <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+    <Grid Margin="24,8,24,28" MaxWidth="1120" HorizontalAlignment="Center">
+      <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+
+      <UniformGrid Columns="4" Margin="-6,0,-6,16">
+        <Border Style="{DynamicResource QrbCardStyle}" Margin="6">
+          <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+            <Border Width="40" Height="40" CornerRadius="10" Background="{DynamicResource QrbSuccessSurfaceBrush}" VerticalAlignment="Top"><ui:SymbolIcon Symbol="Circle24" Style="{DynamicResource QrbIcon20Style}" Foreground="{DynamicResource QrbSuccessBrush}"/></Border>
+            <StackPanel Grid.Column="1" Margin="12,0,0,0"><TextBlock Text="{DynamicResource ListeningStatus}" Style="{DynamicResource QrbCaptionTextStyle}"/><TextBlock x:Name="ListenerMetric" Style="{DynamicResource QrbSectionTitleTextStyle}" Margin="0,4,0,0"/><TextBlock x:Name="ListenerMetricDetail" Style="{DynamicResource QrbCaptionTextStyle}"/></StackPanel>
+          </Grid>
+        </Border>
+        <Border Style="{DynamicResource QrbCardStyle}" Margin="6">
+          <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+            <Border Width="40" Height="40" CornerRadius="10" Background="{DynamicResource QrbSurfaceSecondaryBrush}" VerticalAlignment="Top"><ui:SymbolIcon Symbol="BookOpen24" Style="{DynamicResource QrbIcon20Style}" Foreground="{DynamicResource QrbAccentBrush}"/></Border>
+            <StackPanel Grid.Column="1" Margin="12,0,0,0"><TextBlock Text="{DynamicResource TotalResponses}" Style="{DynamicResource QrbCaptionTextStyle}"/><TextBlock Text="{Binding TotalCount}" Style="{DynamicResource QrbSectionTitleTextStyle}" FontSize="24" Margin="0,4,0,0"/></StackPanel>
+          </Grid>
+        </Border>
+        <Border Style="{DynamicResource QrbCardStyle}" Margin="6">
+          <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+            <Border Width="40" Height="40" CornerRadius="10" Background="{DynamicResource QrbWarningSurfaceBrush}" VerticalAlignment="Top"><ui:SymbolIcon Symbol="DataUsage24" Style="{DynamicResource QrbIcon20Style}" Foreground="{DynamicResource QrbWarningBrush}"/></Border>
+            <StackPanel Grid.Column="1" Margin="12,0,0,0"><TextBlock Text="{DynamicResource TodayUsage}" Style="{DynamicResource QrbCaptionTextStyle}"/><TextBlock Text="{Binding TodayUsageCount}" Style="{DynamicResource QrbSectionTitleTextStyle}" FontSize="24" Margin="0,4,0,0"/></StackPanel>
+          </Grid>
+        </Border>
+        <Border Style="{DynamicResource QrbCardStyle}" Margin="6">
+          <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+            <Border Width="40" Height="40" CornerRadius="10" Background="{DynamicResource QrbSurfaceSecondaryBrush}" VerticalAlignment="Top"><ui:SymbolIcon Symbol="Info24" Style="{DynamicResource QrbIcon20Style}" Foreground="{DynamicResource QrbTextSecondaryBrush}"/></Border>
+            <StackPanel Grid.Column="1" Margin="12,0,0,0"><TextBlock Text="{DynamicResource Version}" Style="{DynamicResource QrbCaptionTextStyle}"/><TextBlock x:Name="VersionMetric" Style="{DynamicResource QrbSectionTitleTextStyle}" Margin="0,4,0,0"/></StackPanel>
+          </Grid>
+        </Border>
+      </UniformGrid>
+
+      <Grid Grid.Row="1"><Grid.ColumnDefinitions><ColumnDefinition Width="2*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+        <Border Style="{DynamicResource QrbCardStyle}" Margin="0,0,8,0">
+          <StackPanel><TextBlock Text="{DynamicResource RecentResponses}" Style="{DynamicResource QrbSectionTitleTextStyle}" Margin="0,0,0,12"/>
+            <ItemsControl ItemsSource="{Binding RecentResponses}"><ItemsControl.ItemTemplate><DataTemplate>
+              <Border BorderBrush="{DynamicResource QrbBorderBrush}" BorderThickness="0,0,0,1" Padding="0,10">
+                <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                  <StackPanel><TextBlock Text="{Binding Summary}" Style="{DynamicResource QrbBodyStrongTextStyle}" TextTrimming="CharacterEllipsis"/><StackPanel Orientation="Horizontal" Margin="0,3,0,0"><TextBlock Text="{Binding Category}" Style="{DynamicResource QrbCaptionTextStyle}"/><TextBlock Text="  ·  " Style="{DynamicResource QrbCaptionTextStyle}"/><TextBlock Text="{Binding LastUsedAt, StringFormat={}{0:g}}" Style="{DynamicResource QrbCaptionTextStyle}"/></StackPanel></StackPanel>
+                  <Border Grid.Column="1" Style="{DynamicResource QrbStatusBadgeStyle}" VerticalAlignment="Center" Margin="12,0,0,0"><StackPanel Orientation="Horizontal"><ui:SymbolIcon Symbol="DataUsage24" Style="{DynamicResource QrbIcon16Style}" Margin="0,0,5,0"/><TextBlock Text="{Binding UsageCount}" Style="{DynamicResource QrbCaptionTextStyle}"/></StackPanel></Border>
+                </Grid>
+              </Border>
+            </DataTemplate></ItemsControl.ItemTemplate></ItemsControl>
+          </StackPanel>
+        </Border>
+        <Border Grid.Column="1" Style="{DynamicResource QrbCardStyle}" Margin="8,0,0,0">
+          <StackPanel><TextBlock Text="{DynamicResource QuickActions}" Style="{DynamicResource QrbSectionTitleTextStyle}" Margin="0,0,0,12"/>
+            <Button Content="{DynamicResource AddResponseAction}" Style="{DynamicResource QrbPrimaryButtonStyle}" HorizontalContentAlignment="Left" Click="Add_Click"/>
+            <Button Content="{DynamicResource ImportResponsesAction}" Style="{DynamicResource QrbSecondaryButtonStyle}" HorizontalContentAlignment="Left" Click="Import_Click"/>
+            <Button Content="{DynamicResource OpenDiagnostics}" Style="{DynamicResource QrbGhostButtonStyle}" HorizontalContentAlignment="Left" Click="Diagnostics_Click"/>
+          </StackPanel>
+        </Border>
+      </Grid>
+    </Grid>
+  </ScrollViewer>
 </Page>
