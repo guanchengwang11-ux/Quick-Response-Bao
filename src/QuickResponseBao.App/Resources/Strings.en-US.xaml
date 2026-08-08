@@ -83,4 +83,10 @@
   <sys:String x:Key="QuickActions">Quick actions</sys:String><sys:String x:Key="OpenDiagnostics">Open diagnostics</sys:String>
   <sys:String x:Key="Active">Active</sys:String><sys:String x:Key="LastUsed">Last used</sys:String><sys:String x:Key="Never">Never</sys:String>
   <sys:String x:Key="AddResponseAction">Add response</sys:String><sys:String x:Key="ImportResponsesAction">Import responses</sys:String>
+  <sys:String x:Key="FilterByCategory">Filter by category</sys:String><sys:String x:Key="FilterByLanguage">Filter by language</sys:String><sys:String x:Key="FilterByStatus">Filter by status</sys:String>
+  <sys:String x:Key="AllCategories">All categories</sys:String><sys:String x:Key="AllLanguages">All languages</sys:String><sys:String x:Key="AllStatuses">All statuses</sys:String>
+  <sys:String x:Key="EnabledOnly">Enabled only</sys:String><sys:String x:Key="DisabledOnly">Disabled only</sys:String><sys:String x:Key="Status">Status</sys:String>
+  <sys:String x:Key="SelectedCountFormat">{0} selected</sys:String><sys:String x:Key="MoreActions">More actions</sys:String><sys:String x:Key="MoveToCategory">Move to category</sys:String>
+  <sys:String x:Key="EmptyLibraryTitle">No responses found</sys:String><sys:String x:Key="EmptyLibraryDescription">Add your first response, import an existing library, or adjust the current filters.</sys:String>
+  <sys:String x:Key="UsageCount">Uses</sys:String>
 </ResourceDictionary>

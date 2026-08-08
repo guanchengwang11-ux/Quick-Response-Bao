@@ -11,6 +11,8 @@ public sealed class MainViewModel(IQuickResponseRepository repository, SearchSer
     private QuickResponse? _selected;
     private AppSettings _settings = new();
     public ObservableCollection<QuickResponse> Responses { get; } = [];
+    public IQuickResponseRepository Repository => repository;
+    public SearchService SearchService => searchService;
     public AppSettings Settings { get => _settings; set => Set(ref _settings, value); }
     public string SearchText { get => _searchText; set { if (Set(ref _searchText, value)) _ = RefreshAsync(); } }
     public QuickResponse? SelectedResponse { get => _selected; set => Set(ref _selected, value); }
@@ -24,7 +26,7 @@ public sealed class MainViewModel(IQuickResponseRepository repository, SearchSer
     {
         var all = await repository.GetAllAsync();
         var filtered = string.IsNullOrWhiteSpace(SearchText) ? all :
-            searchService.Search(all, SearchText, new SearchOptions(MaximumResults: 30)).Select(x => x.Response).ToList();
+            searchService.Search(all, SearchText, new SearchOptions(MaximumResults: 10_000)).Select(x => x.Response).ToList();
         Responses.Clear(); foreach (var item in filtered) Responses.Add(item);
         Notify(nameof(TotalCount)); Notify(nameof(EnabledCount)); Notify(nameof(TodayUsageCount)); Notify(nameof(RecentResponses));
     }

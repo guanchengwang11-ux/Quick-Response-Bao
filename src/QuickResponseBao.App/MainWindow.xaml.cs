@@ -77,7 +77,7 @@ public partial class MainWindow : FluentWindow
     private void RegisterPages()
     {
         _navigation.Register(ShellRoutes.Dashboard, () => new DashboardPage(_mainViewModel, Navigate, AddResponse));
-        _navigation.Register(ShellRoutes.Library, () => new ResponseLibraryPage(_mainViewModel, ShowFeedback));
+        _navigation.Register(ShellRoutes.Library, () => new ResponseLibraryPage(_mainViewModel, ShowFeedback, Navigate));
         _navigation.Register(ShellRoutes.Categories, () => new CategoriesPage(ShowFeedback));
         _navigation.Register(ShellRoutes.ImportExport, () => new ImportExportPage(_mainViewModel, ShowFeedback));
         _navigation.Register(ShellRoutes.Applications, () => new ApplicationsPage(ShowFeedback));

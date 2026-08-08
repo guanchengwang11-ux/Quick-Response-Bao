@@ -83,4 +83,10 @@
   <sys:String x:Key="QuickActions">快捷操作</sys:String><sys:String x:Key="OpenDiagnostics">打开诊断</sys:String>
   <sys:String x:Key="Active">运行正常</sys:String><sys:String x:Key="LastUsed">最近使用</sys:String><sys:String x:Key="Never">从未使用</sys:String>
   <sys:String x:Key="AddResponseAction">新增话术</sys:String><sys:String x:Key="ImportResponsesAction">导入话术</sys:String>
+  <sys:String x:Key="FilterByCategory">按分类筛选</sys:String><sys:String x:Key="FilterByLanguage">按语言筛选</sys:String><sys:String x:Key="FilterByStatus">按状态筛选</sys:String>
+  <sys:String x:Key="AllCategories">全部分类</sys:String><sys:String x:Key="AllLanguages">全部语言</sys:String><sys:String x:Key="AllStatuses">全部状态</sys:String>
+  <sys:String x:Key="EnabledOnly">仅已启用</sys:String><sys:String x:Key="DisabledOnly">仅已停用</sys:String><sys:String x:Key="Status">状态</sys:String>
+  <sys:String x:Key="SelectedCountFormat">已选择 {0} 项</sys:String><sys:String x:Key="MoreActions">更多操作</sys:String><sys:String x:Key="MoveToCategory">移动到分类</sys:String>
+  <sys:String x:Key="EmptyLibraryTitle">未找到话术</sys:String><sys:String x:Key="EmptyLibraryDescription">新增第一条话术、导入现有话术库，或调整当前筛选条件。</sys:String>
+  <sys:String x:Key="UsageCount">使用次数</sys:String>
 </ResourceDictionary>
