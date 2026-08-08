@@ -78,8 +78,8 @@ public partial class MainWindow : FluentWindow
     {
         _navigation.Register(ShellRoutes.Dashboard, () => new DashboardPage(_mainViewModel, Navigate, AddResponse));
         _navigation.Register(ShellRoutes.Library, () => new ResponseLibraryPage(_mainViewModel, ShowFeedback, Navigate));
-        _navigation.Register(ShellRoutes.Categories, () => new CategoriesPage(ShowFeedback));
-        _navigation.Register(ShellRoutes.ImportExport, () => new ImportExportPage(_mainViewModel, ShowFeedback));
+        _navigation.Register(ShellRoutes.Categories, () => new CategoriesPage(_mainViewModel, ShowFeedback));
+        _navigation.Register(ShellRoutes.ImportExport, () => new ImportExportPage(_mainViewModel, ShowFeedback, ResolveExportScopeAsync));
         _navigation.Register(ShellRoutes.Applications, () => new ApplicationsPage(ShowFeedback));
         _navigation.Register(ShellRoutes.Diagnostics, () => new DiagnosticsPage(ShowFeedback));
         _navigation.Register(ShellRoutes.Settings, () => new SettingsPage(_mainViewModel, ShowFeedback));
@@ -110,6 +110,16 @@ public partial class MainWindow : FluentWindow
     private void CopyFeedback_Click(object sender, RoutedEventArgs e)
     {
         if (!string.IsNullOrWhiteSpace(FeedbackText.Text)) System.Windows.Clipboard.SetText(FeedbackText.Text);
+    }
+
+    private async Task<IReadOnlyList<QuickResponse>> ResolveExportScopeAsync(string scope)
+    {
+        if (_navigation.TryGetCached<ResponseLibraryPage>(ShellRoutes.Library, out var library))
+        {
+            if (scope == "filtered") return library!.GetFilteredResponses();
+            if (scope == "selected") return library!.GetSelectedResponses();
+        }
+        return scope == "selected" ? [] : await _mainViewModel.Repository.GetAllAsync();
     }
 
     private static string RouteResourceKey(string route) => route switch

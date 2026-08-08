@@ -1,3 +1,67 @@
-<Page x:Class="QuickResponseBao.App.Views.Pages.ImportExportPage" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Background="{DynamicResource QrbBackgroundBrush}">
-  <StackPanel Margin="{DynamicResource QrbSpacing24}"><TextBlock Text="{DynamicResource ImportExportHint}" Style="{DynamicResource QrbBodyTextStyle}"/><WrapPanel Margin="0,16,0,0"><Button Content="{DynamicResource Import}" Style="{DynamicResource QrbPrimaryButtonStyle}" Click="Import_Click"/><Button Content="{DynamicResource Export}" Style="{DynamicResource QrbSecondaryButtonStyle}" Click="Export_Click"/></WrapPanel></StackPanel>
+<Page x:Class="QuickResponseBao.App.Views.Pages.ImportExportPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+      Background="{DynamicResource QrbBackgroundBrush}">
+  <Grid x:Name="RootPanel" Margin="24,8,24,24" MaxWidth="1180" HorizontalAlignment="Stretch">
+    <TabControl x:Name="ImportExportTabs" BorderThickness="0" Background="Transparent" SelectionChanged="ImportExportTabs_SelectionChanged">
+      <TabControl.Resources><Style TargetType="TabItem"><Setter Property="Foreground" Value="{DynamicResource QrbTextPrimaryBrush}"/><Setter Property="Background" Value="Transparent"/><Setter Property="BorderBrush" Value="Transparent"/><Setter Property="Padding" Value="18,9"/><Setter Property="FontWeight" Value="SemiBold"/><Style.Triggers><Trigger Property="IsSelected" Value="True"><Setter Property="Background" Value="{DynamicResource QrbSelectionBrush}"/><Setter Property="BorderBrush" Value="{DynamicResource QrbFocusRingBrush}"/></Trigger><Trigger Property="IsMouseOver" Value="True"><Setter Property="Background" Value="{DynamicResource QrbSurfaceSecondaryBrush}"/></Trigger></Style.Triggers></Style></TabControl.Resources>
+      <TabItem Header="{DynamicResource ImportTab}">
+        <Grid Margin="4,18,4,4"><Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+          <UniformGrid Columns="4" Margin="0,0,0,20">
+            <Border x:Name="Step1Indicator" Style="{DynamicResource QrbStatusBadgeStyle}" Margin="4"><StackPanel Orientation="Horizontal"><TextBlock Text="1" FontWeight="SemiBold" Margin="0,0,8,0"/><TextBlock Text="{DynamicResource SelectFileStep}"/></StackPanel></Border>
+            <Border x:Name="Step2Indicator" Style="{DynamicResource QrbStatusBadgeStyle}" Margin="4"><StackPanel Orientation="Horizontal"><TextBlock Text="2" FontWeight="SemiBold" Margin="0,0,8,0"/><TextBlock Text="{DynamicResource PreviewMapStep}"/></StackPanel></Border>
+            <Border x:Name="Step3Indicator" Style="{DynamicResource QrbStatusBadgeStyle}" Margin="4"><StackPanel Orientation="Horizontal"><TextBlock Text="3" FontWeight="SemiBold" Margin="0,0,8,0"/><TextBlock Text="{DynamicResource ValidateStep}"/></StackPanel></Border>
+            <Border x:Name="Step4Indicator" Style="{DynamicResource QrbStatusBadgeStyle}" Margin="4"><StackPanel Orientation="Horizontal"><TextBlock Text="4" FontWeight="SemiBold" Margin="0,0,8,0"/><TextBlock Text="{DynamicResource ResultsStep}"/></StackPanel></Border>
+          </UniformGrid>
+
+          <Grid Grid.Row="1">
+            <Grid x:Name="Step1Panel">
+              <Border Style="{DynamicResource QrbCardStyle}" Width="680" MaxWidth="760" HorizontalAlignment="Center" VerticalAlignment="Top" Padding="32">
+                <StackPanel HorizontalAlignment="Center"><Border Width="56" Height="56" CornerRadius="12" Background="{DynamicResource QrbSurfaceSecondaryBrush}"><ui:SymbolIcon Symbol="DocumentArrowUp20" Width="28" Height="28" Foreground="{DynamicResource QrbAccentBrush}"/></Border><TextBlock Text="{DynamicResource SelectImportFile}" Style="{DynamicResource QrbSectionTitleTextStyle}" Margin="0,18,0,6"/><TextBlock Text="{DynamicResource SupportedImportFormats}" Style="{DynamicResource QrbBodyTextStyle}" TextAlignment="Center"/>
+                  <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,14,0,20"><Border Style="{DynamicResource QrbStatusBadgeStyle}" Margin="4"><TextBlock Text="{DynamicResource ExcelFormat}"/></Border><Border Style="{DynamicResource QrbStatusBadgeStyle}" Margin="4"><TextBlock Text="{DynamicResource CsvFormat}"/></Border><Border Style="{DynamicResource QrbStatusBadgeStyle}" Margin="4"><TextBlock Text="{DynamicResource JsonFormat}"/></Border></StackPanel>
+                  <TextBlock x:Name="SelectedFileText" Style="{DynamicResource QrbCaptionTextStyle}" TextAlignment="Center" Margin="0,0,0,12"/>
+                  <StackPanel Orientation="Horizontal" HorizontalAlignment="Center"><Button Content="{DynamicResource DownloadTemplate}" Style="{DynamicResource QrbSecondaryButtonStyle}" Click="Template_Click"/><Button x:Name="SelectFileButton" Content="{DynamicResource SelectFile}" Style="{DynamicResource QrbPrimaryButtonStyle}" Click="SelectFile_Click"/></StackPanel>
+                </StackPanel>
+              </Border>
+            </Grid>
+
+            <Grid x:Name="Step2Panel" Visibility="Collapsed"><Grid.ColumnDefinitions><ColumnDefinition Width="3*"/><ColumnDefinition Width="2*"/></Grid.ColumnDefinitions>
+              <Border Style="{DynamicResource QrbCardStyle}" Margin="0,0,8,0"><DockPanel><TextBlock DockPanel.Dock="Top" Text="{DynamicResource PreviewFirstRows}" Style="{DynamicResource QrbSectionTitleTextStyle}" Margin="0,0,0,12"/><DataGrid x:Name="PreviewGrid" AutoGenerateColumns="True" AutoGeneratingColumn="PreviewGrid_AutoGeneratingColumn" IsReadOnly="True" EnableRowVirtualization="True" MaxHeight="480"/></DockPanel></Border>
+              <Border Grid.Column="1" Style="{DynamicResource QrbCardStyle}" Margin="8,0,0,0"><Grid><Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions><DockPanel><TextBlock Text="{DynamicResource FieldMapping}" Style="{DynamicResource QrbSectionTitleTextStyle}"/><Border DockPanel.Dock="Right" Style="{DynamicResource QrbSuccessBadgeStyle}"><TextBlock Text="{DynamicResource AutoMapped}" Style="{DynamicResource QrbCaptionTextStyle}"/></Border></DockPanel>
+                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto"><Grid Margin="0,12,0,0"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="18"/><ColumnDefinition/></Grid.ColumnDefinitions><Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+                  <TextBlock Text="{DynamicResource Summary}" VerticalAlignment="Center"/><ComboBox x:Name="SummaryMap" Grid.Column="2"/>
+                  <TextBlock Grid.Row="1" Text="{DynamicResource Content}" VerticalAlignment="Center"/><ComboBox x:Name="ContentMap" Grid.Row="1" Grid.Column="2"/>
+                  <TextBlock Grid.Row="2" Text="{DynamicResource Keywords}" VerticalAlignment="Center"/><ComboBox x:Name="KeywordsMap" Grid.Row="2" Grid.Column="2"/>
+                  <TextBlock Grid.Row="3" Text="{DynamicResource Category}" VerticalAlignment="Center"/><ComboBox x:Name="CategoryMap" Grid.Row="3" Grid.Column="2"/>
+                  <TextBlock Grid.Row="4" Text="{DynamicResource Language}" VerticalAlignment="Center"/><ComboBox x:Name="LanguageMap" Grid.Row="4" Grid.Column="2"/>
+                  <TextBlock Grid.Row="5" Text="{DynamicResource Enabled}" VerticalAlignment="Center"/><ComboBox x:Name="EnabledMap" Grid.Row="5" Grid.Column="2"/>
+                  <TextBlock Grid.Row="6" Text="{DynamicResource SortOrder}" VerticalAlignment="Center"/><ComboBox x:Name="SortOrderMap" Grid.Row="6" Grid.Column="2"/>
+                </Grid></ScrollViewer>
+                <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,14,0,0"><Button Content="{DynamicResource Back}" Style="{DynamicResource QrbGhostButtonStyle}" Click="BackToStep1_Click"/><Button Content="{DynamicResource ValidateImport}" Style="{DynamicResource QrbPrimaryButtonStyle}" Click="Validate_Click"/></StackPanel>
+              </Grid></Border>
+            </Grid>
+
+            <Grid x:Name="Step3Panel" Visibility="Collapsed"><Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+              <UniformGrid Columns="3" Margin="-6,0,-6,16"><Border Style="{DynamicResource QrbCardStyle}" Margin="6"><StackPanel><TextBlock Text="{DynamicResource Valid}" Style="{DynamicResource QrbCaptionTextStyle}"/><TextBlock x:Name="ValidCountText" Style="{DynamicResource QrbSectionTitleTextStyle}" FontSize="28" Foreground="{DynamicResource QrbSuccessBrush}"/></StackPanel></Border><Border Style="{DynamicResource QrbCardStyle}" Margin="6"><StackPanel><TextBlock Text="{DynamicResource Duplicates}" Style="{DynamicResource QrbCaptionTextStyle}"/><TextBlock x:Name="DuplicateCountText" Style="{DynamicResource QrbSectionTitleTextStyle}" FontSize="28" Foreground="{DynamicResource QrbWarningBrush}"/></StackPanel></Border><Border Style="{DynamicResource QrbCardStyle}" Margin="6"><StackPanel><TextBlock Text="{DynamicResource Failed}" Style="{DynamicResource QrbCaptionTextStyle}"/><TextBlock x:Name="FailedCountText" Style="{DynamicResource QrbSectionTitleTextStyle}" FontSize="28" Foreground="{DynamicResource QrbErrorBrush}"/></StackPanel></Border></UniformGrid>
+              <Border Grid.Row="1" Style="{DynamicResource QrbCardStyle}" Margin="0"><DockPanel><TextBlock DockPanel.Dock="Top" Text="{DynamicResource ValidationDetails}" Style="{DynamicResource QrbSectionTitleTextStyle}" Margin="0,0,0,10"/><ListBox x:Name="ValidationErrorsList" MaxHeight="300"/></DockPanel></Border>
+              <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,14,0,0"><Button Content="{DynamicResource Back}" Style="{DynamicResource QrbGhostButtonStyle}" Click="BackToStep2_Click"/><Button Content="{DynamicResource StartImport}" Style="{DynamicResource QrbPrimaryButtonStyle}" Click="ImportNow_Click"/></StackPanel>
+            </Grid>
+
+            <Grid x:Name="Step4Panel" Visibility="Collapsed"><Border Style="{DynamicResource QrbCardStyle}" MaxWidth="760" HorizontalAlignment="Center" VerticalAlignment="Top" Padding="32"><StackPanel><ui:SymbolIcon Symbol="CheckmarkCircle24" Width="52" Height="52" Foreground="{DynamicResource QrbSuccessBrush}" HorizontalAlignment="Center"/><TextBlock Text="{DynamicResource ImportComplete}" Style="{DynamicResource QrbSectionTitleTextStyle}" TextAlignment="Center" Margin="0,14,0,20"/><UniformGrid Columns="3"><StackPanel><TextBlock Text="{DynamicResource Imported}" Style="{DynamicResource QrbCaptionTextStyle}" TextAlignment="Center"/><TextBlock x:Name="ImportedResultText" Style="{DynamicResource QrbSectionTitleTextStyle}" TextAlignment="Center"/></StackPanel><StackPanel><TextBlock Text="{DynamicResource DuplicateSkipped}" Style="{DynamicResource QrbCaptionTextStyle}" TextAlignment="Center"/><TextBlock x:Name="DuplicateResultText" Style="{DynamicResource QrbSectionTitleTextStyle}" TextAlignment="Center"/></StackPanel><StackPanel><TextBlock Text="{DynamicResource Failed}" Style="{DynamicResource QrbCaptionTextStyle}" TextAlignment="Center"/><TextBlock x:Name="FailedResultText" Style="{DynamicResource QrbSectionTitleTextStyle}" TextAlignment="Center"/></StackPanel></UniformGrid><ListBox x:Name="ResultErrorsList" Visibility="Collapsed" MaxHeight="220" Margin="0,18,0,0"/><StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,22,0,0"><Button Content="{DynamicResource ViewFailedRows}" Style="{DynamicResource QrbSecondaryButtonStyle}" Click="ViewFailed_Click"/><Button Content="{DynamicResource Done}" Style="{DynamicResource QrbPrimaryButtonStyle}" Click="Done_Click"/></StackPanel></StackPanel></Border></Grid>
+          </Grid>
+        </Grid>
+      </TabItem>
+
+      <TabItem Header="{DynamicResource ExportTab}">
+        <Grid Margin="4,18,4,4"><Border Style="{DynamicResource QrbCardStyle}" MaxWidth="760" HorizontalAlignment="Center" VerticalAlignment="Top" Padding="32"><StackPanel><TextBlock Text="{DynamicResource ExportResponses}" Style="{DynamicResource QrbSectionTitleTextStyle}"/><TextBlock Text="{DynamicResource ExportDescription}" Style="{DynamicResource QrbBodyTextStyle}" Margin="0,5,0,20"/>
+          <TextBlock Text="{DynamicResource Format}" Style="{DynamicResource QrbBodyStrongTextStyle}" Margin="0,0,0,7"/><ComboBox x:Name="ExportFormatBox" SelectedIndex="0"><ComboBoxItem Tag="xlsx" Content="{DynamicResource ExcelFormat}"/><ComboBoxItem Tag="csv" Content="{DynamicResource CsvFormat}"/><ComboBoxItem Tag="json" Content="{DynamicResource JsonFormat}"/></ComboBox>
+          <TextBlock Text="{DynamicResource Scope}" Style="{DynamicResource QrbBodyStrongTextStyle}" Margin="0,16,0,7"/><ComboBox x:Name="ExportScopeBox" SelectedIndex="0"><ComboBoxItem Tag="all" Content="{DynamicResource AllResponses}"/><ComboBoxItem Tag="filtered" Content="{DynamicResource CurrentFilter}"/><ComboBoxItem Tag="selected" Content="{DynamicResource SelectedResponses}"/></ComboBox>
+          <CheckBox x:Name="IncludeDisabledBox" Content="{DynamicResource IncludeDisabled}" IsChecked="True" Margin="0,18,0,0"/>
+          <TextBlock x:Name="ExportPathText" Style="{DynamicResource QrbCaptionTextStyle}" TextWrapping="Wrap" Margin="0,14,0,0"/>
+          <Button x:Name="ExportButton" Content="{DynamicResource Export}" Style="{DynamicResource QrbPrimaryButtonStyle}" HorizontalAlignment="Right" Margin="0,20,0,0" Click="Export_Click" MinWidth="140"/>
+        </StackPanel></Border></Grid>
+      </TabItem>
+    </TabControl>
+  </Grid>
 </Page>

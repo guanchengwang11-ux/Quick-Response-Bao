@@ -42,6 +42,8 @@ public partial class ResponseLibraryPage : Page, IRefreshablePage
     }
 
     public void AddResponse() => Add_Click(this, new RoutedEventArgs());
+    public IReadOnlyList<QuickResponse> GetFilteredResponses() => _libraryView.Cast<QuickResponse>().ToList();
+    public IReadOnlyList<QuickResponse> GetSelectedResponses() => ResponsesGrid.SelectedItems.Cast<QuickResponse>().ToList();
 
     private void InitializeStaticFilters()
     {

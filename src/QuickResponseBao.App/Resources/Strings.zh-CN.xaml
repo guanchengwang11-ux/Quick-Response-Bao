@@ -93,4 +93,16 @@
   <sys:String x:Key="ResponseEditorDescription">创建清晰、可复用的话术，提高客服回复效率。</sys:String><sys:String x:Key="ContentLimitHint">最多 600 个单词或 3000 个 CJK 字符</sys:String>
   <sys:String x:Key="AddKeyword">添加关键词…</sys:String><sys:String x:Key="RemoveKeyword">移除关键词</sys:String><sys:String x:Key="KeywordEntryHint">按 Enter、逗号或分号添加关键词。</sys:String>
   <sys:String x:Key="EnabledResponseHint">启用后，该话术可出现在搜索结果中。</sys:String>
+  <sys:String x:Key="NewCategory">新增分类</sys:String><sys:String x:Key="CategoryOrderHint">使用上移和下移调整分类显示顺序。</sys:String>
+  <sys:String x:Key="Responses">话术数量</sys:String><sys:String x:Key="Order">顺序</sys:String><sys:String x:Key="Actions">操作</sys:String>
+  <sys:String x:Key="DeleteCategoryTitle">删除分类</sys:String><sys:String x:Key="CategoryDetails">分类详情</sys:String><sys:String x:Key="CategoryContainsResponses">该分类包含 {0} 条话术。删除分类前，这些话术将被移动。</sys:String>
+  <sys:String x:Key="CategoryEmptyDeleteHint">该分类为空，可以安全删除。</sys:String><sys:String x:Key="MoveResponsesTo">将话术移动到</sys:String><sys:String x:Key="MoveAndDelete">移动并删除</sys:String>
+  <sys:String x:Key="ImportTab">导入</sys:String><sys:String x:Key="ExportTab">导出</sys:String><sys:String x:Key="SelectFileStep">选择文件</sys:String><sys:String x:Key="PreviewMapStep">预览与映射</sys:String><sys:String x:Key="ValidateStep">验证</sys:String><sys:String x:Key="ResultsStep">结果</sys:String>
+  <sys:String x:Key="SelectImportFile">选择导入文件</sys:String><sys:String x:Key="SupportedImportFormats">支持 Excel、CSV 和 JSON，无需安装 Microsoft Excel。</sys:String><sys:String x:Key="ExcelFormat">Excel (.xlsx)</sys:String><sys:String x:Key="CsvFormat">CSV (.csv)</sys:String><sys:String x:Key="JsonFormat">JSON (.json)</sys:String>
+  <sys:String x:Key="DownloadTemplate">下载模板</sys:String><sys:String x:Key="SelectFile">选择文件</sys:String><sys:String x:Key="PreviewFirstRows">预览（前 20 行）</sys:String><sys:String x:Key="FieldMapping">字段映射</sys:String><sys:String x:Key="AutoMapped">已自动映射</sys:String>
+  <sys:String x:Key="Back">返回</sys:String><sys:String x:Key="ValidateImport">验证导入</sys:String><sys:String x:Key="Valid">有效</sys:String><sys:String x:Key="ValidationDetails">验证详情</sys:String>
+  <sys:String x:Key="Imported">已导入</sys:String><sys:String x:Key="ViewFailedRows">查看失败行</sys:String><sys:String x:Key="Done">完成</sys:String><sys:String x:Key="FileReadyForPreview">{0} 已可预览。</sys:String><sys:String x:Key="TemplateSaved">模板已保存到 {0}</sys:String>
+  <sys:String x:Key="ExportResponses">导出话术</sys:String><sys:String x:Key="ExportDescription">选择导出格式和话术库范围。</sys:String><sys:String x:Key="Format">格式</sys:String><sys:String x:Key="Scope">范围</sys:String>
+  <sys:String x:Key="AllResponses">全部话术</sys:String><sys:String x:Key="CurrentFilter">当前筛选结果</sys:String><sys:String x:Key="SelectedResponses">已选话术</sys:String><sys:String x:Key="IncludeDisabled">包含已停用话术</sys:String><sys:String x:Key="ExportSavedPath">已保存到 {0}</sys:String>
+  <sys:String x:Key="Duplicates">重复</sys:String>
 </ResourceDictionary>
