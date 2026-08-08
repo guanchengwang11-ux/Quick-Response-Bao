@@ -1,3 +1,3 @@
 <Page x:Class="QuickResponseBao.App.Views.Pages.CategoriesPage" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Background="{DynamicResource QrbBackgroundBrush}">
-  <Grid Margin="{DynamicResource QrbSpacing24}"><TextBlock Text="{DynamicResource Categories}" Style="{DynamicResource QrbPageTitleTextStyle}" /></Grid>
+  <StackPanel Margin="{DynamicResource QrbSpacing24}"><TextBlock Text="{DynamicResource CategoryManagementHint}" Style="{DynamicResource QrbBodyTextStyle}"/><Button Content="{DynamicResource OpenCategoryManager}" Style="{DynamicResource QrbPrimaryButtonStyle}" HorizontalAlignment="Left" Margin="0,16,0,0" Click="Open_Click"/></StackPanel>
 </Page>

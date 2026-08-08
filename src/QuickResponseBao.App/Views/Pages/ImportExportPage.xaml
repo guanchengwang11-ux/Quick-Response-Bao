@@ -1,3 +1,3 @@
 <Page x:Class="QuickResponseBao.App.Views.Pages.ImportExportPage" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Background="{DynamicResource QrbBackgroundBrush}">
-  <Grid Margin="{DynamicResource QrbSpacing24}"><TextBlock Text="{DynamicResource ImportExport}" Style="{DynamicResource QrbPageTitleTextStyle}" /></Grid>
+  <StackPanel Margin="{DynamicResource QrbSpacing24}"><TextBlock Text="{DynamicResource ImportExportHint}" Style="{DynamicResource QrbBodyTextStyle}"/><WrapPanel Margin="0,16,0,0"><Button Content="{DynamicResource Import}" Style="{DynamicResource QrbPrimaryButtonStyle}" Click="Import_Click"/><Button Content="{DynamicResource Export}" Style="{DynamicResource QrbSecondaryButtonStyle}" Click="Export_Click"/></WrapPanel></StackPanel>
 </Page>

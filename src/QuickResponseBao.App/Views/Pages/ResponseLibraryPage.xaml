@@ -1,3 +1,7 @@
 <Page x:Class="QuickResponseBao.App.Views.Pages.ResponseLibraryPage" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Background="{DynamicResource QrbBackgroundBrush}">
-  <Grid Margin="{DynamicResource QrbSpacing24}"><TextBlock Text="{DynamicResource Library}" Style="{DynamicResource QrbPageTitleTextStyle}" /></Grid>
+  <Grid Margin="{DynamicResource QrbSpacing24}">
+    <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+    <DockPanel><Button DockPanel.Dock="Right" Content="{DynamicResource Add}" Style="{DynamicResource QrbPrimaryButtonStyle}" Click="Add_Click"/><TextBox Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" Style="{DynamicResource QrbSearchBoxStyle}" MaxWidth="520" HorizontalAlignment="Left"/></DockPanel>
+    <DataGrid Grid.Row="1" Margin="4,16,4,4" ItemsSource="{Binding Responses}" SelectedItem="{Binding SelectedResponse}" AutoGenerateColumns="False" IsReadOnly="True"><DataGrid.Columns><DataGridTextColumn Header="{DynamicResource Summary}" Binding="{Binding Summary}" Width="2*"/><DataGridTextColumn Header="{DynamicResource Category}" Binding="{Binding Category}" Width="*"/><DataGridTextColumn Header="{DynamicResource Language}" Binding="{Binding Language}" Width="*"/><DataGridCheckBoxColumn Header="{DynamicResource Enabled}" Binding="{Binding IsEnabled}" Width="90"/></DataGrid.Columns></DataGrid>
+  </Grid>
 </Page>

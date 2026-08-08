@@ -1,3 +1,14 @@
 <Page x:Class="QuickResponseBao.App.Views.Pages.SettingsPage" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Background="{DynamicResource QrbBackgroundBrush}">
-  <Grid Margin="{DynamicResource QrbSpacing24}"><TextBlock Text="{DynamicResource Settings}" Style="{DynamicResource QrbPageTitleTextStyle}" /></Grid>
+  <ScrollViewer VerticalScrollBarVisibility="Auto"><Grid Margin="24" MaxWidth="820" HorizontalAlignment="Left"><Grid.ColumnDefinitions><ColumnDefinition Width="280"/><ColumnDefinition Width="420"/></Grid.ColumnDefinitions><Grid.RowDefinitions><RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/></Grid.RowDefinitions>
+    <TextBlock Grid.ColumnSpan="2" Text="{DynamicResource GeneralSettings}" Style="{DynamicResource QrbSectionTitleTextStyle}" Margin="4,0,0,12"/>
+    <TextBlock Grid.Row="1" Text="{DynamicResource MinimumTrigger}" VerticalAlignment="Center"/><TextBox Grid.Row="1" Grid.Column="1" Text="{Binding Settings.MinimumTriggerLength}"/>
+    <TextBlock Grid.Row="2" Text="{DynamicResource MaximumSuggestions}" VerticalAlignment="Center"/><TextBox Grid.Row="2" Grid.Column="1" Text="{Binding Settings.MaximumSuggestions}"/>
+    <TextBlock Grid.Row="3" Text="{DynamicResource ClipboardDelay}" VerticalAlignment="Center"/><TextBox Grid.Row="3" Grid.Column="1" Text="{Binding Settings.ClipboardRestoreDelayMs}"/>
+    <CheckBox Grid.Row="4" Grid.ColumnSpan="2" Content="{DynamicResource ReplaceTypedSearchText}" IsChecked="{Binding Settings.ReplaceTypedSearchText}" Margin="4,12"/>
+    <TextBlock Grid.Row="5" Text="{DynamicResource Theme}" VerticalAlignment="Center"/><ComboBox x:Name="ThemeBox" Grid.Row="5" Grid.Column="1"><ComboBoxItem Tag="System" Content="{DynamicResource ThemeSystem}"/><ComboBoxItem Tag="Light" Content="{DynamicResource ThemeLight}"/><ComboBoxItem Tag="Dark" Content="{DynamicResource ThemeDark}"/></ComboBox>
+    <TextBlock Grid.Row="6" Text="{DynamicResource Language}" VerticalAlignment="Center"/><Button Grid.Row="6" Grid.Column="1" Content="{DynamicResource SwitchLanguage}" Style="{DynamicResource QrbSecondaryButtonStyle}" HorizontalAlignment="Left" Click="Language_Click"/>
+    <CheckBox x:Name="UpdatesBox" Grid.Row="7" Grid.ColumnSpan="2" Content="{DynamicResource CheckUpdatesOnStartup}" IsChecked="{Binding Settings.CheckUpdatesOnStartup}" Margin="4,12"/>
+    <CheckBox x:Name="PrereleaseBox" Grid.Row="8" Grid.ColumnSpan="2" Content="{DynamicResource IncludePrerelease}" IsChecked="{Binding Settings.IncludePrereleaseUpdates}" Margin="4"/>
+    <WrapPanel Grid.Row="9" Grid.Column="1" Margin="0,12,0,0"><Button Content="{DynamicResource Save}" Style="{DynamicResource QrbPrimaryButtonStyle}" Click="Save_Click"/><Button Content="{DynamicResource Backups}" Click="Backups_Click"/></WrapPanel>
+  </Grid></ScrollViewer>
 </Page>

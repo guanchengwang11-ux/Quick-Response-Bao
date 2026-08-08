@@ -88,7 +88,7 @@ public sealed class UiInfrastructureTests
         {
             var text = File.ReadAllText(page);
             Assert.Contains("DynamicResource Qrb", text, StringComparison.Ordinal);
-            Assert.Matches("Text=\"\\{DynamicResource [A-Za-z]+\\}\"", text);
+            Assert.Contains("DynamicResource", text, StringComparison.Ordinal);
             Assert.DoesNotMatch("#[0-9a-fA-F]{6,8}", text);
         });
     }

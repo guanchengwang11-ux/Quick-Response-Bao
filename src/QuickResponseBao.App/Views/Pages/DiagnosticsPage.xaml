@@ -1,3 +1,17 @@
 <Page x:Class="QuickResponseBao.App.Views.Pages.DiagnosticsPage" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Background="{DynamicResource QrbBackgroundBrush}">
-  <Grid Margin="{DynamicResource QrbSpacing24}"><TextBlock Text="{DynamicResource Diagnostics}" Style="{DynamicResource QrbPageTitleTextStyle}" /></Grid>
+  <ScrollViewer VerticalScrollBarVisibility="Auto"><StackPanel Margin="24" MaxWidth="900" HorizontalAlignment="Left">
+    <Border Style="{DynamicResource QrbCardStyle}"><Grid><Grid.ColumnDefinitions><ColumnDefinition Width="240"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions><Grid.RowDefinitions><RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/></Grid.RowDefinitions>
+      <TextBlock Grid.Row="0" Text="{DynamicResource ForegroundProcess}" Style="{DynamicResource QrbCaptionTextStyle}"/><TextBlock x:Name="ProcessValue" Grid.Row="0" Grid.Column="1"/>
+      <TextBlock Grid.Row="1" Text="{DynamicResource WindowTitle}" Style="{DynamicResource QrbCaptionTextStyle}"/><TextBlock x:Name="TitleValue" Grid.Row="1" Grid.Column="1" TextWrapping="Wrap"/>
+      <TextBlock Grid.Row="2" Text="{DynamicResource WhitelistState}" Style="{DynamicResource QrbCaptionTextStyle}"/><TextBlock x:Name="WhitelistValue" Grid.Row="2" Grid.Column="1"/>
+      <TextBlock Grid.Row="3" Text="{DynamicResource HookState}" Style="{DynamicResource QrbCaptionTextStyle}"/><TextBlock x:Name="HookValue" Grid.Row="3" Grid.Column="1"/>
+      <TextBlock Grid.Row="4" Text="{DynamicResource TextInputDetected}" Style="{DynamicResource QrbCaptionTextStyle}"/><TextBlock x:Name="InputValue" Grid.Row="4" Grid.Column="1"/>
+      <TextBlock Grid.Row="5" Text="{DynamicResource BufferLength}" Style="{DynamicResource QrbCaptionTextStyle}"/><TextBlock x:Name="BufferValue" Grid.Row="5" Grid.Column="1"/>
+      <TextBlock Grid.Row="6" Text="{DynamicResource PositionMethod}" Style="{DynamicResource QrbCaptionTextStyle}"/><TextBlock x:Name="PositionValue" Grid.Row="6" Grid.Column="1"/>
+      <TextBlock Grid.Row="7" Text="{DynamicResource LastPasteState}" Style="{DynamicResource QrbCaptionTextStyle}"/><TextBlock x:Name="PasteValue" Grid.Row="7" Grid.Column="1"/>
+      <TextBlock Grid.Row="8" Text="{DynamicResource ClipboardRestored}" Style="{DynamicResource QrbCaptionTextStyle}"/><TextBlock x:Name="ClipboardValue" Grid.Row="8" Grid.Column="1"/>
+      <TextBlock Grid.Row="9" Text="{DynamicResource LastFailure}" Style="{DynamicResource QrbCaptionTextStyle}"/><TextBlock x:Name="FailureValue" Grid.Row="9" Grid.Column="1" TextWrapping="Wrap"/>
+    </Grid></Border>
+    <WrapPanel Margin="4,12,0,0"><Button Content="{DynamicResource TestCandidate}" Click="Candidate_Click"/><Button Content="{DynamicResource TestPaste}" Click="Paste_Click"/><Button Content="{DynamicResource OpenLogs}" Click="Logs_Click"/><Button Content="{DynamicResource ExportDiagnostics}" Click="Export_Click"/></WrapPanel>
+  </StackPanel></ScrollViewer>
 </Page>
