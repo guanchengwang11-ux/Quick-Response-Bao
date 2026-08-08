@@ -89,4 +89,8 @@
   <sys:String x:Key="SelectedCountFormat">已选择 {0} 项</sys:String><sys:String x:Key="MoreActions">更多操作</sys:String><sys:String x:Key="MoveToCategory">移动到分类</sys:String>
   <sys:String x:Key="EmptyLibraryTitle">未找到话术</sys:String><sys:String x:Key="EmptyLibraryDescription">新增第一条话术、导入现有话术库，或调整当前筛选条件。</sys:String>
   <sys:String x:Key="UsageCount">使用次数</sys:String>
+  <sys:String x:Key="AddResponseTitle">新增话术</sys:String><sys:String x:Key="EditResponseTitle">编辑话术</sys:String><sys:String x:Key="SaveResponse">保存话术</sys:String>
+  <sys:String x:Key="ResponseEditorDescription">创建清晰、可复用的话术，提高客服回复效率。</sys:String><sys:String x:Key="ContentLimitHint">最多 600 个单词或 3000 个 CJK 字符</sys:String>
+  <sys:String x:Key="AddKeyword">添加关键词…</sys:String><sys:String x:Key="RemoveKeyword">移除关键词</sys:String><sys:String x:Key="KeywordEntryHint">按 Enter、逗号或分号添加关键词。</sys:String>
+  <sys:String x:Key="EnabledResponseHint">启用后，该话术可出现在搜索结果中。</sys:String>
 </ResourceDictionary>

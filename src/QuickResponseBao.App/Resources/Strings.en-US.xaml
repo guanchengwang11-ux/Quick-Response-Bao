@@ -89,4 +89,8 @@
   <sys:String x:Key="SelectedCountFormat">{0} selected</sys:String><sys:String x:Key="MoreActions">More actions</sys:String><sys:String x:Key="MoveToCategory">Move to category</sys:String>
   <sys:String x:Key="EmptyLibraryTitle">No responses found</sys:String><sys:String x:Key="EmptyLibraryDescription">Add your first response, import an existing library, or adjust the current filters.</sys:String>
   <sys:String x:Key="UsageCount">Uses</sys:String>
+  <sys:String x:Key="AddResponseTitle">Add response</sys:String><sys:String x:Key="EditResponseTitle">Edit response</sys:String><sys:String x:Key="SaveResponse">Save response</sys:String>
+  <sys:String x:Key="ResponseEditorDescription">Create a clear, reusable response for faster customer support.</sys:String><sys:String x:Key="ContentLimitHint">Up to 600 words or 3000 CJK characters</sys:String>
+  <sys:String x:Key="AddKeyword">Add keyword…</sys:String><sys:String x:Key="RemoveKeyword">Remove keyword</sys:String><sys:String x:Key="KeywordEntryHint">Press Enter, comma, or semicolon to add a keyword.</sys:String>
+  <sys:String x:Key="EnabledResponseHint">Enabled responses can appear in search results.</sys:String>
 </ResourceDictionary>
