@@ -38,4 +38,7 @@ public sealed record DiagnosticSnapshot(
     string LastPasteTargetProcess,
     bool? LastPasteSamePermissionLevel,
     string LastFailureReason,
-    string LogDirectory);
+    string LogDirectory)
+{
+    public int CandidateWindowInstanceCount { get; init; }
+}

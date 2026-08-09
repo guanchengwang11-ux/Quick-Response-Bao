@@ -97,7 +97,7 @@ public partial class UpdateWindow : Window
     {
         if (_selection is null || _downloadedPath is null || !File.Exists(_downloadedPath)) return;
         var strategy = _selection.Kind == ReleaseAssetKind.Setup ? LocalizationService.Get("SetupSilentStrategy") : LocalizationService.Get("PackageUpdaterStrategy");
-        if (System.Windows.MessageBox.Show($"{strategy}\n\n{LocalizationService.Get("ConfirmInstallUpdate")}", LocalizationService.Get("UpdateTitle"), MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes) return;
+        if (!UiDialogService.Confirm(this, LocalizationService.Get("UpdateTitle"), $"{strategy}\n\n{LocalizationService.Get("ConfirmInstallUpdate")}")) return;
         try { ((App)System.Windows.Application.Current).InstallUpdate(_downloadedPath, _selection.Kind); }
         catch (Exception ex) { SetStatus("✗", $"{LocalizationService.Get("InstallLaunchFailed")}: {ex.Message}"); }
     }

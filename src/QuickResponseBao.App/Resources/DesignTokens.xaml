@@ -1,0 +1,47 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:sys="clr-namespace:System;assembly=mscorlib">
+  <!-- Spacing scale -->
+  <sys:Double x:Key="QrbSpace4">4</sys:Double>
+  <sys:Double x:Key="QrbSpace8">8</sys:Double>
+  <sys:Double x:Key="QrbSpace12">12</sys:Double>
+  <sys:Double x:Key="QrbSpace16">16</sys:Double>
+  <sys:Double x:Key="QrbSpace20">20</sys:Double>
+  <sys:Double x:Key="QrbSpace24">24</sys:Double>
+  <sys:Double x:Key="QrbSpace32">32</sys:Double>
+  <Thickness x:Key="QrbSpacing4">4</Thickness>
+  <Thickness x:Key="QrbSpacing8">8</Thickness>
+  <Thickness x:Key="QrbSpacing12">12</Thickness>
+  <Thickness x:Key="QrbSpacing16">16</Thickness>
+  <Thickness x:Key="QrbSpacing20">20</Thickness>
+  <Thickness x:Key="QrbSpacing24">24</Thickness>
+  <Thickness x:Key="QrbSpacing32">32</Thickness>
+
+  <!-- Shape and sizing scale -->
+  <CornerRadius x:Key="QrbRadius6">6</CornerRadius>
+  <CornerRadius x:Key="QrbRadius8">8</CornerRadius>
+  <CornerRadius x:Key="QrbRadius10">10</CornerRadius>
+  <CornerRadius x:Key="QrbRadius12">12</CornerRadius>
+  <sys:Double x:Key="QrbControlHeight32">32</sys:Double>
+  <sys:Double x:Key="QrbControlHeight36">36</sys:Double>
+  <sys:Double x:Key="QrbControlHeight40">40</sys:Double>
+  <sys:Double x:Key="QrbControlHeight44">44</sys:Double>
+  <Thickness x:Key="QrbFocusRingThickness">2</Thickness>
+
+  <!-- Motion tokens: brief and non-blocking -->
+  <Duration x:Key="QrbMotionFast">0:0:0.100</Duration>
+  <Duration x:Key="QrbMotionNormal">0:0:0.150</Duration>
+  <Duration x:Key="QrbMotionSlow">0:0:0.180</Duration>
+
+  <!-- Compatibility aliases used by the current UI during phased migration. -->
+  <FontFamily x:Key="AppFontFamily">Microsoft YaHei UI, Segoe UI</FontFamily>
+  <sys:Double x:Key="FontSizeSmall">12</sys:Double>
+  <sys:Double x:Key="FontSizeBody">14</sys:Double>
+  <sys:Double x:Key="FontSizeTitle">26</sys:Double>
+  <Thickness x:Key="SpacingSmall">6</Thickness>
+  <Thickness x:Key="SpacingBody">12</Thickness>
+  <Thickness x:Key="SpacingLarge">18</Thickness>
+  <CornerRadius x:Key="CornerSmall">6</CornerRadius>
+  <CornerRadius x:Key="CornerCard">10</CornerRadius>
+  <DropShadowEffect x:Key="CardShadow" BlurRadius="12" ShadowDepth="2" Opacity="0.12" Direction="270" />
+</ResourceDictionary>

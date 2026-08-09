@@ -11,11 +11,12 @@ public sealed record CandidateSearchContext(
     uint TargetProcessId,
     string TargetProcessName,
     DateTimeOffset CapturedAt,
-    [property: JsonIgnore] string RawTypedText)
+    [property: JsonIgnore] string RawTypedText,
+    long SequenceId = 0)
 {
     public CandidateConfirmationContext Confirm(QuickResponse response, CandidateConfirmationMethod method) => new(
         response, NormalizedQuery, RawTypedCharacterCount, TargetWindowHandle, TargetProcessId,
-        TargetProcessName, method, CapturedAt, RawTypedText);
+        TargetProcessName, method, CapturedAt, RawTypedText, SequenceId);
 
     public override string ToString() =>
         $"queryLength={NormalizedQuery.Length}, rawCount={RawTypedCharacterCount}, target={TargetProcessName}, pid={TargetProcessId}";
@@ -30,7 +31,8 @@ public sealed record CandidateConfirmationContext(
     string TargetProcessName,
     CandidateConfirmationMethod ConfirmationMethod,
     DateTimeOffset CapturedAt,
-    [property: JsonIgnore] string RawTypedText)
+    [property: JsonIgnore] string RawTypedText,
+    long SequenceId = 0)
 {
     public override string ToString() =>
         $"queryLength={NormalizedQuery.Length}, rawCount={RawTypedCharacterCount}, target={TargetProcessName}, pid={TargetProcessId}, method={ConfirmationMethod}";

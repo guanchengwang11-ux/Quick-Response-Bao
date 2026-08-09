@@ -7,9 +7,10 @@ namespace QuickResponseBao.UnitTests;
 public sealed class ThemeAndLocalizationTests
 {
     private static readonly string[] RequiredBrushes = ["PrimaryBrush", "HighlightBrush", "SurfaceBrush", "SurfaceAltBrush", "CanvasBrush", "TextBrush", "MutedTextBrush", "BorderBrush", "ControlBrush", "InputBrush", "SelectionBrush", "DisabledBrush", "DisabledTextBrush", "SuccessBrush", "WarningBrush", "ErrorBrush", "CardBlueBrush", "CardGreenBrush", "CardAmberBrush"];
+    private static readonly string[] RequiredSemanticBrushes = ["QrbBackgroundBrush", "QrbSurfaceBrush", "QrbSurfaceSecondaryBrush", "QrbBorderBrush", "QrbTextPrimaryBrush", "QrbTextSecondaryBrush", "QrbTextDisabledBrush", "QrbAccentBrush", "QrbAccentHoverBrush", "QrbAccentPressedBrush", "QrbSuccessBrush", "QrbWarningBrush", "QrbErrorBrush"];
 
-    [Fact] public void LightTheme_ContainsAllRequiredResources() => AssertPalette("Light.xaml");
-    [Fact] public void DarkTheme_ContainsAllRequiredResources() => AssertPalette("Dark.xaml");
+    [Fact] public void LightTheme_ContainsAllRequiredResources() => AssertPalette("LightTheme.xaml");
+    [Fact] public void DarkTheme_ContainsAllRequiredResources() => AssertPalette("DarkTheme.xaml");
 
     [Fact]
     public void ChineseAndEnglishResourceKeys_AreCompleteAndIdentical()
@@ -32,8 +33,9 @@ public sealed class ThemeAndLocalizationTests
 
     private static void AssertPalette(string file)
     {
-        var keys = Keys(Path.Combine(Root(), "src", "QuickResponseBao.App", "Resources", "Themes", file));
+        var keys = Keys(Path.Combine(Root(), "src", "QuickResponseBao.App", "Resources", file));
         Assert.All(RequiredBrushes, key => Assert.Contains(key, keys));
+        Assert.All(RequiredSemanticBrushes, key => Assert.Contains(key, keys));
     }
     private static string[] Keys(string path)
     {

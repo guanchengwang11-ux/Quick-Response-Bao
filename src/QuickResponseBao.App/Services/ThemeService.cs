@@ -1,6 +1,8 @@
 using System.Windows;
 using Microsoft.Win32;
 using QuickResponseBao.Core.Models;
+using Wpf.Ui.Appearance;
+using Wpf.Ui.Controls;
 
 namespace QuickResponseBao.App.Services;
 
@@ -18,13 +20,28 @@ public sealed class ThemeService : IDisposable
 
     public void Apply(string? preference)
     {
-        _preference = ThemeMode.Normalize(preference); IsDark = ThemeMode.ResolveDark(_preference, SystemUsesLightTheme());
+        _preference = ThemeMode.Normalize(preference);
+        IsDark = ThemeMode.ResolveDark(_preference, SystemUsesLightTheme());
+
+        var highContrast = _preference == ThemeMode.System && ApplicationThemeManager.IsSystemHighContrast();
+        var applicationTheme = highContrast ? ApplicationTheme.HighContrast : IsDark ? ApplicationTheme.Dark : ApplicationTheme.Light;
+        ApplicationThemeManager.Apply(applicationTheme, WindowBackdropType.None, updateAccent: false);
+
         var dictionaries = _application.Resources.MergedDictionaries;
-        var existing = dictionaries.FirstOrDefault(x => x.Source?.OriginalString.Contains("Resources/Themes/", StringComparison.OrdinalIgnoreCase) == true);
-        var replacement = new ResourceDictionary { Source = new Uri(IsDark ? "Resources/Themes/Dark.xaml" : "Resources/Themes/Light.xaml", UriKind.Relative) };
-        if (existing is null) dictionaries.Insert(Math.Min(1, dictionaries.Count), replacement);
+        var existing = dictionaries.FirstOrDefault(IsQrbThemeDictionary);
+        var resource = highContrast ? "Resources/HighContrastTheme.xaml" : IsDark ? "Resources/DarkTheme.xaml" : "Resources/LightTheme.xaml";
+        var replacement = new ResourceDictionary { Source = new Uri(resource, UriKind.Relative) };
+        if (existing is null) dictionaries.Insert(Math.Min(2, dictionaries.Count), replacement);
         else dictionaries[dictionaries.IndexOf(existing)] = replacement;
         ThemeChanged?.Invoke(this, EventArgs.Empty);
+    }
+
+    private static bool IsQrbThemeDictionary(ResourceDictionary dictionary)
+    {
+        var source = dictionary.Source?.OriginalString;
+        return source?.Contains("Resources/LightTheme.xaml", StringComparison.OrdinalIgnoreCase) == true
+            || source?.Contains("Resources/DarkTheme.xaml", StringComparison.OrdinalIgnoreCase) == true
+            || source?.Contains("Resources/HighContrastTheme.xaml", StringComparison.OrdinalIgnoreCase) == true;
     }
 
     public static bool SystemUsesLightTheme()

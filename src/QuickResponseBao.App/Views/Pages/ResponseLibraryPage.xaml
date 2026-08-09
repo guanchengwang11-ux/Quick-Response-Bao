@@ -1,0 +1,83 @@
+<Page x:Class="QuickResponseBao.App.Views.Pages.ResponseLibraryPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+      xmlns:controls="clr-namespace:QuickResponseBao.App.Controls"
+      xmlns:converters="clr-namespace:QuickResponseBao.App.Converters"
+      Background="{DynamicResource QrbBackgroundBrush}">
+  <Page.Resources><converters:KeywordsPreviewConverter x:Key="KeywordsPreviewConverter"/><Style x:Key="QrbColumnFilterButtonStyle" TargetType="Button" BasedOn="{StaticResource QrbGhostButtonStyle}"><Setter Property="MinWidth" Value="36"/><Setter Property="Padding" Value="4"/><Setter Property="Margin" Value="0"/><Setter Property="Opacity" Value="0.46"/><Setter Property="Foreground" Value="{DynamicResource QrbTextSecondaryBrush}"/><Setter Property="HorizontalContentAlignment" Value="Stretch"/><Style.Triggers><Trigger Property="IsMouseOver" Value="True"><Setter Property="Opacity" Value="1"/><Setter Property="Foreground" Value="{DynamicResource QrbTextPrimaryBrush}"/></Trigger></Style.Triggers></Style></Page.Resources>
+  <Grid x:Name="RootPanel" Margin="24,8,24,24" MaxWidth="1400" HorizontalAlignment="Center">
+    <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+
+    <Grid Margin="0,0,0,12"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+      <Grid MaxWidth="560" HorizontalAlignment="Stretch">
+        <ui:TextBox x:Name="SearchBox" Style="{DynamicResource QrbSearchBoxStyle}" HorizontalAlignment="Stretch" ToolTip="{DynamicResource Search}" Padding="36,7,12,7" TextChanged="SearchBox_TextChanged"/>
+        <StackPanel Orientation="Horizontal" Margin="12,0,0,0" VerticalAlignment="Center" IsHitTestVisible="False">
+          <StackPanel.Style><Style TargetType="StackPanel"><Setter Property="Visibility" Value="Collapsed"/><Style.Triggers><DataTrigger Binding="{Binding Text, ElementName=SearchBox}" Value=""><Setter Property="Visibility" Value="Visible"/></DataTrigger></Style.Triggers></Style></StackPanel.Style>
+          <ui:SymbolIcon Symbol="Search24" Style="{DynamicResource QrbIcon16Style}" Foreground="{DynamicResource QrbTextSecondaryBrush}" Margin="0,0,8,0"/>
+          <TextBlock Text="{DynamicResource Search}" Style="{DynamicResource QrbBodyTextStyle}" Foreground="{DynamicResource QrbTextSecondaryBrush}"/>
+        </StackPanel>
+      </Grid>
+      <StackPanel Grid.Column="1" Orientation="Horizontal" Margin="12,0,0,0">
+        <Button Style="{DynamicResource QrbSecondaryButtonStyle}" Click="ImportExport_Click"><StackPanel Orientation="Horizontal"><ui:SymbolIcon Symbol="ArrowUpload24" Style="{DynamicResource QrbIcon16Style}" Margin="0,0,6,0"/><TextBlock Text="{DynamicResource Import}"/></StackPanel></Button>
+        <Button Style="{DynamicResource QrbSecondaryButtonStyle}" Click="ImportExport_Click"><StackPanel Orientation="Horizontal"><ui:SymbolIcon Symbol="ArrowDownload24" Style="{DynamicResource QrbIcon16Style}" Margin="0,0,6,0"/><TextBlock Text="{DynamicResource Export}"/></StackPanel></Button>
+        <Button Style="{DynamicResource QrbPrimaryButtonStyle}" Click="Add_Click"><StackPanel Orientation="Horizontal"><ui:SymbolIcon Symbol="Add24" Style="{DynamicResource QrbIcon16Style}" Margin="0,0,6,0"/><TextBlock Text="{DynamicResource Add}"/></StackPanel></Button>
+      </StackPanel>
+    </Grid>
+
+    <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,12">
+      <ComboBox x:Name="CategoryFilter" Width="190" DisplayMemberPath="Label" SelectionChanged="Filter_SelectionChanged" ToolTip="{DynamicResource FilterByCategory}"/>
+      <ComboBox x:Name="LanguageFilter" Width="170" DisplayMemberPath="Label" SelectionChanged="Filter_SelectionChanged" ToolTip="{DynamicResource FilterByLanguage}"/>
+      <ComboBox x:Name="StatusFilter" Width="170" DisplayMemberPath="Label" SelectionChanged="Filter_SelectionChanged" ToolTip="{DynamicResource FilterByStatus}"/>
+    </StackPanel>
+
+    <Border x:Name="ActiveFiltersBar" Grid.Row="2" Background="{DynamicResource QrbSurfaceSecondaryBrush}" BorderBrush="{DynamicResource QrbBorderBrush}" BorderThickness="1" CornerRadius="10" Padding="10,6" Margin="0,0,0,12" Visibility="Collapsed"><DockPanel><Button DockPanel.Dock="Right" Content="{DynamicResource ClearAll}" Style="{DynamicResource QrbGhostButtonStyle}" Click="ClearAllFilters_Click"/><TextBlock Text="{DynamicResource ActiveFilters}" Style="{DynamicResource QrbBodyStrongTextStyle}" VerticalAlignment="Center" Margin="4,0,10,0"/><ItemsControl x:Name="ActiveFiltersItems"><ItemsControl.ItemsPanel><ItemsPanelTemplate><WrapPanel/></ItemsPanelTemplate></ItemsControl.ItemsPanel><ItemsControl.ItemTemplate><DataTemplate><Border Style="{DynamicResource QrbStatusBadgeStyle}" Margin="3"><StackPanel Orientation="Horizontal"><TextBlock Text="{Binding Label}" VerticalAlignment="Center"/><Button Content="×" Style="{DynamicResource QrbGhostButtonStyle}" MinWidth="28" Padding="2" Margin="4,0,0,0" Tag="{Binding Field}" Click="ClearFilterChip_Click"/></StackPanel></Border></DataTemplate></ItemsControl.ItemTemplate></ItemsControl></DockPanel></Border>
+
+    <Border x:Name="SelectionToolbar" Grid.Row="3" Background="{DynamicResource QrbSelectionBrush}" BorderBrush="{DynamicResource QrbFocusRingBrush}" BorderThickness="1" CornerRadius="8" Padding="8,4" Margin="0,0,0,8" Visibility="Collapsed">
+      <DockPanel>
+        <TextBlock x:Name="SelectionCountText" VerticalAlignment="Center" Style="{DynamicResource QrbBodyStrongTextStyle}" Margin="4,0,10,0"/>
+        <StackPanel Orientation="Horizontal">
+          <Button Content="{DynamicResource SelectAll}" Style="{DynamicResource QrbGhostButtonStyle}" Click="SelectAll_Click"/>
+          <Button Content="{DynamicResource ClearSelection}" Style="{DynamicResource QrbGhostButtonStyle}" Click="ClearSelection_Click"/>
+          <Button Content="{DynamicResource BatchEnable}" Style="{DynamicResource QrbSecondaryButtonStyle}" Click="BatchEnable_Click"/>
+          <Button Content="{DynamicResource BatchDisable}" Style="{DynamicResource QrbSecondaryButtonStyle}" Click="BatchDisable_Click"/>
+          <Button Content="{DynamicResource BatchMove}" Style="{DynamicResource QrbSecondaryButtonStyle}" Click="BatchMove_Click"/>
+          <Button Content="{DynamicResource BatchDelete}" Style="{DynamicResource QrbDangerButtonStyle}" Click="BatchDelete_Click"/>
+        </StackPanel>
+      </DockPanel>
+    </Border>
+
+    <Border Grid.Row="4" Background="{DynamicResource QrbSurfaceBrush}" BorderBrush="{DynamicResource QrbBorderBrush}" BorderThickness="1" CornerRadius="12" ClipToBounds="True">
+      <Grid>
+        <DataGrid x:Name="ResponsesGrid" AutoGenerateColumns="False" IsReadOnly="True" SelectionMode="Extended" SelectionUnit="FullRow"
+                  HeadersVisibility="Column" GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="{DynamicResource QrbGridLineBrush}" BorderThickness="0" RowHeight="56"
+                  EnableRowVirtualization="True" EnableColumnVirtualization="True" VirtualizingPanel.IsVirtualizing="True"
+                  VirtualizingPanel.VirtualizationMode="Recycling" ScrollViewer.CanContentScroll="True"
+                  ScrollViewer.VerticalScrollBarVisibility="Auto" ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                  ScrollViewer.PanningMode="VerticalOnly" SelectionChanged="ResponsesGrid_SelectionChanged" MouseDoubleClick="ResponsesGrid_MouseDoubleClick">
+          <DataGrid.Columns>
+            <DataGridTemplateColumn Width="44"><DataGridTemplateColumn.HeaderTemplate><DataTemplate><CheckBox Checked="SelectAllCheck_Checked" Unchecked="SelectAllCheck_Unchecked"/></DataTemplate></DataGridTemplateColumn.HeaderTemplate><DataGridTemplateColumn.CellTemplate><DataTemplate><CheckBox IsChecked="{Binding IsSelected, RelativeSource={RelativeSource AncestorType=DataGridRow}, Mode=TwoWay}"/></DataTemplate></DataGridTemplateColumn.CellTemplate></DataGridTemplateColumn>
+            <DataGridTextColumn Binding="{Binding Summary}" Width="2*" MinWidth="180"><DataGridTextColumn.Header><DockPanel><Button x:Name="SummaryFilterButton" DockPanel.Dock="Right" Tag="Summary" Style="{StaticResource QrbColumnFilterButtonStyle}" Click="FilterHeader_Click"><ui:SymbolIcon Symbol="Filter24"/></Button><TextBlock Text="{DynamicResource Summary}" VerticalAlignment="Center"/></DockPanel></DataGridTextColumn.Header></DataGridTextColumn>
+            <DataGridTextColumn Binding="{Binding Category}" Width="*" MinWidth="110"><DataGridTextColumn.Header><DockPanel><Button x:Name="CategoryColumnFilterButton" DockPanel.Dock="Right" Tag="Category" Style="{StaticResource QrbColumnFilterButtonStyle}" Click="FilterHeader_Click"><ui:SymbolIcon Symbol="Filter24"/></Button><TextBlock Text="{DynamicResource Category}" VerticalAlignment="Center"/></DockPanel></DataGridTextColumn.Header></DataGridTextColumn>
+            <DataGridTextColumn Binding="{Binding Keywords, Converter={StaticResource KeywordsPreviewConverter}}" Width="1.4*" MinWidth="160"><DataGridTextColumn.Header><DockPanel><Button x:Name="KeywordsFilterButton" DockPanel.Dock="Right" Tag="Keywords" Style="{StaticResource QrbColumnFilterButtonStyle}" Click="FilterHeader_Click"><ui:SymbolIcon Symbol="Filter24"/></Button><TextBlock Text="{DynamicResource Keywords}" VerticalAlignment="Center"/></DockPanel></DataGridTextColumn.Header></DataGridTextColumn>
+            <DataGridTextColumn Binding="{Binding Language}" Width="100"><DataGridTextColumn.Header><DockPanel><Button x:Name="LanguageColumnFilterButton" DockPanel.Dock="Right" Tag="Language" Style="{StaticResource QrbColumnFilterButtonStyle}" Click="FilterHeader_Click"><ui:SymbolIcon Symbol="Filter24"/></Button><TextBlock Text="{DynamicResource Language}" VerticalAlignment="Center"/></DockPanel></DataGridTextColumn.Header></DataGridTextColumn>
+            <DataGridTemplateColumn Width="100"><DataGridTemplateColumn.Header><DockPanel><Button x:Name="StatusColumnFilterButton" DockPanel.Dock="Right" Tag="Status" Style="{StaticResource QrbColumnFilterButtonStyle}" Click="FilterHeader_Click"><ui:SymbolIcon Symbol="Filter24"/></Button><TextBlock Text="{DynamicResource Status}" VerticalAlignment="Center"/></DockPanel></DataGridTemplateColumn.Header><DataGridTemplateColumn.CellTemplate><DataTemplate>
+              <Border Padding="7,2" HorizontalAlignment="Left"><Border.Style><Style TargetType="Border" BasedOn="{StaticResource QrbStatusBadgeStyle}"><Setter Property="CornerRadius" Value="8"/><Style.Triggers><DataTrigger Binding="{Binding IsEnabled}" Value="True"><Setter Property="Background" Value="{DynamicResource QrbSuccessSurfaceBrush}"/></DataTrigger><DataTrigger Binding="{Binding IsEnabled}" Value="False"><Setter Property="Background" Value="{DynamicResource QrbSurfaceSecondaryBrush}"/></DataTrigger></Style.Triggers></Style></Border.Style><TextBlock><TextBlock.Style><Style TargetType="TextBlock" BasedOn="{StaticResource QrbCaptionTextStyle}"><Setter Property="Text" Value="{DynamicResource Disabled}"/><Style.Triggers><DataTrigger Binding="{Binding IsEnabled}" Value="True"><Setter Property="Text" Value="{DynamicResource Enabled}"/><Setter Property="Foreground" Value="{DynamicResource QrbSuccessBrush}"/></DataTrigger></Style.Triggers></Style></TextBlock.Style></TextBlock></Border>
+            </DataTemplate></DataGridTemplateColumn.CellTemplate></DataGridTemplateColumn>
+            <DataGridTextColumn Binding="{Binding UsageCount}" Width="110"><DataGridTextColumn.Header><DockPanel><Button x:Name="UsageFilterButton" DockPanel.Dock="Right" Tag="UsageCount" Style="{StaticResource QrbColumnFilterButtonStyle}" Click="FilterHeader_Click"><ui:SymbolIcon Symbol="Filter24"/></Button><TextBlock Text="{DynamicResource UsageCount}" VerticalAlignment="Center"/></DockPanel></DataGridTextColumn.Header></DataGridTextColumn>
+            <DataGridTextColumn Binding="{Binding LastUsedAt, StringFormat={}{0:g}}" Width="150"><DataGridTextColumn.Header><DockPanel><Button x:Name="LastUsedFilterButton" DockPanel.Dock="Right" Tag="LastUsed" Style="{StaticResource QrbColumnFilterButtonStyle}" Click="FilterHeader_Click"><ui:SymbolIcon Symbol="Filter24"/></Button><TextBlock Text="{DynamicResource LastUsed}" VerticalAlignment="Center"/></DockPanel></DataGridTextColumn.Header></DataGridTextColumn>
+            <DataGridTemplateColumn Width="54"><DataGridTemplateColumn.CellTemplate><DataTemplate>
+              <Button Style="{DynamicResource QrbIconButtonStyle}" ToolTip="{DynamicResource MoreActions}"><ui:SymbolIcon Symbol="MoreHorizontal24" Style="{DynamicResource QrbIcon20Style}"/><Button.ContextMenu><ContextMenu DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}"><MenuItem Header="{DynamicResource Edit}" Click="EditMenu_Click"/><MenuItem Header="{DynamicResource Duplicate}" Click="DuplicateMenu_Click"/><MenuItem Header="{DynamicResource Toggle}" Click="ToggleMenu_Click"/><MenuItem Header="{DynamicResource MoveToCategory}" Click="MoveMenu_Click"/><Separator/><MenuItem Header="{DynamicResource Delete}" Click="DeleteMenu_Click"/></ContextMenu></Button.ContextMenu></Button>
+            </DataTemplate></DataGridTemplateColumn.CellTemplate></DataGridTemplateColumn>
+          </DataGrid.Columns>
+        </DataGrid>
+
+        <ContentControl x:Name="EmptyState" Style="{DynamicResource QrbEmptyStateStyle}" Visibility="Collapsed">
+          <StackPanel HorizontalAlignment="Center" MaxWidth="420"><ui:SymbolIcon Symbol="BookOpen24" Width="48" Height="48" Foreground="{DynamicResource QrbTextSecondaryBrush}"/><TextBlock Text="{DynamicResource EmptyLibraryTitle}" Style="{DynamicResource QrbSectionTitleTextStyle}" TextAlignment="Center" Margin="0,16,0,6"/><TextBlock Text="{DynamicResource EmptyLibraryDescription}" Style="{DynamicResource QrbBodyTextStyle}" TextAlignment="Center" TextWrapping="Wrap"/><StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,16,0,0"><Button Content="{DynamicResource Add}" Style="{DynamicResource QrbPrimaryButtonStyle}" Click="Add_Click"/><Button Content="{DynamicResource Import}" Style="{DynamicResource QrbSecondaryButtonStyle}" Click="ImportExport_Click"/></StackPanel></StackPanel>
+        </ContentControl>
+        <Border x:Name="LoadingOverlay" Background="{DynamicResource QrbSurfaceBrush}" Visibility="Collapsed"><StackPanel HorizontalAlignment="Center" VerticalAlignment="Center"><ui:ProgressRing Width="36" Height="36" IsIndeterminate="True" Foreground="{DynamicResource QrbAccentBrush}"/><TextBlock Text="{DynamicResource LoadingResponses}" Style="{DynamicResource QrbBodyStrongTextStyle}" Margin="0,12,0,0"/></StackPanel></Border>
+      </Grid>
+    </Border>
+    <Popup x:Name="FilterPopup" Placement="Bottom" StaysOpen="False" AllowsTransparency="True" PopupAnimation="None" Closed="FilterPopup_Closed"><controls:ColumnFilterPanel x:Name="ColumnFilterPanel"/></Popup>
+  </Grid>
+</Page>

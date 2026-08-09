@@ -19,7 +19,7 @@ public sealed class ClipboardPasteService
             catch (ExternalException) { }
         }
 
-        SetClipboardTextWithRetry(text);
+        await SetClipboardTextWithRetryAsync(text);
         var sent = SendPaste();
         if (!sent.Success)
             throw new PasteShortcutException(sent.SentCount, sent.ErrorCode, sent.InputSize, target);
@@ -61,16 +61,16 @@ public sealed class ClipboardPasteService
                 if (result.Success) await Task.Delay(80);
                 return result;
             },
-            () =>
+            async () =>
             {
                 try
                 {
-                    SetClipboardTextWithRetry(text); pasteSend = SendPaste();
-                    return Task.FromResult(new InputInjectionResult(PasteShortcutInput.EventCount, checked((int)pasteSend.SentCount), pasteSend.ErrorCode));
+                    await SetClipboardTextWithRetryAsync(text); pasteSend = SendPaste();
+                    return new InputInjectionResult(PasteShortcutInput.EventCount, checked((int)pasteSend.SentCount), pasteSend.ErrorCode);
                 }
                 catch (Exception ex)
                 {
-                    clipboardError = ex; return Task.FromResult(new InputInjectionResult(PasteShortcutInput.EventCount, 0, Marshal.GetLastPInvokeError()));
+                    clipboardError = ex; return new InputInjectionResult(PasteShortcutInput.EventCount, 0, Marshal.GetLastPInvokeError());
                 }
             },
             raw => Task.FromResult(NativeInputSender.Send(PasteShortcutInput.CreateUnicodeText(raw))));
@@ -112,12 +112,12 @@ public sealed class ClipboardPasteService
         return snapshot;
     }
 
-    private static void SetClipboardTextWithRetry(string text)
+    private static async Task SetClipboardTextWithRetryAsync(string text)
     {
         for (var attempt = 0; ; attempt++)
         {
             try { System.Windows.Clipboard.SetText(text, System.Windows.TextDataFormat.UnicodeText); return; }
-            catch (ExternalException) when (attempt < 4) { Thread.Sleep(30 * (attempt + 1)); }
+            catch (ExternalException) when (attempt < 4) { await Task.Delay(30 * (attempt + 1)); }
         }
     }
 

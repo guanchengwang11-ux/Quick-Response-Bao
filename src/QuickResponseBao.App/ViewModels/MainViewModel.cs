@@ -1,4 +1,4 @@
-using System.Collections.ObjectModel;
+using QuickResponseBao.Core.Collections;
 using QuickResponseBao.Core.Interfaces;
 using QuickResponseBao.Core.Models;
 using QuickResponseBao.Core.Services;
@@ -10,9 +10,14 @@ public sealed class MainViewModel(IQuickResponseRepository repository, SearchSer
     private string _searchText = string.Empty;
     private QuickResponse? _selected;
     private AppSettings _settings = new();
-    public ObservableCollection<QuickResponse> Responses { get; } = [];
+    private Task? _initialLoadTask;
+    public BulkObservableCollection<QuickResponse> Responses { get; } = [];
+    public IQuickResponseRepository Repository => repository;
+    public SearchService SearchService => searchService;
     public AppSettings Settings { get => _settings; set => Set(ref _settings, value); }
-    public string SearchText { get => _searchText; set { if (Set(ref _searchText, value)) _ = RefreshAsync(); } }
+    public string SearchText { get => _searchText; set => Set(ref _searchText, value); }
+    public bool IsLoaded { get; private set; }
+    public int DataVersion { get; private set; }
     public QuickResponse? SelectedResponse { get => _selected; set => Set(ref _selected, value); }
     public int TotalCount => Responses.Count;
     public int EnabledCount => Responses.Count(x => x.IsEnabled);
@@ -20,12 +25,38 @@ public sealed class MainViewModel(IQuickResponseRepository repository, SearchSer
     public IReadOnlyList<QuickResponse> RecentResponses => Responses.Where(x => x.LastUsedAt is not null)
         .OrderByDescending(x => x.LastUsedAt).Take(5).ToList();
 
+    public Task EnsureLoadedAsync() => IsLoaded ? Task.CompletedTask : _initialLoadTask ??= RefreshAsync();
+
     public async Task RefreshAsync()
     {
         var all = await repository.GetAllAsync();
-        var filtered = string.IsNullOrWhiteSpace(SearchText) ? all :
-            searchService.Search(all, SearchText, new SearchOptions(MaximumResults: 30)).Select(x => x.Response).ToList();
-        Responses.Clear(); foreach (var item in filtered) Responses.Add(item);
+        Responses.ReplaceRange(all);
+        CommitDataChange();
+    }
+
+    public void ApplyUpsert(QuickResponse response)
+    {
+        var existing = Responses.FirstOrDefault(x => x.Id == response.Id);
+        if (existing is not null) Responses.Remove(existing);
+        Responses.Add(response);
+        CommitDataChange();
+    }
+
+    public void ApplyRemove(Guid id)
+    {
+        if (Responses.FirstOrDefault(x => x.Id == id) is { } existing) Responses.Remove(existing);
+        CommitDataChange();
+    }
+
+    public void ApplySnapshot(IEnumerable<QuickResponse> responses)
+    {
+        Responses.ReplaceRange(responses);
+        CommitDataChange();
+    }
+
+    private void CommitDataChange()
+    {
+        IsLoaded = true; DataVersion++;
         Notify(nameof(TotalCount)); Notify(nameof(EnabledCount)); Notify(nameof(TodayUsageCount)); Notify(nameof(RecentResponses));
     }
 }

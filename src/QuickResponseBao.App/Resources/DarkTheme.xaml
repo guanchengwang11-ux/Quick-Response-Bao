@@ -1,0 +1,78 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <Color x:Key="QrbBackgroundColor">#101722</Color>
+  <Color x:Key="QrbSurfaceColor">#1B2432</Color>
+  <Color x:Key="QrbSurfaceSecondaryColor">#252F40</Color>
+  <Color x:Key="QrbBorderColor">#536176</Color>
+  <Color x:Key="QrbGridLineColor">#344154</Color>
+  <Color x:Key="QrbTextPrimaryColor">#F2F5F9</Color>
+  <Color x:Key="QrbTextSecondaryColor">#C2CBD8</Color>
+  <Color x:Key="QrbTextDisabledColor">#98A4B5</Color>
+  <Color x:Key="QrbAccentColor">#75A7FF</Color>
+  <Color x:Key="QrbAccentHoverColor">#92B9FF</Color>
+  <Color x:Key="QrbAccentPressedColor">#5C8FE8</Color>
+  <Color x:Key="QrbSuccessColor">#72E3A0</Color>
+  <Color x:Key="QrbWarningColor">#FFD166</Color>
+  <Color x:Key="QrbErrorColor">#FF8A80</Color>
+  <Color x:Key="QrbInputColor">#202A3A</Color>
+  <Color x:Key="QrbControlColor">#2B3648</Color>
+  <Color x:Key="QrbSelectionColor">#344F75</Color>
+  <Color x:Key="QrbDisabledColor">#303A49</Color>
+  <Color x:Key="QrbHighlightColor">#FF7373</Color>
+  <Color x:Key="QrbFocusRingColor">#92B9FF</Color>
+  <Color x:Key="QrbTextOnAccentColor">#101722</Color>
+  <Color x:Key="QrbSuccessSurfaceColor">#204A38</Color>
+  <Color x:Key="QrbWarningSurfaceColor">#594520</Color>
+  <Color x:Key="QrbErrorSurfaceColor">#572C32</Color>
+
+  <SolidColorBrush x:Key="QrbBackgroundBrush" Color="{DynamicResource QrbBackgroundColor}" />
+  <SolidColorBrush x:Key="QrbSurfaceBrush" Color="{DynamicResource QrbSurfaceColor}" />
+  <SolidColorBrush x:Key="QrbSurfaceSecondaryBrush" Color="{DynamicResource QrbSurfaceSecondaryColor}" />
+  <SolidColorBrush x:Key="QrbBorderBrush" Color="{DynamicResource QrbBorderColor}" />
+  <SolidColorBrush x:Key="QrbGridLineBrush" Color="{DynamicResource QrbGridLineColor}" />
+  <SolidColorBrush x:Key="QrbTextPrimaryBrush" Color="{DynamicResource QrbTextPrimaryColor}" />
+  <SolidColorBrush x:Key="QrbTextSecondaryBrush" Color="{DynamicResource QrbTextSecondaryColor}" />
+  <SolidColorBrush x:Key="QrbTextDisabledBrush" Color="{DynamicResource QrbTextDisabledColor}" />
+  <SolidColorBrush x:Key="QrbAccentBrush" Color="{DynamicResource QrbAccentColor}" />
+  <SolidColorBrush x:Key="QrbAccentHoverBrush" Color="{DynamicResource QrbAccentHoverColor}" />
+  <SolidColorBrush x:Key="QrbAccentPressedBrush" Color="{DynamicResource QrbAccentPressedColor}" />
+  <SolidColorBrush x:Key="QrbSuccessBrush" Color="{DynamicResource QrbSuccessColor}" />
+  <SolidColorBrush x:Key="QrbWarningBrush" Color="{DynamicResource QrbWarningColor}" />
+  <SolidColorBrush x:Key="QrbErrorBrush" Color="{DynamicResource QrbErrorColor}" />
+  <SolidColorBrush x:Key="QrbInputBrush" Color="{DynamicResource QrbInputColor}" />
+  <SolidColorBrush x:Key="QrbControlBrush" Color="{DynamicResource QrbControlColor}" />
+  <SolidColorBrush x:Key="QrbSelectionBrush" Color="{DynamicResource QrbSelectionColor}" />
+  <SolidColorBrush x:Key="QrbDisabledBrush" Color="{DynamicResource QrbDisabledColor}" />
+  <SolidColorBrush x:Key="QrbHighlightBrush" Color="{DynamicResource QrbHighlightColor}" />
+  <SolidColorBrush x:Key="QrbFocusRingBrush" Color="{DynamicResource QrbFocusRingColor}" />
+  <SolidColorBrush x:Key="QrbTextOnAccentBrush" Color="{DynamicResource QrbTextOnAccentColor}" />
+  <SolidColorBrush x:Key="QrbSuccessSurfaceBrush" Color="{DynamicResource QrbSuccessSurfaceColor}" />
+  <SolidColorBrush x:Key="QrbWarningSurfaceBrush" Color="{DynamicResource QrbWarningSurfaceColor}" />
+  <SolidColorBrush x:Key="QrbErrorSurfaceBrush" Color="{DynamicResource QrbErrorSurfaceColor}" />
+  <SolidColorBrush x:Key="ComboBoxBackground" Color="{DynamicResource QrbInputColor}" />
+  <SolidColorBrush x:Key="ComboBoxBackgroundPointerOver" Color="{DynamicResource QrbSurfaceSecondaryColor}" />
+  <SolidColorBrush x:Key="ComboBoxBackgroundFocused" Color="{DynamicResource QrbSelectionColor}" />
+  <SolidColorBrush x:Key="ComboBoxBackgroundDisabled" Color="{DynamicResource QrbDisabledColor}" />
+  <SolidColorBrush x:Key="ComboBoxForeground" Color="{DynamicResource QrbTextPrimaryColor}" />
+  <SolidColorBrush x:Key="ComboBoxForegroundDisabled" Color="{DynamicResource QrbTextDisabledColor}" />
+
+  <SolidColorBrush x:Key="PrimaryBrush" Color="{DynamicResource QrbAccentColor}" />
+  <SolidColorBrush x:Key="HighlightBrush" Color="{DynamicResource QrbHighlightColor}" />
+  <SolidColorBrush x:Key="SurfaceBrush" Color="{DynamicResource QrbSurfaceColor}" />
+  <SolidColorBrush x:Key="SurfaceAltBrush" Color="{DynamicResource QrbSurfaceSecondaryColor}" />
+  <SolidColorBrush x:Key="CanvasBrush" Color="{DynamicResource QrbBackgroundColor}" />
+  <SolidColorBrush x:Key="TextBrush" Color="{DynamicResource QrbTextPrimaryColor}" />
+  <SolidColorBrush x:Key="MutedTextBrush" Color="{DynamicResource QrbTextSecondaryColor}" />
+  <SolidColorBrush x:Key="BorderBrush" Color="{DynamicResource QrbBorderColor}" />
+  <SolidColorBrush x:Key="ControlBrush" Color="{DynamicResource QrbControlColor}" />
+  <SolidColorBrush x:Key="InputBrush" Color="{DynamicResource QrbInputColor}" />
+  <SolidColorBrush x:Key="SelectionBrush" Color="{DynamicResource QrbSelectionColor}" />
+  <SolidColorBrush x:Key="DisabledBrush" Color="{DynamicResource QrbDisabledColor}" />
+  <SolidColorBrush x:Key="DisabledTextBrush" Color="{DynamicResource QrbTextDisabledColor}" />
+  <SolidColorBrush x:Key="SuccessBrush" Color="{DynamicResource QrbSuccessColor}" />
+  <SolidColorBrush x:Key="WarningBrush" Color="{DynamicResource QrbWarningColor}" />
+  <SolidColorBrush x:Key="ErrorBrush" Color="{DynamicResource QrbErrorColor}" />
+  <SolidColorBrush x:Key="CardBlueBrush" Color="{DynamicResource QrbSelectionColor}" />
+  <SolidColorBrush x:Key="CardGreenBrush" Color="{DynamicResource QrbSuccessSurfaceColor}" />
+  <SolidColorBrush x:Key="CardAmberBrush" Color="{DynamicResource QrbWarningSurfaceColor}" />
+</ResourceDictionary>

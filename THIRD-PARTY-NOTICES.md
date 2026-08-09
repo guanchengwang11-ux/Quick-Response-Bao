@@ -8,8 +8,9 @@ Quick Response Bao uses the following redistributable open-source packages:
 - ExcelNumberFormat — MIT License — https://github.com/andersnm/ExcelNumberFormat
 - Microsoft.Data.Sqlite and SQLitePCLRaw — MIT License — https://github.com/dotnet/efcore and https://github.com/ericsink/SQLitePCL.raw
 - Inno Setup Chinese Simplified Translation — MIT License — https://github.com/kira-96/Inno-Setup-Chinese-Simplified-Translation
+- WPF UI 4.3.0 — MIT License — https://github.com/lepoco/wpfui
 
-The complete license notices for the Excel-related libraries and installer translation are retained in the `licenses/` directory.
+The complete license notices for the Excel-related libraries, installer translation, WPF UI, and WPF UI's bundled third-party components are retained in the `licenses/` directory.
 
 The MIT License text applicable to these packages follows:
 

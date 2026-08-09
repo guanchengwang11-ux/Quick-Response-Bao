@@ -6,10 +6,13 @@
     <AssemblyName>QuickResponseBao</AssemblyName>
     <RootNamespace>QuickResponseBao.App</RootNamespace>
     <ApplicationIcon>..\..\assets\branding\QuickResponseBao.ico</ApplicationIcon>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationHighDpiMode>PerMonitorV2</ApplicationHighDpiMode>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\QuickResponseBao.Core\QuickResponseBao.Core.csproj" />
     <ProjectReference Include="..\QuickResponseBao.Infrastructure\QuickResponseBao.Infrastructure.csproj" />
+    <PackageReference Include="WPF-UI" Version="4.3.0" />
   </ItemGroup>
   <ItemGroup>
     <Resource Include="..\..\assets\branding\quick-response-bao-icon.png" Link="assets\branding\quick-response-bao-icon.png" />

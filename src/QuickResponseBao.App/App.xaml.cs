@@ -38,7 +38,11 @@ public partial class App : System.Windows.Application
     private string _lastReplacementMethod = string.Empty;
     private string _lastFailureReason = string.Empty;
     private IReadOnlyList<string> _restartArguments = [];
+    private SingleInstanceService? _singleInstance;
     private static readonly HttpClient UpdateHttpClient = new() { Timeout = TimeSpan.FromMinutes(15) };
+    private readonly bool _candidateRuntimeTracing = Environment.GetEnvironmentVariable("QRB_RUNTIME_TRACE") == "1";
+    private readonly SuggestionPresentationController _presentation = new();
+    private UiResponsivenessMonitor? _uiMonitor;
 
     public AppPaths Paths { get; private set; } = null!;
     public IQuickResponseRepository Repository { get; private set; } = null!;
@@ -53,44 +57,95 @@ public partial class App : System.Windows.Application
     public HttpClient UpdatesClient => UpdateHttpClient;
     public Task LogSafeErrorAsync(string context, Exception exception) =>
         _logger?.WriteAsync(context, exception) ?? Task.CompletedTask;
+    public Task LogSafeEventAsync(string eventName) => _logger?.WriteAsync(eventName) ?? Task.CompletedTask;
+    public UiStallSnapshot UiStallSnapshot => _uiMonitor?.Snapshot() ?? new(0, 0, 0, 0, 0, 0, 0, 0, 0);
 
     protected override async void OnStartup(StartupEventArgs e)
     {
+        var startupClock = System.Diagnostics.Stopwatch.StartNew();
         base.OnStartup(e); ShutdownMode = ShutdownMode.OnExplicitShutdown;
+        var uiTestInstance = NormalizeUiTestInstanceId(Environment.GetEnvironmentVariable("QRB_UI_TEST_INSTANCE_ID"));
+        _singleInstance = uiTestInstance is null
+            ? new SingleInstanceService()
+            : new SingleInstanceService($@"Local\QuickResponseBao.UiTest.{uiTestInstance}", $"QuickResponseBao.UiTest.{uiTestInstance}");
+        if (!_singleInstance.TryAcquire())
+        {
+            await _singleInstance.SignalPrimaryAsync();
+            _singleInstance.Dispose(); _singleInstance = null; Shutdown(); return;
+        }
+        _singleInstance.ActivationRequested += (_, _) => Dispatcher.BeginInvoke(ShowMainWindow);
+        _singleInstance.StartActivationServer();
         _restartArguments = e.Args;
-        Paths = new AppPaths(); SettingsStore = new JsonSettingsStore(Paths); Settings = await SettingsStore.LoadAsync();
+        Paths = uiTestInstance is null
+            ? new AppPaths()
+            : new AppPaths(System.IO.Path.Combine(System.IO.Path.GetTempPath(), "QuickResponseBao-ui-tests", uiTestInstance));
+        SettingsStore = new JsonSettingsStore(Paths); Settings = await SettingsStore.LoadAsync();
+        if (uiTestInstance is not null) { Settings.EnableListenerOnStartup = false; Settings.CheckUpdatesOnStartup = false; Settings.ShowNotifications = false; }
+        var settingsLoadedAt = startupClock.Elapsed.TotalMilliseconds;
         LocalizationService.Apply(Settings.Language); ThemeService = new ThemeService(this); ThemeService.ThemeChanged += (_, _) => UpdateTray(); ThemeService.Apply(Settings.Theme);
         Repository = new SqliteQuickResponseRepository(Paths); await Repository.InitializeAsync();
+        var databaseReadyAt = startupClock.Elapsed.TotalMilliseconds;
         BackupService = new DatabaseBackupService(Paths);
-        _logger = new SafeFileLogger(Paths); await _logger.WriteAsync("Application started");
-        await ReloadCacheAsync();
+        _logger = new SafeFileLogger(Paths); await _logger.WriteAsync($"Application started | settings={settingsLoadedAt:F2}ms; sqlite={databaseReadyAt:F2}ms");
+        _uiMonitor = new UiResponsivenessMonitor(Dispatcher);
+        _uiMonitor.SignificantStall += (_, milliseconds) =>
+        {
+            if (Environment.GetEnvironmentVariable("QRB_UI_TRACE") == "1") _ = _logger.WriteAsync($"UiRuntime | Dispatcher stall={milliseconds:F2}ms");
+        };
+        var mainViewModel = new MainViewModel(Repository, SearchService);
+        MainAppWindow = new MainWindow(mainViewModel);
+        MainAppWindow.Closing += MainWindowClosing;
+        if (!Settings.StartMinimized) MainAppWindow.Show();
+        await _logger.WriteAsync($"UiRuntime | startup stage=Main window visible; elapsed={startupClock.Elapsed.TotalMilliseconds:F2}ms");
         _paste = new ClipboardPasteService(); _candidates = new CandidateWindow();
         _candidates.Confirmed += CandidateConfirmed;
+        _candidates.RuntimeTrace += (_, trace) => TraceCandidateRuntime(trace);
         _candidates.PositionMethodChanged += (_, method) => _ = _logger?.WriteAsync($"Candidate positioning: {method}");
         Listener = new GlobalKeyboardListener(Settings);
         Listener.CandidateWindowHandle = _candidates.WindowHandle;
-        Listener.SearchTextChanged += (_, context) => Dispatcher.BeginInvoke(() => ShowSuggestions(context));
-        Listener.SearchCancelled += (_, _) => Dispatcher.BeginInvoke(HideSuggestions);
+        Listener.RuntimeTrace += (_, trace) => TraceCandidateRuntime(trace);
+        Listener.SearchTextChanged += (_, context) =>
+        {
+            var ticket = _presentation.Register(context);
+            TraceCandidateRuntime(new(context.SequenceId, "Dispatcher queued", $"query='{context.NormalizedQuery}'; targetHWND=0x{context.TargetWindowHandle:X}; targetPID={context.TargetProcessId}"));
+            Dispatcher.BeginInvoke(() => ShowSuggestions(context, ticket));
+        };
+        Listener.SearchCancelled += (_, _) =>
+        {
+            var ticket = _presentation.Cancel();
+            Dispatcher.BeginInvoke(() => { if (_presentation.IsCurrent(ticket)) HideSuggestions(false); });
+        };
         Listener.NavigationRequested += (_, key) => Dispatcher.BeginInvoke(() =>
         {
             if (key == NavigationKey.Cancel) { Listener.Reset(); HideSuggestions(); }
             else _candidates.Navigate(key);
         });
-        if (Settings.EnableListenerOnStartup && Settings.GlobalSearchEnabled) TryStartListener();
         CreateTray();
-        MainAppWindow = new MainWindow(new MainViewModel(Repository, SearchService));
-        MainAppWindow.Closing += MainWindowClosing;
+        await mainViewModel.EnsureLoadedAsync();
+        SynchronizeRuntimeSearchCache(mainViewModel.Responses);
         await MainAppWindow.InitializeAsync(Settings);
-        if (!Settings.StartMinimized) MainAppWindow.Show();
+        if (Settings.EnableListenerOnStartup && Settings.GlobalSearchEnabled) TryStartListener();
+        await _logger.WriteAsync($"UiRuntime | startup stage=Cache and listener ready; elapsed={startupClock.Elapsed.TotalMilliseconds:F2}ms; responses={_cache.Count}");
+        _ = Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.ContextIdle, () => _ = _logger.WriteAsync($"UiRuntime | startup stage=Main window interactive; elapsed={startupClock.Elapsed.TotalMilliseconds:F2}ms"));
+        if (Environment.GetEnvironmentVariable("QRB_UI_AUTOWALK") == "1") _ = MainAppWindow.RunUiDiagnosticWalkthroughAsync();
         if (Settings.CheckUpdatesOnStartup) _ = CheckUpdatesOnStartupAsync();
-        DispatcherUnhandledException += async (_, args) =>
+        DispatcherUnhandledException += (_, args) =>
         {
-            await (_logger?.WriteAsync("Unhandled exception", args.Exception) ?? Task.CompletedTask);
-            args.Handled = true; System.Windows.MessageBox.Show(args.Exception.Message, LocalizationService.Get("AppName"));
+            args.Handled = true;
+            _ = _logger?.WriteAsync("Unhandled exception", args.Exception);
+            UiDialogService.ShowFatal(MainAppWindow, LocalizationService.Get("AppName"), LocalizationService.Get("OperationFailed"), args.Exception.Message);
         };
     }
 
+    public static string? NormalizeUiTestInstanceId(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value)) return null;
+        var safe = new string(value.Where(char.IsLetterOrDigit).Take(32).ToArray());
+        return safe.Length == 0 ? null : safe;
+    }
+
     public async Task ReloadCacheAsync() => _cache = await Repository.GetAllAsync();
+    public void SynchronizeRuntimeSearchCache(IEnumerable<QuickResponse> responses) => _cache = responses.ToList();
     public void TryStartListener()
     {
         try { Listener.Start(); if (Listener.IsRunning) _lastFailureReason = string.Empty; }
@@ -104,15 +159,30 @@ public partial class App : System.Windows.Application
         Settings = settings; ThemeService.Apply(settings.Theme); await SettingsStore.SaveAsync(settings); Listener.UpdateSettings(settings); UpdateTray();
     }
 
-    private void ShowSuggestions(CandidateSearchContext context)
+    private void ShowSuggestions(CandidateSearchContext context, SuggestionPresentationTicket ticket)
     {
+        if (!_presentation.IsCurrent(ticket, context)) { TraceCandidateRuntime(new(context.SequenceId, "Presentation discarded", "reason=stale before search")); return; }
+        TraceCandidateRuntime(new(context.SequenceId, "ShowSuggestions entered", $"query='{context.NormalizedQuery}'; targetHWND=0x{context.TargetWindowHandle:X}"));
         var options = new SearchOptions(Settings.MatchSummary, Settings.MatchContent, Settings.MatchKeywords,
             Settings.MatchCategory, Settings.CaseSensitive, Settings.SortByUsage, Settings.MaximumSuggestions);
         var results = SearchService.Search(_cache, context.NormalizedQuery, options);
-        if (results.Count == 0) { HideSuggestions(); return; }
+        TraceCandidateRuntime(new(context.SequenceId, "Search completed", $"resultCount={results.Count}; distinctResponseCount={results.Select(x => x.Response.Id).Distinct().Count()}"));
+        if (!_presentation.IsCurrent(ticket, context)) { TraceCandidateRuntime(new(context.SequenceId, "Presentation discarded", "reason=stale after search")); return; }
+        if (results.Count == 0) { HideSuggestions(false); return; }
         _candidates!.ShowResults(context, results); Listener.SuggestionsVisible = true;
+        Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.ContextIdle, () =>
+        {
+            foreach (var window in TopLevelWindowEnumerator.CurrentProcessWindows())
+                TraceCandidateRuntime(new(context.SequenceId, "EnumWindows", window.ToString()));
+        });
     }
-    private void HideSuggestions() { _candidates?.Dismiss(); if (Listener is not null) Listener.SuggestionsVisible = false; }
+    private void HideSuggestions(bool invalidate = true) { if (invalidate) _presentation.Cancel(); _candidates?.Dismiss(); if (Listener is not null) Listener.SuggestionsVisible = false; }
+
+    private void TraceCandidateRuntime(CandidateRuntimeTrace trace)
+    {
+        if (!_candidateRuntimeTracing) return;
+        _ = _logger?.WriteAsync($"CandidateRuntime | {trace}");
+    }
 
     private async void CandidateConfirmed(object? sender, CandidateConfirmationContext context)
     {
@@ -159,7 +229,7 @@ public partial class App : System.Windows.Application
                 RecordPasteDiagnostics(failed.Target, new PasteSendResult(false, failed.SentCount, failed.ErrorCode, failed.InputSize));
             if (ex is ResponseReplacementException replacementFailed) RecordInsertionDiagnostics(replacementFailed.Result);
             await (_logger?.WriteAsync("Paste failed", ex) ?? Task.CompletedTask);
-            System.Windows.MessageBox.Show(message, LocalizationService.Get("PasteFailedTitle"), MessageBoxButton.OK, MessageBoxImage.Error);
+            MainAppWindow?.ShowFeedback(message);
         }
     }
 
@@ -192,7 +262,7 @@ public partial class App : System.Windows.Application
     }
     public async void ExitApplication()
     {
-        _exiting = true; Listener?.Dispose(); ThemeService?.Dispose(); _tray?.Dispose(); _appIcon?.Dispose(); _candidates?.Close();
+        _exiting = true; Listener?.Dispose(); ThemeService?.Dispose(); _uiMonitor?.Dispose(); _tray?.Dispose(); _appIcon?.Dispose(); _candidates?.Close(); _singleInstance?.Dispose(); _singleInstance = null;
         await (_logger?.WriteAsync("Application exited") ?? Task.CompletedTask); MainAppWindow?.Close(); Shutdown();
     }
 
@@ -206,7 +276,8 @@ public partial class App : System.Windows.Application
             _lastPasteSucceeded, _lastClipboardRestored, _capturedTargetWindow, _confirmationTargetWindow,
             _lastFocusRestored, _lastDeletedCharacterCount, _lastDeletionSucceeded, _lastReplacementMethod,
             _lastPasteSentCount, _lastPasteErrorCode, _lastPasteInputSize,
-            _lastPasteTargetProcess, _lastPasteSamePermissionLevel, _lastFailureReason, Paths.Logs);
+            _lastPasteTargetProcess, _lastPasteSamePermissionLevel, _lastFailureReason, Paths.Logs)
+        { CandidateWindowInstanceCount = CandidateWindow.LiveInstanceCount };
     }
 
     public void TestCandidateWindow()
@@ -214,7 +285,8 @@ public partial class App : System.Windows.Application
         var sample = new QuickResponse { Summary = LocalizationService.Get("CompatibilityTest"), Content = LocalizationService.Get("CandidatePositionTest"), Keywords = ["test"] };
         var handle = new System.Windows.Interop.WindowInteropHelper(MainAppWindow).Handle;
         var context = new CandidateSearchContext("test", 4, handle, checked((uint)Environment.ProcessId), "QuickResponseBao.exe", DateTimeOffset.UtcNow, "test");
-        _candidates!.ShowResults(context, [new SearchResult(sample, 1)]); Listener.SuggestionsVisible = true;
+        var ticket = _presentation.RegisterManual(context);
+        if (_presentation.IsCurrent(ticket, context)) { _candidates!.ShowResults(context, [new SearchResult(sample, 1)]); Listener.SuggestionsVisible = true; }
     }
 
     public async Task TestPasteAsync()

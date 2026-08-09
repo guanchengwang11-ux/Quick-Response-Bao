@@ -27,7 +27,16 @@ public sealed class QuickResponseFileService
     public async Task<IReadOnlyList<QuickResponse>> ImportCsvAsync(string path, CancellationToken token = default)
         => (await ImportCsvOutcomeAsync(path, token)).Items.Select(x => x.Response).ToList();
 
-    public async Task<ExcelImportOutcome> ImportJsonOutcomeAsync(string path, CancellationToken token = default)
+    public Task<ImportPreview> PreviewJsonAsync(string path, int maximumPreviewRows = 20, CancellationToken token = default) =>
+        PreviewJsonCoreAsync(path, maximumPreviewRows, token);
+
+    public Task<ExcelImportOutcome> ImportJsonOutcomeAsync(string path, CancellationToken token = default) =>
+        ImportJsonOutcomeCoreAsync(path, null, token);
+
+    public Task<ExcelImportOutcome> ImportJsonOutcomeAsync(string path, ImportFieldMapping mapping, CancellationToken token = default) =>
+        ImportJsonOutcomeCoreAsync(path, mapping, token);
+
+    private static async Task<ExcelImportOutcome> ImportJsonOutcomeCoreAsync(string path, ImportFieldMapping? requestedMapping, CancellationToken token)
     {
         await using var stream = File.OpenRead(path);
         using var document = await JsonDocument.ParseAsync(stream, cancellationToken: token);
@@ -40,10 +49,14 @@ public sealed class QuickResponseFileService
             {
                 if (element.ValueKind != JsonValueKind.Object) throw new InvalidDataException("ImportRowMustBeObject");
                 var properties = element.EnumerateObject().ToList();
-                var mapping = QuickResponseImportParser.SuggestMapping(properties.Select(x => x.Name));
+                var mapping = requestedMapping ?? QuickResponseImportParser.SuggestMapping(properties.Select(x => x.Name));
                 EnsureRequired(mapping);
-                string Field(QuickResponseField field) => mapping.Get(field) is { } name
-                    ? JsonValue(properties.First(x => x.Name == name).Value) : string.Empty;
+                string Field(QuickResponseField field)
+                {
+                    if (mapping.Get(field) is not { } name) return string.Empty;
+                    var property = properties.FirstOrDefault(x => x.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
+                    return string.IsNullOrEmpty(property.Name) ? string.Empty : JsonValue(property.Value);
+                }
                 var includesSortOrder = mapping.Get(QuickResponseField.SortOrder) is not null;
                 items.Add(new ExcelImportItem(rowNumber, QuickResponseImportParser.Create(Field(QuickResponseField.Summary),
                     Field(QuickResponseField.Content), Field(QuickResponseField.Keywords), Field(QuickResponseField.Category),
@@ -55,11 +68,20 @@ public sealed class QuickResponseFileService
         return new ExcelImportOutcome(items, new DetailedImportResult(rowNumber, items.Count, failures.Count, 0, failures));
     }
 
-    public async Task<ExcelImportOutcome> ImportCsvOutcomeAsync(string path, CancellationToken token = default)
+    public Task<ImportPreview> PreviewCsvAsync(string path, int maximumPreviewRows = 20, CancellationToken token = default) =>
+        PreviewCsvCoreAsync(path, maximumPreviewRows, token);
+
+    public Task<ExcelImportOutcome> ImportCsvOutcomeAsync(string path, CancellationToken token = default) =>
+        ImportCsvOutcomeCoreAsync(path, null, token);
+
+    public Task<ExcelImportOutcome> ImportCsvOutcomeAsync(string path, ImportFieldMapping mapping, CancellationToken token = default) =>
+        ImportCsvOutcomeCoreAsync(path, mapping, token);
+
+    private static async Task<ExcelImportOutcome> ImportCsvOutcomeCoreAsync(string path, ImportFieldMapping? requestedMapping, CancellationToken token)
     {
         var rows = ParseCsv(await File.ReadAllTextAsync(path, token));
         if (rows.Count == 0) return new ExcelImportOutcome([], new DetailedImportResult(0, 0, 0, 0, []));
-        var headers = rows[0]; var mapping = QuickResponseImportParser.SuggestMapping(headers); EnsureRequired(mapping);
+        var headers = rows[0]; var mapping = requestedMapping ?? QuickResponseImportParser.SuggestMapping(headers); EnsureRequired(mapping);
         var columns = headers.Select((name, index) => (normalized: QuickResponseImportParser.NormalizeHeader(name), index))
             .ToDictionary(x => x.normalized, x => x.index, StringComparer.Ordinal);
         string Field(IReadOnlyList<string> row, QuickResponseField field) => mapping.Get(field) is { } name &&
@@ -79,6 +101,32 @@ public sealed class QuickResponseFileService
             { failures.Add(new ImportFailure(rowNumber, ex.Message)); }
         }
         return new ExcelImportOutcome(items, new DetailedImportResult(rows.Count - 1, items.Count, failures.Count, 0, failures));
+    }
+
+    private static async Task<ImportPreview> PreviewCsvCoreAsync(string path, int maximumPreviewRows, CancellationToken token)
+    {
+        var rows = ParseCsv(await File.ReadAllTextAsync(path, token));
+        if (rows.Count == 0) return new ImportPreview([], [], 0);
+        var headers = rows[0];
+        var previewRows = rows.Skip(1).Take(maximumPreviewRows).Select((row, index) => new ImportPreviewRow(index + 2,
+            headers.Select((header, column) => (header, value: column < row.Count ? row[column] : string.Empty))
+                .ToDictionary(x => x.header, x => x.value, StringComparer.OrdinalIgnoreCase))).ToList();
+        return new ImportPreview(headers, previewRows, Math.Max(0, rows.Count - 1));
+    }
+
+    private static async Task<ImportPreview> PreviewJsonCoreAsync(string path, int maximumPreviewRows, CancellationToken token)
+    {
+        await using var stream = File.OpenRead(path);
+        using var document = await JsonDocument.ParseAsync(stream, cancellationToken: token);
+        if (document.RootElement.ValueKind != JsonValueKind.Array) throw new InvalidDataException("JSON import root must be an array.");
+        var objects = document.RootElement.EnumerateArray().Where(x => x.ValueKind == JsonValueKind.Object).ToList();
+        var headers = objects.SelectMany(x => x.EnumerateObject().Select(p => p.Name)).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+        var previewRows = objects.Take(maximumPreviewRows).Select((item, index) =>
+        {
+            var properties = item.EnumerateObject().ToDictionary(x => x.Name, x => JsonValue(x.Value), StringComparer.OrdinalIgnoreCase);
+            return new ImportPreviewRow(index + 1, headers.ToDictionary(x => x, x => properties.TryGetValue(x, out var value) ? value : string.Empty, StringComparer.OrdinalIgnoreCase));
+        }).ToList();
+        return new ImportPreview(headers, previewRows, document.RootElement.GetArrayLength());
     }
 
     private static string JsonValue(JsonElement value) => value.ValueKind switch
