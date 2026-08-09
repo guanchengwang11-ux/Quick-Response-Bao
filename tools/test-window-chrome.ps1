@@ -1,6 +1,7 @@
 param([Parameter(Mandatory = $true)][string]$Exe)
 $ErrorActionPreference = 'Stop'
-if (Get-Process QuickResponseBao -ErrorAction SilentlyContinue) { throw 'Close Quick Response Bao before running the window chrome test.' }
+$previousTestInstance = $env:QRB_UI_TEST_INSTANCE_ID
+$env:QRB_UI_TEST_INSTANCE_ID = "chrome$PID$([Guid]::NewGuid().ToString('N').Substring(0,12))"
 Add-Type -AssemblyName UIAutomationClient
 Add-Type @'
 using System;
@@ -46,4 +47,7 @@ try {
   if (-not $secondary.HasExited -or -not [QrbWindowTestNative]::IsWindowVisible($process.MainWindowHandle)) { throw 'Single-instance tray reactivation failed.' }
   [pscustomobject]@{ Minimize = 'Pass'; Maximize = 'Pass'; Restore = 'Pass'; PaneCompactAndExpand = 'Pass'; CloseToTray = 'Pass'; TrayReopen = 'Pass' }
 }
-finally { if (-not $process.HasExited) { Stop-Process -Id $process.Id } }
+finally {
+  if (-not $process.HasExited) { Stop-Process -Id $process.Id }
+  $env:QRB_UI_TEST_INSTANCE_ID = $previousTestInstance
+}

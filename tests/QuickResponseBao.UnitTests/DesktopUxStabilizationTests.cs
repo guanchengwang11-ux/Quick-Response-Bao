@@ -16,6 +16,19 @@ public sealed class DesktopUxStabilizationTests
         AssertInOrder(source, "DispatcherUnhandledException += (_, args) =>", "args.Handled = true;", "_logger?.WriteAsync");
     }
 
+    [Theory]
+    [InlineData("library-123", "library123")]
+    [InlineData("../../unsafe", "unsafe")]
+    [InlineData("***", null)]
+    public void UiTestInstanceId_IsSanitized(string input, string? expected) => Assert.Equal(expected, QuickResponseBao.App.App.NormalizeUiTestInstanceId(input));
+
+    [Fact]
+    public void ReleaseUiScriptsUseIsolatedInstances()
+    {
+        Assert.Contains("QRB_UI_TEST_INSTANCE_ID", Read("tools", "test-window-chrome.ps1"));
+        Assert.Contains("QRB_UI_TEST_INSTANCE_ID", Read("tools", "test-library-ui.ps1"));
+    }
+
     [Fact]
     public void OwnForegroundProcess_IsNeverMonitored()
     {

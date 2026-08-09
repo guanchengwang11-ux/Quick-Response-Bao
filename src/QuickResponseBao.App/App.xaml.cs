@@ -64,7 +64,10 @@ public partial class App : System.Windows.Application
     {
         var startupClock = System.Diagnostics.Stopwatch.StartNew();
         base.OnStartup(e); ShutdownMode = ShutdownMode.OnExplicitShutdown;
-        _singleInstance = new SingleInstanceService();
+        var uiTestInstance = NormalizeUiTestInstanceId(Environment.GetEnvironmentVariable("QRB_UI_TEST_INSTANCE_ID"));
+        _singleInstance = uiTestInstance is null
+            ? new SingleInstanceService()
+            : new SingleInstanceService($@"Local\QuickResponseBao.UiTest.{uiTestInstance}", $"QuickResponseBao.UiTest.{uiTestInstance}");
         if (!_singleInstance.TryAcquire())
         {
             await _singleInstance.SignalPrimaryAsync();
@@ -73,7 +76,11 @@ public partial class App : System.Windows.Application
         _singleInstance.ActivationRequested += (_, _) => Dispatcher.BeginInvoke(ShowMainWindow);
         _singleInstance.StartActivationServer();
         _restartArguments = e.Args;
-        Paths = new AppPaths(); SettingsStore = new JsonSettingsStore(Paths); Settings = await SettingsStore.LoadAsync();
+        Paths = uiTestInstance is null
+            ? new AppPaths()
+            : new AppPaths(System.IO.Path.Combine(System.IO.Path.GetTempPath(), "QuickResponseBao-ui-tests", uiTestInstance));
+        SettingsStore = new JsonSettingsStore(Paths); Settings = await SettingsStore.LoadAsync();
+        if (uiTestInstance is not null) { Settings.EnableListenerOnStartup = false; Settings.CheckUpdatesOnStartup = false; Settings.ShowNotifications = false; }
         var settingsLoadedAt = startupClock.Elapsed.TotalMilliseconds;
         LocalizationService.Apply(Settings.Language); ThemeService = new ThemeService(this); ThemeService.ThemeChanged += (_, _) => UpdateTray(); ThemeService.Apply(Settings.Theme);
         Repository = new SqliteQuickResponseRepository(Paths); await Repository.InitializeAsync();
@@ -128,6 +135,13 @@ public partial class App : System.Windows.Application
             _ = _logger?.WriteAsync("Unhandled exception", args.Exception);
             UiDialogService.ShowFatal(MainAppWindow, LocalizationService.Get("AppName"), LocalizationService.Get("OperationFailed"), args.Exception.Message);
         };
+    }
+
+    public static string? NormalizeUiTestInstanceId(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value)) return null;
+        var safe = new string(value.Where(char.IsLetterOrDigit).Take(32).ToArray());
+        return safe.Length == 0 ? null : safe;
     }
 
     public async Task ReloadCacheAsync() => _cache = await Repository.GetAllAsync();

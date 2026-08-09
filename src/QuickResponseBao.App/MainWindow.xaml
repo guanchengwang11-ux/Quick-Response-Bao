@@ -45,7 +45,7 @@
 
     <ui:NavigationView.MenuItems>
       <ui:NavigationViewItem x:Name="DashboardItem" Content="{DynamicResource Dashboard}" TargetPageTag="Dashboard" Click="NavigationItem_Click"><ui:NavigationViewItem.Icon><ui:SymbolIcon Symbol="Home24" /></ui:NavigationViewItem.Icon></ui:NavigationViewItem>
-      <ui:NavigationViewItem Content="{DynamicResource Library}" TargetPageTag="Library" Click="NavigationItem_Click"><ui:NavigationViewItem.Icon><ui:SymbolIcon Symbol="BookOpen24" /></ui:NavigationViewItem.Icon></ui:NavigationViewItem>
+      <ui:NavigationViewItem x:Name="LibraryNavigationItem" AutomationProperties.AutomationId="LibraryNavigationItem" Content="{DynamicResource Library}" TargetPageTag="Library" Click="NavigationItem_Click"><ui:NavigationViewItem.Icon><ui:SymbolIcon Symbol="BookOpen24" /></ui:NavigationViewItem.Icon></ui:NavigationViewItem>
       <ui:NavigationViewItem Content="{DynamicResource Categories}" TargetPageTag="Categories" Click="NavigationItem_Click"><ui:NavigationViewItem.Icon><ui:SymbolIcon Symbol="Tag24" /></ui:NavigationViewItem.Icon></ui:NavigationViewItem>
       <ui:NavigationViewItem Content="{DynamicResource ImportExport}" TargetPageTag="ImportExport" Click="NavigationItem_Click"><ui:NavigationViewItem.Icon><ui:SymbolIcon Symbol="ArrowImport24" /></ui:NavigationViewItem.Icon></ui:NavigationViewItem>
       <ui:NavigationViewItem Content="{DynamicResource ApplicationWhitelist}" TargetPageTag="Applications" Click="NavigationItem_Click"><ui:NavigationViewItem.Icon><ui:SymbolIcon Symbol="Apps24" /></ui:NavigationViewItem.Icon></ui:NavigationViewItem>
