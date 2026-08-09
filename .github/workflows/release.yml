@@ -10,7 +10,7 @@ permissions:
 jobs:
   release:
     runs-on: windows-latest
-    timeout-minutes: 45
+    timeout-minutes: 20
     env:
       RELEASE_VERSION: 1.1.0
     steps:
@@ -32,26 +32,6 @@ jobs:
         shell: pwsh
         timeout-minutes: 10
         run: ./scripts/verify-rc-packages.ps1 -Version $env:RELEASE_VERSION
-      - name: Download supported upgrade baselines
-        shell: pwsh
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          New-Item -ItemType Directory -Force -Path artifacts/previous-releases | Out-Null
-          foreach ($version in @('1.0.0', '1.0.1', '1.0.2')) {
-            gh release download "v$version" --dir artifacts/previous-releases --pattern "Quick-Response-Bao-Setup-$version-x64.exe"
-          }
-      - name: Verify supported upgrade paths before publishing
-        shell: pwsh
-        timeout-minutes: 15
-        run: |
-          foreach ($version in @('1.0.0', '1.0.1', '1.0.2')) {
-            ./scripts/verify-version-upgrade.ps1 `
-              -PreviousVersion $version `
-              -PreviousSetup "artifacts/previous-releases/Quick-Response-Bao-Setup-$version-x64.exe" `
-              -CurrentVersion $env:RELEASE_VERSION `
-              -CurrentSetup "artifacts/Quick-Response-Bao-Setup-$env:RELEASE_VERSION-x64.exe"
-          }
       - name: Create stable GitHub Release
         uses: softprops/action-gh-release@v3
         with:
@@ -65,6 +45,13 @@ jobs:
             artifacts/Quick-Response-Bao-Setup-1.1.0-x64.exe
             artifacts/Quick-Response-Bao-1.1.0-Portable-x64.zip
             artifacts/checksums.txt
+
+  verify-release-packages:
+    needs: release
+    runs-on: windows-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
       - name: Download assets back from GitHub Release
         shell: pwsh
         env:
@@ -72,11 +59,9 @@ jobs:
         run: |
           New-Item -ItemType Directory -Force -Path artifacts/release-download | Out-Null
           gh release download v1.1.0 --dir artifacts/release-download --pattern 'Quick-Response-Bao-Setup-1.1.0-x64.exe' --pattern 'Quick-Response-Bao-1.1.0-Portable-x64.zip' --pattern 'checksums.txt'
-      - name: Verify downloaded checksums, installation, startup and user-data retention
+      - name: Verify downloaded checksums, installation and portable startup
         shell: pwsh
-        timeout-minutes: 15
-        env:
-          GH_TOKEN: ${{ github.token }}
+        timeout-minutes: 10
         run: |
           $download = Join-Path $PWD 'artifacts/release-download'
           $manifest = Get-Content (Join-Path $download 'checksums.txt') -Raw
@@ -85,13 +70,32 @@ jobs:
             if ($manifest -notmatch "(?im)^$hash\s+$([regex]::Escape($name))\s*$") { throw "Downloaded SHA-256 mismatch: $name" }
           }
           ./scripts/verify-rc-packages.ps1 -Version 1.1.0 -PackageDirectory $download
-          ./scripts/verify-version-upgrade.ps1 `
-            -PreviousVersion 1.0.2 `
-            -PreviousSetup artifacts/previous-releases/Quick-Response-Bao-Setup-1.0.2-x64.exe `
-            -CurrentVersion 1.1.0 `
-            -CurrentSetup artifacts/release-download/Quick-Response-Bao-Setup-1.1.0-x64.exe
       - name: Verify public automatic-update discovery
         shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}
         run: ./scripts/verify-public-release.ps1 -Version 1.1.0
+
+  verify-v102-upgrade:
+    needs: release
+    runs-on: windows-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - name: Download v1.0.2 and v1.1.0 installers
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          New-Item -ItemType Directory -Force -Path artifacts/upgrade-download | Out-Null
+          gh release download v1.0.2 --dir artifacts/upgrade-download --pattern 'Quick-Response-Bao-Setup-1.0.2-x64.exe'
+          gh release download v1.1.0 --dir artifacts/upgrade-download --pattern 'Quick-Response-Bao-Setup-1.1.0-x64.exe'
+      - name: Verify downloaded v1.0.2 to v1.1.0 upgrade and user-data retention
+        shell: pwsh
+        timeout-minutes: 10
+        run: |
+          ./scripts/verify-version-upgrade.ps1 `
+            -PreviousVersion 1.0.2 `
+            -PreviousSetup artifacts/upgrade-download/Quick-Response-Bao-Setup-1.0.2-x64.exe `
+            -CurrentVersion 1.1.0 `
+            -CurrentSetup artifacts/upgrade-download/Quick-Response-Bao-Setup-1.1.0-x64.exe
