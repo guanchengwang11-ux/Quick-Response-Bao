@@ -1,37 +1,43 @@
+using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.IO;
 using System.Windows;
 using System.Windows.Controls;
+using Microsoft.Win32;
 using QuickResponseBao.App.Services;
-using QuickResponseBao.Infrastructure.Windows;
 using QuickResponseBao.Core.Services;
 
 namespace QuickResponseBao.App.Views.Pages;
 
 public partial class ApplicationsPage : Page, IRefreshablePage
 {
-    private readonly Action<string> _feedback; private App Runtime => (App)System.Windows.Application.Current;
-    public ApplicationsPage(Action<string> feedback) { InitializeComponent(); _feedback = feedback; }
-    public Task RefreshAsync() { WhitelistText.Text = string.Join(Environment.NewLine, Runtime.Settings.AllowedProcesses); return Task.CompletedTask; }
-    private async void Capture_Click(object sender, RoutedEventArgs e)
+    private readonly Action<string> _feedback; private readonly ObservableCollection<ApplicationEntry> _items = [];
+    private App Runtime => (App)System.Windows.Application.Current;
+    public ApplicationsPage(Action<string> feedback) { InitializeComponent(); _feedback = feedback; ApplicationsList.ItemsSource = _items; }
+    public Task RefreshAsync() { _items.Clear(); foreach (var name in Runtime.Settings.AllowedProcesses) _items.Add(Create(name, true)); UpdateEmpty(); return Task.CompletedTask; }
+    private async void Running_Click(object sender, RoutedEventArgs e)
     {
-        CaptureButton.IsEnabled = false; var owner = Window.GetWindow(this); owner.WindowState = WindowState.Minimized;
-        try { await Task.Delay(1800); var process = Runtime.Listener.InspectEnvironment().ProcessName; if (string.IsNullOrWhiteSpace(process)) _feedback(LocalizationService.Get("CaptureApplicationFailed")); else await AddProcessAsync(process); }
-        catch (Exception ex) { _feedback($"{LocalizationService.Get("OperationFailed")}: {ex.Message}"); }
-        finally { owner.WindowState = WindowState.Normal; owner.Activate(); CaptureButton.IsEnabled = true; }
+        var running = Process.GetProcesses().Select(p => { try { return p.MainWindowHandle != 0 ? $"{p.ProcessName}.exe" : null; } catch { return null; } finally { p.Dispose(); } })
+            .Where(x => x is not null).Distinct(StringComparer.OrdinalIgnoreCase).OrderBy(x => x).ToList();
+        var dialog = new Window { Title = LocalizationService.Get("AddRunningApplication"), Owner = Window.GetWindow(this), Width = 480, Height = 520, WindowStartupLocation = WindowStartupLocation.CenterOwner };
+        var list = new System.Windows.Controls.ListBox { ItemsSource = running, Margin = new Thickness(16) }; list.MouseDoubleClick += (_, _) => dialog.DialogResult = list.SelectedItem is not null;
+        dialog.Content = list; if (dialog.ShowDialog() == true && list.SelectedItem is string process) await AddAsync(process);
     }
-    private void Refresh_Click(object sender, RoutedEventArgs e)
+    private async void Browse_Click(object sender, RoutedEventArgs e) { var d = new Microsoft.Win32.OpenFileDialog { Filter = "Application (*.exe)|*.exe" }; if (d.ShowDialog(Window.GetWindow(this)) == true) await AddAsync(Path.GetFileName(d.FileName)); }
+    private async void Remove_Click(object sender, RoutedEventArgs e) { if ((sender as System.Windows.Controls.Button)?.Tag is ApplicationEntry item) { _items.Remove(item); await PersistAsync(); _feedback(LocalizationService.Get("ApplicationRemoved")); } }
+    private async void Enabled_Click(object sender, RoutedEventArgs e) => await PersistAsync();
+    private async Task AddAsync(string process)
     {
-        var names = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        foreach (var process in Process.GetProcesses()) { try { if (process.MainWindowHandle != 0) names.Add($"{process.ProcessName}.exe"); } catch { } finally { process.Dispose(); } }
-        ProcessesBox.ItemsSource = names.OrderBy(x => x).ToList(); if (ProcessesBox.Items.Count > 0) ProcessesBox.SelectedIndex = 0;
+        if (ProcessWhitelist.Contains(_items.Select(x => x.ProcessName), process)) { _feedback(LocalizationService.Get("ApplicationAlreadyAllowed")); return; }
+        _items.Add(Create(process, true)); await PersistAsync(); _feedback(string.Format(LocalizationService.Get("ApplicationCaptured"), process));
     }
-    private async void Add_Click(object sender, RoutedEventArgs e) { if (ProcessesBox.SelectedItem is string process) await AddProcessAsync(process); }
-    private async void Save_Click(object sender, RoutedEventArgs e) => await SaveAsync();
-    private async Task AddProcessAsync(string process)
-    {
-        var values = Values(); if (ProcessWhitelist.Contains(values, process)) { _feedback(LocalizationService.Get("ApplicationAlreadyAllowed")); return; }
-        values.Add(process); WhitelistText.Text = string.Join(Environment.NewLine, values); await SaveAsync(); _feedback(string.Format(LocalizationService.Get("ApplicationCaptured"), process));
-    }
-    private List<string> Values() => WhitelistText.Text.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList();
-    private async Task SaveAsync() { Runtime.Settings.AllowedProcesses = Values(); await Runtime.SaveSettingsAsync(Runtime.Settings); _feedback(LocalizationService.Get("WhitelistSaved")); }
+    private async Task PersistAsync() { Runtime.Settings.AllowedProcesses = _items.Where(x => x.Enabled).Select(x => x.ProcessName).ToList(); await Runtime.SaveSettingsAsync(Runtime.Settings); UpdateEmpty(); }
+    private void UpdateEmpty() => EmptyState.Visibility = _items.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
+    private static ApplicationEntry Create(string process, bool enabled) => new(DisplayName(process), process, enabled);
+    private static string DisplayName(string process) => process.ToLowerInvariant() switch { "lark.exe" => "Lark", "telegram.exe" => "Telegram", "discord.exe" => "Discord", "chrome.exe" => "Google Chrome", "msedge.exe" => "Microsoft Edge", _ => Path.GetFileNameWithoutExtension(process) };
+}
+
+public sealed class ApplicationEntry(string displayName, string processName, bool enabled)
+{
+    public string DisplayName { get; } = displayName; public string ProcessName { get; } = processName; public bool Enabled { get; set; } = enabled;
 }

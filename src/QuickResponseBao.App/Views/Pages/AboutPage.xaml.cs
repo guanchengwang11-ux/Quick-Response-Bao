@@ -13,4 +13,8 @@ public partial class AboutPage : Page, IRefreshablePage
     public Task RefreshAsync() { VersionValue.Text = $"{LocalizationService.Get("Version")} {ApplicationVersion.Current}"; return Task.CompletedTask; }
     private void Repository_Click(object sender, RoutedEventArgs e) => Process.Start(new ProcessStartInfo("https://github.com/guanchengwang11-ux/Quick-Response-Bao") { UseShellExecute = true });
     private async void Update_Click(object sender, RoutedEventArgs e) { try { await _showUpdate(null, false); } catch (Exception ex) { _feedback($"{LocalizationService.Get("UpdateCheckFailed")}: {ex.Message}"); } }
+    private void Data_Click(object sender, RoutedEventArgs e) => Open(((App)System.Windows.Application.Current).Paths.Root);
+    private void Licenses_Click(object sender, RoutedEventArgs e) => Open(System.IO.Path.Combine(AppContext.BaseDirectory, "licenses"));
+    private void Notices_Click(object sender, RoutedEventArgs e) => Open(System.IO.Path.Combine(AppContext.BaseDirectory, "THIRD-PARTY-NOTICES.md"));
+    private static void Open(string path) => Process.Start(new ProcessStartInfo(path) { UseShellExecute = true });
 }
