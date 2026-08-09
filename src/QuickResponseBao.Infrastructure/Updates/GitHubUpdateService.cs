@@ -71,6 +71,7 @@ public static partial class ReleaseAssetSelector
         };
         var packagePatterns = new[]
         {
+            $"^Quick-Response-Bao-v?{escaped}-Portable-x64\\.zip$",
             $"^Quick-Response-Bao-(?:Update|Portable)-v?{escaped}-x64\\.zip$",
             "^Quick-Response-Bao-(?:Update|Portable|win)-x64\\.zip$"
         };

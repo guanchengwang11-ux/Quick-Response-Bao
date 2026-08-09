@@ -1,5 +1,5 @@
 param(
-    [string]$Version = '1.0.2',
+    [string]$Version = '1.1.0',
     [switch]$SkipBuildAndTests,
     [switch]$AllowMissingInstaller
 )
@@ -8,7 +8,7 @@ $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $PSScriptRoot
 $artifacts = Join-Path $root 'artifacts'
 $setupName = "Quick-Response-Bao-Setup-$Version-x64.exe"
-$portableName = "Quick-Response-Bao-Portable-$Version-x64.zip"
+$portableName = "Quick-Response-Bao-$Version-Portable-x64.zip"
 $required = @($portableName, 'checksums.txt')
 if (-not $AllowMissingInstaller) { $required = @($setupName) + $required }
 
@@ -42,9 +42,9 @@ try {
     [xml]$props = Get-Content -LiteralPath 'Directory.Build.props' -Raw -Encoding utf8
     if ($props.Project.PropertyGroup.Version -ne $Version) { throw 'Directory.Build.props version differs from the release version.' }
     if ((Get-Content 'installer\QuickResponseBao.iss' -Raw) -notmatch ('#define MyAppVersion "' + [regex]::Escape($Version) + '"')) { throw 'Installer version differs from the release version.' }
-    if ((Get-Content "docs\release-notes-$Version.md" -Raw) -notmatch [regex]::Escape($Version)) { throw 'Release notes version differs from the release version.' }
-    $mainWindowCode = Get-Content 'src\QuickResponseBao.App\MainWindow.xaml.cs' -Raw
-    if ($mainWindowCode -notmatch 'AboutVersionValue\.Text.*ApplicationVersion\.Current') { throw 'About page is not bound to the assembly informational version.' }
+    if ((Get-Content "docs\releases\v$Version.md" -Raw -Encoding utf8) -notmatch [regex]::Escape($Version)) { throw 'Release notes version differs from the release version.' }
+    $aboutPageCode = Get-Content 'src\QuickResponseBao.App\Views\Pages\AboutPage.xaml.cs' -Raw
+    if ($aboutPageCode -notmatch 'VersionValue\.Text.*ApplicationVersion\.Current') { throw 'About page is not bound to the assembly informational version.' }
     $exe = Join-Path $artifacts 'rc-publish\QuickResponseBao.exe'
     if (-not (Test-Path $exe) -or (Get-Item $exe).VersionInfo.ProductVersion -notlike "$Version*") { throw 'Published assembly version differs from the release version.' }
 
@@ -60,7 +60,7 @@ try {
     if ($LASTEXITCODE -eq 0 -and $trackedText) { throw 'A possible token was found in tracked text.' }
     if (-not (Test-Path '.github\workflows\ci.yml') -or -not (Test-Path '.github\workflows\release-candidate.yml')) { throw 'Required GitHub Actions workflows are missing.' }
     $archiveEntries = tar -tf (Join-Path $artifacts $portableName)
-    if ($LASTEXITCODE -or -not ($archiveEntries -match 'QuickResponseBao\.exe') -or -not ($archiveEntries -match 'licenses/')) { throw 'Portable archive is invalid or omits required license files.' }
+    if ($LASTEXITCODE -or -not ($archiveEntries -match 'QuickResponseBao\.exe') -or -not ($archiveEntries -match '(^|/)LICENSE$') -or -not ($archiveEntries -match '(^|/)THIRD-PARTY-NOTICES\.md$') -or -not ($archiveEntries -match 'licenses/')) { throw 'Portable archive is invalid or omits required license files.' }
     if ($archiveEntries -match '(^|/)(bin|obj|logs?|backups?|data|config)(/|$)|\.(db|log)$') { throw 'Portable archive contains forbidden build or user-data files.' }
     Write-Host 'All release preflight checks passed.'
 }

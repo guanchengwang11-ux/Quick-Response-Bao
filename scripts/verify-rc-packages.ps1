@@ -1,5 +1,5 @@
 param(
-    [string]$Version = '1.0.2',
+    [string]$Version = '1.1.0',
     [string]$PackageDirectory
 )
 
@@ -9,7 +9,7 @@ if ($env:GITHUB_ACTIONS -ne 'true') { throw 'Package installation verification i
 $root = Split-Path -Parent $PSScriptRoot
 $artifacts = if ($PackageDirectory) { $PackageDirectory } else { Join-Path $root 'artifacts' }
 $setup = Join-Path $artifacts "Quick-Response-Bao-Setup-$Version-x64.exe"
-$portable = Join-Path $artifacts "Quick-Response-Bao-Portable-$Version-x64.zip"
+$portable = Join-Path $artifacts "Quick-Response-Bao-$Version-Portable-x64.zip"
 $testRoot = Join-Path $env:RUNNER_TEMP 'quick-response-bao-rc-validation'
 $install = Join-Path $testRoot 'installed'
 $expanded = Join-Path $testRoot 'portable'
@@ -74,7 +74,7 @@ try {
 
     Expand-Archive -LiteralPath $portable -DestinationPath $expanded
     $portableExe = Join-Path $expanded 'QuickResponseBao.exe'
-    foreach ($path in @($portableExe, (Join-Path $expanded 'QuickResponseBao.Updater.exe'), (Join-Path $expanded 'THIRD-PARTY-NOTICES.md'))) {
+    foreach ($path in @($portableExe, (Join-Path $expanded 'QuickResponseBao.Updater.exe'), (Join-Path $expanded 'LICENSE'), (Join-Path $expanded 'THIRD-PARTY-NOTICES.md'))) {
         if (-not (Test-Path -LiteralPath $path)) { throw "Portable validation failed; missing $path" }
     }
     if ((Get-Item $portableExe).VersionInfo.ProductVersion -notlike "$Version*") { throw 'Portable executable has the wrong version.' }

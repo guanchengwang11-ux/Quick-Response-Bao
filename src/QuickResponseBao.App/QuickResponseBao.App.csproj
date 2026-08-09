@@ -17,6 +17,7 @@
   <ItemGroup>
     <Resource Include="..\..\assets\branding\quick-response-bao-icon.png" Link="assets\branding\quick-response-bao-icon.png" />
     <Resource Include="..\..\assets\branding\QuickResponseBao.ico" Link="assets\branding\QuickResponseBao.ico" />
+    <Content Include="..\..\LICENSE" Link="LICENSE" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
     <Content Include="..\..\THIRD-PARTY-NOTICES.md" Link="THIRD-PARTY-NOTICES.md" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
     <Content Include="..\..\licenses\*.txt" Link="licenses\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
   </ItemGroup>

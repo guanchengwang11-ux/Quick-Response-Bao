@@ -77,4 +77,4 @@ Quick Response Bao 不会保存或上传用户的完整键盘输入、聊天内�
 - 剪贴板未恢复：适当增大设置中的剪贴板恢复延迟。
 - Hook 或数据库错误：查看 `%LocalAppData%\QuickResponseBao\logs\`，日志不会记录完整输入或话术正文。
 
-当前仓库仍处于 V1.0.0 开发阶段；发布 Tag 前需要在 Lark、Telegram、Discord、Chrome 和 Edge 中完成手动兼容性测试。
+当前稳定代码版本为 v1.1.0；正式发布前需在 Lark、Telegram、Discord、Chrome 和 Edge 中完成手动兼容性测试。

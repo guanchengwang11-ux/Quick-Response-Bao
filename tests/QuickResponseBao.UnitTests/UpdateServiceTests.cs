@@ -45,7 +45,7 @@ public sealed class UpdateServiceTests : IDisposable
     [Fact]
     public void AssetSelector_PrefersExactX64SetupAsset()
     {
-        var update = Update([Asset("Quick-Response-Bao-Portable-1.2.0-x64.zip"), Asset("checksums.txt"), Asset("Quick-Response-Bao-Setup-1.2.0-x64.exe")]);
+        var update = Update([Asset("Quick-Response-Bao-1.2.0-Portable-x64.zip"), Asset("checksums.txt"), Asset("Quick-Response-Bao-Setup-1.2.0-x64.exe")]);
         var selected = ReleaseAssetSelector.Select(update);
         Assert.Equal(ReleaseAssetKind.Setup, selected.Kind); Assert.Equal("Quick-Response-Bao-Setup-1.2.0-x64.exe", selected.Asset.Name);
     }
@@ -53,7 +53,7 @@ public sealed class UpdateServiceTests : IDisposable
     [Fact]
     public void AssetSelector_PrefersPackageForPortableInstallation()
     {
-        var update = Update([Asset("Quick-Response-Bao-Portable-1.2.0-x64.zip"), Asset("checksums.txt"), Asset("Quick-Response-Bao-Setup-1.2.0-x64.exe")]);
+        var update = Update([Asset("Quick-Response-Bao-1.2.0-Portable-x64.zip"), Asset("checksums.txt"), Asset("Quick-Response-Bao-Setup-1.2.0-x64.exe")]);
         Assert.Equal(ReleaseAssetKind.Package, ReleaseAssetSelector.Select(update, preferSetup: false).Kind);
     }
 
@@ -109,7 +109,7 @@ public sealed class UpdateServiceTests : IDisposable
 
     private static HttpClient JsonClient(string json) => new(new DelegateHandler((_, _, _) => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent(json, Encoding.UTF8, "application/json") })));
     private static string Releases(params string[] releases) => $"[{string.Join(',', releases)}]";
-    private static string Release(string tag, bool draft = false, bool prerelease = false) => $"{{\"tag_name\":\"{tag}\",\"html_url\":\"https://example.test/{tag}\",\"body\":\"notes\",\"draft\":{draft.ToString().ToLowerInvariant()},\"prerelease\":{prerelease.ToString().ToLowerInvariant()},\"assets\":[{{\"name\":\"checksums.txt\",\"size\":10,\"browser_download_url\":\"https://example.test/checksums.txt\"}},{{\"name\":\"Quick-Response-Bao-Portable-{tag.TrimStart('v')}-x64.zip\",\"size\":10,\"browser_download_url\":\"https://example.test/package.zip\"}}]}}";
+    private static string Release(string tag, bool draft = false, bool prerelease = false) => $"{{\"tag_name\":\"{tag}\",\"html_url\":\"https://example.test/{tag}\",\"body\":\"notes\",\"draft\":{draft.ToString().ToLowerInvariant()},\"prerelease\":{prerelease.ToString().ToLowerInvariant()},\"assets\":[{{\"name\":\"checksums.txt\",\"size\":10,\"browser_download_url\":\"https://example.test/checksums.txt\"}},{{\"name\":\"Quick-Response-Bao-{tag.TrimStart('v')}-Portable-x64.zip\",\"size\":10,\"browser_download_url\":\"https://example.test/package.zip\"}}]}}";
     private static ReleaseAsset Asset(string name) => new(name, new Uri($"https://example.test/{name}"), 100);
     private static UpdateInfo Update(IReadOnlyList<ReleaseAsset> assets) => new("1.2.0", "notes", new Uri("https://example.test/release"), assets, false);
     private static SelectedUpdateAsset Selection(byte[] bytes, string hash) => new(new ReleaseAsset("package.zip", new Uri("https://example.test/package.zip"), bytes.Length), new ReleaseAsset("checksums.txt", new Uri("https://example.test/checksums.txt"), 80), ReleaseAssetKind.Package);

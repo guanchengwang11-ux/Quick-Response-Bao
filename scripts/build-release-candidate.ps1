@@ -1,5 +1,5 @@
 param(
-    [string]$Version = '1.0.2',
+    [string]$Version = '1.1.0',
     [switch]$SkipInstaller
 )
 
@@ -8,7 +8,7 @@ $repositoryRoot = Split-Path -Parent $PSScriptRoot
 $artifacts = Join-Path $repositoryRoot 'artifacts'
 $publish = Join-Path $artifacts 'rc-publish'
 $updaterPublish = Join-Path $artifacts 'rc-updater'
-$portable = Join-Path $artifacts "Quick-Response-Bao-Portable-$Version-x64.zip"
+$portable = Join-Path $artifacts "Quick-Response-Bao-$Version-Portable-x64.zip"
 $setup = Join-Path $artifacts "Quick-Response-Bao-Setup-$Version-x64.exe"
 $checksums = Join-Path $artifacts 'checksums.txt'
 $dotnet = if ($env:DOTNET_EXE) { $env:DOTNET_EXE } elseif (Test-Path (Join-Path $repositoryRoot '.dotnet\dotnet.exe')) { Join-Path $repositoryRoot '.dotnet\dotnet.exe' } else { 'dotnet' }
