@@ -23,6 +23,14 @@ function Invoke-TitleButton([IntPtr]$Handle, [string]$Id) {
   ($button.GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern)).Invoke()
   Start-Sleep -Milliseconds 500
 }
+function Invoke-Button([IntPtr]$Handle, [string]$Id) {
+  $root = [System.Windows.Automation.AutomationElement]::FromHandle($Handle)
+  $condition = New-Object System.Windows.Automation.PropertyCondition -ArgumentList ([System.Windows.Automation.AutomationElement]::AutomationIdProperty), $Id
+  $button = $root.FindFirst([System.Windows.Automation.TreeScope]::Descendants, $condition)
+  if (-not $button) { throw "Missing button: $Id" }
+  ($button.GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern)).Invoke()
+  Start-Sleep -Milliseconds 250
+}
 $process = Start-Process -FilePath (Resolve-Path $Exe) -PassThru
 try {
   $deadline = [DateTime]::UtcNow.AddSeconds(10); do { Start-Sleep -Milliseconds 100; $process.Refresh() } while ($process.MainWindowHandle -eq 0 -and [DateTime]::UtcNow -lt $deadline)
@@ -31,10 +39,11 @@ try {
   [QrbWindowTestNative]::ShowWindow($handle, 9) | Out-Null
   Invoke-TitleButton $handle 'TitleBarMaximizeButton'; if ((Get-WindowState $handle) -ne 3) { throw 'Maximize did not produce SW_SHOWMAXIMIZED.' }
   Invoke-TitleButton $handle 'TitleBarMaximizeButton'; if ((Get-WindowState $handle) -ne 1) { throw 'Restore did not produce SW_SHOWNORMAL.' }
+  Invoke-Button $handle 'QrbPaneToggleButton'; Invoke-Button $handle 'QrbPaneToggleButton'
   Invoke-TitleButton $handle 'TitleBarCloseButton'; if (-not $process.HasExited -and [QrbWindowTestNative]::IsWindowVisible($handle)) { throw 'Close did not hide the main window.' }
   if ($process.HasExited) { throw 'Close terminated the listener instead of hiding to tray.' }
   $secondary = Start-Process -FilePath (Resolve-Path $Exe) -PassThru; Start-Sleep -Seconds 1; $process.Refresh()
   if (-not $secondary.HasExited -or -not [QrbWindowTestNative]::IsWindowVisible($process.MainWindowHandle)) { throw 'Single-instance tray reactivation failed.' }
-  [pscustomobject]@{ Minimize = 'Pass'; Maximize = 'Pass'; Restore = 'Pass'; CloseToTray = 'Pass'; TrayReopen = 'Pass' }
+  [pscustomobject]@{ Minimize = 'Pass'; Maximize = 'Pass'; Restore = 'Pass'; PaneCompactAndExpand = 'Pass'; CloseToTray = 'Pass'; TrayReopen = 'Pass' }
 }
 finally { if (-not $process.HasExited) { Stop-Process -Id $process.Id } }

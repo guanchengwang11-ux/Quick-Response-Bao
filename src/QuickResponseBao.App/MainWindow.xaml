@@ -8,7 +8,7 @@
   <Grid>
   <ui:NavigationView x:Name="RootNavigation" PaneDisplayMode="Left" TitleBar="{Binding ElementName=AppTitleBar}"
                      OpenPaneLength="232" CompactPaneLength="52"
-                     IsBackButtonVisible="Collapsed" IsPaneToggleVisible="True"
+                     IsBackButtonVisible="Collapsed" IsPaneToggleVisible="False"
                      IsPaneOpen="True" IsFooterSeparatorVisible="True"
                      AlwaysShowHeader="True" HeaderVisibility="Visible"
                      FrameMargin="0" Transition="None">
@@ -29,10 +29,18 @@
     </ui:NavigationView.Header>
 
     <ui:NavigationView.PaneHeader>
-      <StackPanel Orientation="Horizontal" Margin="8,8,0,14">
-        <Image Source="/assets/branding/quick-response-bao-icon.png" Width="32" Height="32" />
-        <TextBlock Text="Quick Response Bao" Style="{DynamicResource QrbBodyStrongTextStyle}" VerticalAlignment="Center" Margin="10,0,0,0" />
-      </StackPanel>
+      <Grid Margin="4,8,0,14">
+        <Grid.ColumnDefinitions><ColumnDefinition Width="44"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+        <Button x:Name="PaneToggleButton" AutomationProperties.AutomationId="QrbPaneToggleButton" Style="{DynamicResource QrbIconButtonStyle}" Click="TogglePane_Click" ToolTip="{DynamicResource NavigationMenu}">
+          <ui:SymbolIcon Symbol="Navigation24" Style="{DynamicResource QrbIcon20Style}"/>
+        </Button>
+        <Image Grid.Column="1" Source="/assets/branding/quick-response-bao-icon.png" Width="28" Height="28" VerticalAlignment="Center">
+          <Image.Style><Style TargetType="Image"><Setter Property="Visibility" Value="Visible"/><Style.Triggers><DataTrigger Binding="{Binding IsPaneOpen, ElementName=RootNavigation}" Value="False"><Setter Property="Visibility" Value="Collapsed"/></DataTrigger></Style.Triggers></Style></Image.Style>
+        </Image>
+        <TextBlock Grid.Column="2" Text="Quick Response Bao" VerticalAlignment="Center" Margin="9,0,0,0">
+          <TextBlock.Style><Style TargetType="TextBlock" BasedOn="{StaticResource QrbBodyStrongTextStyle}"><Setter Property="Visibility" Value="Visible"/><Style.Triggers><DataTrigger Binding="{Binding IsPaneOpen, ElementName=RootNavigation}" Value="False"><Setter Property="Visibility" Value="Collapsed"/></DataTrigger></Style.Triggers></Style></TextBlock.Style>
+        </TextBlock>
+      </Grid>
     </ui:NavigationView.PaneHeader>
 
     <ui:NavigationView.MenuItems>
@@ -62,8 +70,6 @@
       </Border>
     </ui:NavigationView.ContentOverlay>
   </ui:NavigationView>
-  <ui:TitleBar x:Name="AppTitleBar" Title="{DynamicResource AppName}" CloseWindowByDoubleClickOnIcon="True">
-    <ui:TitleBar.Icon><ui:ImageIcon Source="/assets/branding/quick-response-bao-icon.png" /></ui:TitleBar.Icon>
-  </ui:TitleBar>
+  <ui:TitleBar x:Name="AppTitleBar" Title="" />
   </Grid>
 </ui:FluentWindow>

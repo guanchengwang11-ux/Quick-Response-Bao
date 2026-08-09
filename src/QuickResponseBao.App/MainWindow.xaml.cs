@@ -186,6 +186,8 @@ public partial class MainWindow : FluentWindow
         if (sender is NavigationViewItem { TargetPageTag: { Length: > 0 } route }) Navigate(route);
     }
 
+    private void TogglePane_Click(object sender, RoutedEventArgs e) => RootNavigation.IsPaneOpen = !RootNavigation.IsPaneOpen;
+
     private void ToggleListener_Click(object sender, RoutedEventArgs e)
     {
         if (Runtime.Listener.IsRunning) Runtime.PauseListener(); else Runtime.TryStartListener();

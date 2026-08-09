@@ -89,8 +89,7 @@ public partial class CandidateWindow : Window
             {
                 Child = stack, Padding = new Thickness(14, 11, 14, 11), Margin = new Thickness(2, 2, 2, 4), CornerRadius = new CornerRadius(8),
                 Background = System.Windows.Media.Brushes.Transparent, BorderBrush = System.Windows.Media.Brushes.Transparent,
-                BorderThickness = new Thickness(1), Cursor = System.Windows.Input.Cursors.Hand,
-                ToolTip = response.Content
+                BorderThickness = new Thickness(1), Cursor = System.Windows.Input.Cursors.Hand
             };
             if (i == _selected) ApplySelection(border, true);
             border.MouseEnter += (_, _) => { if (index != _selected) ApplyHover(border, true); };
