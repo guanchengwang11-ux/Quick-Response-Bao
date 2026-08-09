@@ -13,6 +13,7 @@ namespace QuickResponseBao.App;
 
 public partial class CandidateWindow : Window
 {
+    private static int _liveInstanceCount;
     private readonly TextHighlightService _highlight = new();
     private IReadOnlyList<SearchResult> _results = [];
     private int _selected;
@@ -22,7 +23,8 @@ public partial class CandidateWindow : Window
     public CandidatePositionMethod LastPositionMethod { get; private set; } = CandidatePositionMethod.CurrentMonitorBottomRight;
     public nint WindowHandle => new WindowInteropHelper(this).EnsureHandle();
 
-    public CandidateWindow() { InitializeComponent(); }
+    public CandidateWindow() { InitializeComponent(); Interlocked.Increment(ref _liveInstanceCount); Closed += (_, _) => Interlocked.Decrement(ref _liveInstanceCount); }
+    public static int LiveInstanceCount => Volatile.Read(ref _liveInstanceCount);
     public event EventHandler<CandidateConfirmationContext>? Confirmed;
     public event EventHandler<CandidatePositionMethod>? PositionMethodChanged;
 

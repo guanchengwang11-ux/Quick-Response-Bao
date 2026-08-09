@@ -38,6 +38,7 @@ public partial class App : System.Windows.Application
     private string _lastReplacementMethod = string.Empty;
     private string _lastFailureReason = string.Empty;
     private IReadOnlyList<string> _restartArguments = [];
+    private SingleInstanceService? _singleInstance;
     private static readonly HttpClient UpdateHttpClient = new() { Timeout = TimeSpan.FromMinutes(15) };
 
     public AppPaths Paths { get; private set; } = null!;
@@ -57,6 +58,14 @@ public partial class App : System.Windows.Application
     protected override async void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e); ShutdownMode = ShutdownMode.OnExplicitShutdown;
+        _singleInstance = new SingleInstanceService();
+        if (!_singleInstance.TryAcquire())
+        {
+            await _singleInstance.SignalPrimaryAsync();
+            _singleInstance.Dispose(); _singleInstance = null; Shutdown(); return;
+        }
+        _singleInstance.ActivationRequested += (_, _) => Dispatcher.BeginInvoke(ShowMainWindow);
+        _singleInstance.StartActivationServer();
         _restartArguments = e.Args;
         Paths = new AppPaths(); SettingsStore = new JsonSettingsStore(Paths); Settings = await SettingsStore.LoadAsync();
         LocalizationService.Apply(Settings.Language); ThemeService = new ThemeService(this); ThemeService.ThemeChanged += (_, _) => UpdateTray(); ThemeService.Apply(Settings.Theme);
@@ -192,7 +201,7 @@ public partial class App : System.Windows.Application
     }
     public async void ExitApplication()
     {
-        _exiting = true; Listener?.Dispose(); ThemeService?.Dispose(); _tray?.Dispose(); _appIcon?.Dispose(); _candidates?.Close();
+        _exiting = true; Listener?.Dispose(); ThemeService?.Dispose(); _tray?.Dispose(); _appIcon?.Dispose(); _candidates?.Close(); _singleInstance?.Dispose(); _singleInstance = null;
         await (_logger?.WriteAsync("Application exited") ?? Task.CompletedTask); MainAppWindow?.Close(); Shutdown();
     }
 
@@ -206,7 +215,8 @@ public partial class App : System.Windows.Application
             _lastPasteSucceeded, _lastClipboardRestored, _capturedTargetWindow, _confirmationTargetWindow,
             _lastFocusRestored, _lastDeletedCharacterCount, _lastDeletionSucceeded, _lastReplacementMethod,
             _lastPasteSentCount, _lastPasteErrorCode, _lastPasteInputSize,
-            _lastPasteTargetProcess, _lastPasteSamePermissionLevel, _lastFailureReason, Paths.Logs);
+            _lastPasteTargetProcess, _lastPasteSamePermissionLevel, _lastFailureReason, Paths.Logs)
+        { CandidateWindowInstanceCount = CandidateWindow.LiveInstanceCount };
     }
 
     public void TestCandidateWindow()

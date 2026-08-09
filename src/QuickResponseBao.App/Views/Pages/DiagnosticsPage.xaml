@@ -13,6 +13,7 @@
       <TextBlock Grid.Row="4" Text="{DynamicResource BufferLength}" Style="{DynamicResource DiagnosticLabelStyle}"/><TextBlock x:Name="BufferValue" Grid.Row="4" Grid.Column="1" Style="{DynamicResource DiagnosticValueStyle}"/>
       <TextBlock Grid.Row="5" Text="{DynamicResource LastFailure}" Style="{DynamicResource DiagnosticLabelStyle}"/><TextBlock x:Name="FailureValue" Grid.Row="5" Grid.Column="1" Style="{DynamicResource DiagnosticValueStyle}"/>
       <TextBlock Grid.Row="6" Text="{DynamicResource LogDirectory}" Style="{DynamicResource DiagnosticLabelStyle}"/><TextBlock x:Name="LogValue" Grid.Row="6" Grid.Column="1" Style="{DynamicResource DiagnosticValueStyle}"/>
+      <TextBlock Grid.Row="7" Text="{DynamicResource CandidateInstanceCount}" Style="{DynamicResource DiagnosticLabelStyle}"/><TextBlock x:Name="CandidateCountValue" Grid.Row="7" Grid.Column="1" Style="{DynamicResource DiagnosticValueStyle}"/>
     </Grid></Border></Expander>
     <WrapPanel Margin="4,12,0,20"><Button Content="{DynamicResource TestCandidate}" Style="{DynamicResource QrbPrimaryButtonStyle}" Click="Candidate_Click"/><Button Content="{DynamicResource TestPaste}" Click="Paste_Click"/><Button Content="{DynamicResource CaptureCurrentApplication}" Click="Capture_Click"/><Button Content="{DynamicResource OpenLogs}" Click="Logs_Click"/><Button Content="{DynamicResource ExportDiagnostics}" Click="Export_Click"/></WrapPanel>
   </StackPanel></ScrollViewer>
