@@ -55,10 +55,10 @@ public partial class ImportExportPage : Page, IRefreshablePage
         }
         else
         {
-            _pendingOutcome = extension.Equals(".json", StringComparison.OrdinalIgnoreCase)
-                ? await _files.ImportJsonOutcomeAsync(path) : await _files.ImportCsvOutcomeAsync(path);
-            _preview = BuildStandardPreview(_pendingOutcome);
-            PopulateMapping(_preview.Headers, _excel.SuggestMapping(_preview.Headers), false);
+            _pendingOutcome = null;
+            _preview = extension.Equals(".json", StringComparison.OrdinalIgnoreCase)
+                ? await _files.PreviewJsonAsync(path, 20) : await _files.PreviewCsvAsync(path, 20);
+            PopulateMapping(_preview.Headers, _excel.SuggestMapping(_preview.Headers), true);
         }
         PopulatePreview(_preview);
         ShowStep(2);
@@ -80,7 +80,11 @@ public partial class ImportExportPage : Page, IRefreshablePage
         if (_selectedPath is null) return;
         await RunBusyAsync(async () =>
         {
-            if (_isExcel) _pendingOutcome = await _excel.ImportAsync(_selectedPath, CurrentMapping());
+            var mapping = CurrentMapping();
+            if (_isExcel) _pendingOutcome = await _excel.ImportAsync(_selectedPath, mapping);
+            else if (Path.GetExtension(_selectedPath).Equals(".json", StringComparison.OrdinalIgnoreCase))
+                _pendingOutcome = await _files.ImportJsonOutcomeAsync(_selectedPath, mapping);
+            else _pendingOutcome = await _files.ImportCsvOutcomeAsync(_selectedPath, mapping);
             if (_pendingOutcome is null) return;
             var existing = await _viewModel.Repository.GetAllAsync();
             var validation = ImportValidationService.Analyze(_pendingOutcome, existing);
@@ -180,19 +184,6 @@ public partial class ImportExportPage : Page, IRefreshablePage
         (LanguageMap, QuickResponseField.Language), (EnabledMap, QuickResponseField.IsEnabled),
         (SortOrderMap, QuickResponseField.SortOrder)
     ];
-
-    private static ImportPreview BuildStandardPreview(ExcelImportOutcome outcome)
-    {
-        var headers = new[] { "Summary", "Content", "Keywords", "Category", "Language", "IsEnabled", "SortOrder" };
-        var rows = outcome.Items.Take(20).Select(item => new ImportPreviewRow(item.RowNumber, new Dictionary<string, string>
-        {
-            ["Summary"] = item.Response.Summary, ["Content"] = item.Response.Content,
-            ["Keywords"] = string.Join("; ", item.Response.Keywords), ["Category"] = item.Response.Category,
-            ["Language"] = item.Response.Language, ["IsEnabled"] = item.Response.IsEnabled.ToString(),
-            ["SortOrder"] = item.Response.SortOrder.ToString()
-        })).ToList();
-        return new ImportPreview(headers, rows, outcome.Result.Total);
-    }
 
     private string FormatFailure(ImportFailure failure)
     {
