@@ -26,7 +26,8 @@ public sealed class LibraryPerformanceRegressionTests
     {
         var source = Read("src", "QuickResponseBao.App", "Views", "Pages", "ResponseLibraryPage.xaml.cs");
         var start = source.IndexOf("SearchBox_TextChanged", StringComparison.Ordinal); var end = source.IndexOf("Filter_SelectionChanged", start, StringComparison.Ordinal); var handler = source[start..end];
-        Assert.Contains("DeferRefresh", handler); Assert.DoesNotContain("RefreshAsync", handler); Assert.DoesNotContain("GetAllAsync", handler);
+        var applyStart = source.IndexOf("private void ApplyFilters", StringComparison.Ordinal); var applyEnd = source.IndexOf("private void ClearFilterChip_Click", applyStart, StringComparison.Ordinal); var apply = source[applyStart..applyEnd];
+        Assert.Contains("ApplyFilters", handler); Assert.Contains("DeferRefresh", apply); Assert.DoesNotContain("RefreshAsync", handler); Assert.DoesNotContain("GetAllAsync", handler);
     }
 
     [Fact]

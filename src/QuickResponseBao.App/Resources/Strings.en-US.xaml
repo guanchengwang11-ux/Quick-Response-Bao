@@ -118,4 +118,8 @@
   <sys:String x:Key="Suggestions">Suggestions</sys:String><sys:String x:Key="SuggestionCount">{0} results</sys:String><sys:String x:Key="CandidateKeyboardHint">↑ ↓ navigate   ·   Enter / Tab insert   ·   Esc close</sys:String>
   <sys:String x:Key="CandidateInstanceCount">Candidate window instances</sys:String>
   <sys:String x:Key="LoadingResponses">Loading responses…</sys:String>
+  <sys:String x:Key="Filter">Filter</sys:String><sys:String x:Key="FilterBy">Filter by</sys:String><sys:String x:Key="Contains">Contains</sys:String><sys:String x:Key="DoesNotContain">Does not contain</sys:String><sys:String x:Key="Equals">Equals</sys:String><sys:String x:Key="StartsWith">Starts with</sys:String><sys:String x:Key="EndsWith">Ends with</sys:String>
+  <sys:String x:Key="ClearAll">Clear all</sys:String><sys:String x:Key="Apply">Apply</sys:String><sys:String x:Key="ClearFilter">Clear filter</sys:String><sys:String x:Key="ActiveFilters">Filters:</sys:String>
+  <sys:String x:Key="GreaterThan">Greater than</sys:String><sys:String x:Key="GreaterThanOrEqual">Greater than or equal</sys:String><sys:String x:Key="LessThan">Less than</sys:String><sys:String x:Key="LessThanOrEqual">Less than or equal</sys:String><sys:String x:Key="Between">Between</sys:String>
+  <sys:String x:Key="All">All</sys:String><sys:String x:Key="Today">Today</sys:String><sys:String x:Key="Last7Days">Last 7 days</sys:String><sys:String x:Key="Last30Days">Last 30 days</sys:String><sys:String x:Key="NeverUsed">Never used</sys:String><sys:String x:Key="CustomRange">Custom range</sys:String>
 </ResourceDictionary>

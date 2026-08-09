@@ -8,6 +8,8 @@ using QuickResponseBao.App.Services;
 using QuickResponseBao.App.ViewModels;
 using QuickResponseBao.Core.Interfaces;
 using QuickResponseBao.Core.Models;
+using Button = System.Windows.Controls.Button;
+using Control = System.Windows.Controls.Control;
 
 namespace QuickResponseBao.App.Views.Pages;
 
@@ -20,6 +22,7 @@ public partial class ResponseLibraryPage : Page, IRefreshablePage
     private int _searchVersion;
     private bool _updatingFilters;
     private int _seenDataVersion = -1;
+    private readonly ResponseLibraryFilterState _filterState = new();
 
     private IQuickResponseRepository Repository => _viewModel.Repository;
     private ICategoryRepository CategoryRepository => (ICategoryRepository)_viewModel.Repository;
@@ -32,6 +35,8 @@ public partial class ResponseLibraryPage : Page, IRefreshablePage
         _navigate = navigate;
         _libraryView = new ListCollectionView(_viewModel.Responses) { Filter = MatchesFilters };
         ResponsesGrid.ItemsSource = _libraryView;
+        ColumnFilterPanel.Applied += (_, _) => ApplyFilters();
+        ColumnFilterPanel.CloseRequested += (_, _) => FilterPopup.IsOpen = false;
         InitializeStaticFilters();
     }
 
@@ -80,13 +85,7 @@ public partial class ResponseLibraryPage : Page, IRefreshablePage
     private bool MatchesFilters(object value)
     {
         if (value is not QuickResponse response) return false;
-        var category = (CategoryFilter.SelectedItem as FilterOption)?.Value;
-        var language = (LanguageFilter.SelectedItem as FilterOption)?.Value;
-        var status = (StatusFilter.SelectedItem as FilterOption)?.Value;
-        return MatchesGlobalSearch(response, _viewModel.SearchText)
-            && (category is null || response.Category.Equals(category, StringComparison.OrdinalIgnoreCase))
-            && (language is null || response.Language.Equals(language, StringComparison.OrdinalIgnoreCase))
-            && (status is null || response.IsEnabled == (status == "enabled"));
+        return _filterState.Matches(response);
     }
 
     private async void SearchBox_TextChanged(object sender, TextChangedEventArgs e)
@@ -94,17 +93,62 @@ public partial class ResponseLibraryPage : Page, IRefreshablePage
         var version = ++_searchVersion;
         await Task.Delay(150);
         if (version != _searchVersion) return;
-        _viewModel.SearchText = SearchBox.Text;
-        using (_libraryView.DeferRefresh()) { }
-        UpdateEmptyState();
+        _viewModel.SearchText = SearchBox.Text; _filterState.GlobalSearch = SearchBox.Text; ApplyFilters();
     }
 
     private void Filter_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         if (_updatingFilters || _libraryView is null) return;
-        _libraryView.Refresh();
-        UpdateEmptyState();
+        _filterState.Categories.Clear(); _filterState.Languages.Clear(); _filterState.Statuses.Clear();
+        if ((CategoryFilter.SelectedItem as FilterOption)?.Value is { } category) _filterState.Categories.Add(category);
+        if ((LanguageFilter.SelectedItem as FilterOption)?.Value is { } language) _filterState.Languages.Add(language);
+        if ((StatusFilter.SelectedItem as FilterOption)?.Value is { } status) _filterState.Statuses.Add(status == "enabled");
+        ApplyFilters();
     }
+
+    private void FilterHeader_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is not Button { Tag: string tag } button || !Enum.TryParse<ResponseFilterField>(tag, out var field)) return;
+        var values = field switch { ResponseFilterField.Category => _viewModel.Responses.Select(x => x.Category), ResponseFilterField.Language => _viewModel.Responses.Select(x => x.Language), ResponseFilterField.Status => new[] { "enabled", "disabled" }, _ => [] };
+        ColumnFilterPanel.Configure(field, _filterState, values.Where(x => !string.IsNullOrWhiteSpace(x))); FilterPopup.PlacementTarget = button; FilterPopup.IsOpen = true; e.Handled = true;
+    }
+
+    private void ApplyFilters()
+    {
+        using (_libraryView.DeferRefresh()) { }
+        UpdateEmptyState(); UpdateActiveFilters(); UpdateFilterButtons();
+    }
+
+    private void ClearFilterChip_Click(object sender, RoutedEventArgs e)
+    {
+        if ((sender as Button)?.Tag is not ResponseFilterField field) return;
+        _filterState.Clear(field);
+        _updatingFilters = true;
+        if (field == ResponseFilterField.Category) CategoryFilter.SelectedIndex = 0;
+        if (field == ResponseFilterField.Language) LanguageFilter.SelectedIndex = 0;
+        if (field == ResponseFilterField.Status) StatusFilter.SelectedIndex = 0;
+        _updatingFilters = false;
+        ApplyFilters();
+    }
+    private void ClearAllFilters_Click(object sender, RoutedEventArgs e) { _filterState.ClearAll(); ResetLegacyFilterSelection(); ApplyFilters(); }
+    private void ResetLegacyFilterSelection() { _updatingFilters = true; CategoryFilter.SelectedIndex = LanguageFilter.SelectedIndex = StatusFilter.SelectedIndex = 0; _updatingFilters = false; }
+    private void UpdateActiveFilters()
+    {
+        var chips = new List<ActiveFilterChip>();
+        if (_filterState.Summary?.IsActive == true) chips.Add(new(ResponseFilterField.Summary, $"{LocalizationService.Get("Summary")}: {_filterState.Summary.Value}"));
+        if (_filterState.Categories.Count > 0) chips.Add(new(ResponseFilterField.Category, $"{LocalizationService.Get("Category")}: {string.Join(", ", _filterState.Categories)}"));
+        if (_filterState.Keywords?.IsActive == true) chips.Add(new(ResponseFilterField.Keywords, $"{LocalizationService.Get("Keywords")}: {_filterState.Keywords.Value}"));
+        if (_filterState.Languages.Count > 0) chips.Add(new(ResponseFilterField.Language, $"{LocalizationService.Get("Language")}: {string.Join(", ", _filterState.Languages)}"));
+        if (_filterState.Statuses.Count > 0) chips.Add(new(ResponseFilterField.Status, $"{LocalizationService.Get("Status")}: {string.Join(", ", _filterState.Statuses.Select(x => LocalizationService.Get(x ? "Enabled" : "Disabled")))}"));
+        if (_filterState.UsageCount is { } usage) chips.Add(new(ResponseFilterField.UsageCount, $"{LocalizationService.Get("UsageCount")}: {LocalizationService.Get(usage.Operator.ToString())} {usage.Value}{(usage.SecondValue is null ? "" : $"–{usage.SecondValue}")}"));
+        if (_filterState.LastUsed is { IsActive: true } last) chips.Add(new(ResponseFilterField.LastUsed, $"{LocalizationService.Get("LastUsed")}: {LocalizationService.Get(last.Period.ToString())}"));
+        ActiveFiltersItems.ItemsSource = chips; ActiveFiltersBar.Visibility = chips.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
+    }
+    private void UpdateFilterButtons()
+    {
+        foreach (var (button, field) in FilterButtons()) { button.SetResourceReference(Control.ForegroundProperty, _filterState.IsActive(field) ? "QrbAccentBrush" : "QrbTextPrimaryBrush"); button.SetResourceReference(Control.BackgroundProperty, _filterState.IsActive(field) ? "QrbSelectionBrush" : "QrbSurfaceBrush"); }
+    }
+    private IEnumerable<(Button Button, ResponseFilterField Field)> FilterButtons() => [(SummaryFilterButton, ResponseFilterField.Summary), (CategoryColumnFilterButton, ResponseFilterField.Category), (KeywordsFilterButton, ResponseFilterField.Keywords), (LanguageColumnFilterButton, ResponseFilterField.Language), (StatusColumnFilterButton, ResponseFilterField.Status), (UsageFilterButton, ResponseFilterField.UsageCount), (LastUsedFilterButton, ResponseFilterField.LastUsed)];
 
     private async void Add_Click(object sender, RoutedEventArgs e)
     {
@@ -236,12 +280,6 @@ public partial class ResponseLibraryPage : Page, IRefreshablePage
     private static QuickResponse? MenuResponse(object sender) => (sender as FrameworkElement)?.DataContext as QuickResponse;
 
     private void UpdateEmptyState() => EmptyState.Visibility = _libraryView.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
-    private static bool MatchesGlobalSearch(QuickResponse response, string query)
-    {
-        if (string.IsNullOrWhiteSpace(query)) return true;
-        return response.Summary.Contains(query, StringComparison.OrdinalIgnoreCase) || response.Content.Contains(query, StringComparison.OrdinalIgnoreCase)
-            || response.Category.Contains(query, StringComparison.OrdinalIgnoreCase) || response.Keywords.Any(x => x.Contains(query, StringComparison.OrdinalIgnoreCase));
-    }
     private static T? FindVisualChild<T>(DependencyObject parent) where T : DependencyObject
     {
         for (var index = 0; index < VisualTreeHelper.GetChildrenCount(parent); index++) { var child = VisualTreeHelper.GetChild(parent, index); if (child is T match) return match; if (FindVisualChild<T>(child) is { } nested) return nested; }
@@ -253,4 +291,5 @@ public partial class ResponseLibraryPage : Page, IRefreshablePage
         public string? Value { get; } = value;
         public override string ToString() => Label;
     }
+    public sealed record ActiveFilterChip(ResponseFilterField Field, string Label);
 }
