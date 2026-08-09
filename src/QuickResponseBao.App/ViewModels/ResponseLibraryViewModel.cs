@@ -31,6 +31,19 @@ public sealed class ResponseLibraryViewModel
         if (generation != Volatile.Read(ref _requestGeneration)) throw new OperationCanceledException("The library snapshot changed.");
         return result;
     }
+
+    public async Task<int> CountMatchesAsync(ResponseLibraryFilterState state, CancellationToken cancellationToken = default)
+    {
+        var generation = Volatile.Read(ref _requestGeneration);
+        var result = await Task.Run(() =>
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            return _index.CountMatches(state);
+        }, cancellationToken);
+        cancellationToken.ThrowIfCancellationRequested();
+        if (generation != Volatile.Read(ref _requestGeneration)) throw new OperationCanceledException("The library snapshot changed.");
+        return result;
+    }
 }
 
 public sealed record FacetQueryResult(IReadOnlyList<FacetValue> Values, int MatchCount);

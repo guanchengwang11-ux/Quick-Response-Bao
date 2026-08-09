@@ -26,7 +26,7 @@
   <sys:Double x:Key="QrbControlHeight36">36</sys:Double>
   <sys:Double x:Key="QrbControlHeight40">40</sys:Double>
   <sys:Double x:Key="QrbControlHeight44">44</sys:Double>
-  <sys:Double x:Key="QrbFocusRingThickness">2</sys:Double>
+  <Thickness x:Key="QrbFocusRingThickness">2</Thickness>
 
   <!-- Motion tokens: brief and non-blocking -->
   <Duration x:Key="QrbMotionFast">0:0:0.100</Duration>

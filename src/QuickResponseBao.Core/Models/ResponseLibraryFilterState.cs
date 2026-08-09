@@ -79,6 +79,38 @@ public sealed class ResponseLibraryFilterState
     };
     public bool HasColumnFilters => Enum.GetValues<ResponseFilterField>().Any(IsActive);
 
+    public ResponseLibraryFilterState Clone()
+    {
+        var clone = new ResponseLibraryFilterState
+        {
+            GlobalSearch = GlobalSearch,
+            Summary = Summary,
+            Keywords = Keywords,
+            UsageCount = UsageCount,
+            LastUsed = LastUsed,
+            Now = Now
+        };
+        clone.Categories.UnionWith(Categories);
+        clone.Languages.UnionWith(Languages);
+        clone.Statuses.UnionWith(Statuses);
+        return clone;
+    }
+
+    public void CopyFieldFrom(ResponseLibraryFilterState source, ResponseFilterField field)
+    {
+        Clear(field);
+        switch (field)
+        {
+            case ResponseFilterField.Summary: Summary = source.Summary; break;
+            case ResponseFilterField.Category: Categories.UnionWith(source.Categories); break;
+            case ResponseFilterField.Keywords: Keywords = source.Keywords; break;
+            case ResponseFilterField.Language: Languages.UnionWith(source.Languages); break;
+            case ResponseFilterField.Status: Statuses.UnionWith(source.Statuses); break;
+            case ResponseFilterField.UsageCount: UsageCount = source.UsageCount; break;
+            case ResponseFilterField.LastUsed: LastUsed = source.LastUsed; break;
+        }
+    }
+
     public bool Matches(QuickResponse response) => Matches(response, null);
 
     public bool Matches(QuickResponse response, ResponseFilterField? ignoredField)

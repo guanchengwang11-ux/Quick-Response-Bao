@@ -233,7 +233,12 @@ public sealed class GlobalKeyboardListener : IDisposable
             .Contains(processName, StringComparer.OrdinalIgnoreCase);
 
     public static bool ShouldMonitor(InputEnvironmentInfo environment) => environment.IsWhitelisted &&
+        !IsQuickResponseBaoProcess(environment.ProcessName) &&
+        !IsQuickResponseBaoProcess(environment.FocusProcessName) &&
         !environment.PasswordFieldDetected && !environment.SecureSystemProcess;
+
+    public static bool IsQuickResponseBaoProcess(string? processName) =>
+        processName?.Equals("QuickResponseBao.exe", StringComparison.OrdinalIgnoreCase) == true;
 
     public static bool ShouldIgnoreInjectedKeyboard(uint flags) => (flags & LlkhfInjected) != 0;
     public static bool IsModifierVirtualKey(uint virtualKey) => virtualKey is

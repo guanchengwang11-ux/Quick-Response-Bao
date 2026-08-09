@@ -1,9 +1,11 @@
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
+using QuickResponseBao.App.Controls;
 using QuickResponseBao.App.Services;
 using QuickResponseBao.App.ViewModels;
 using QuickResponseBao.Core.Interfaces;
@@ -38,7 +40,8 @@ public partial class ResponseLibraryPage : Page, IRefreshablePage
         _navigate = navigate;
         _libraryView = new ListCollectionView(_viewModel.Responses) { Filter = MatchesFilters };
         ResponsesGrid.ItemsSource = _libraryView;
-        ColumnFilterPanel.Applied += (_, _) => ApplyFilters();
+        ColumnFilterPanel.PreviewCountProvider = _libraryViewModel.CountMatchesAsync;
+        ColumnFilterPanel.Applied += (_, args) => CommitColumnFilter(args);
         ColumnFilterPanel.CloseRequested += (_, _) => FilterPopup.IsOpen = false;
         ColumnFilterPanel.SortRequested += (_, request) => ApplySort(request.Field, request.Direction);
         ResponsesGrid.Loaded += (_, _) => _responseGridScrollViewer ??= FindVisualChild<ScrollViewer>(ResponsesGrid);
@@ -65,6 +68,9 @@ public partial class ResponseLibraryPage : Page, IRefreshablePage
     public void AddResponse() => Add_Click(this, new RoutedEventArgs());
     public IReadOnlyList<QuickResponse> GetFilteredResponses() => _libraryView.Cast<QuickResponse>().ToList();
     public IReadOnlyList<QuickResponse> GetSelectedResponses() => ResponsesGrid.SelectedItems.Cast<QuickResponse>().ToList();
+    public TimeSpan LastFilterApplyDuration { get; private set; }
+    public TimeSpan LastFilterClearDuration { get; private set; }
+    public TimeSpan LastFilterOpenDuration { get; private set; }
 
     private void InitializeStaticFilters()
     {
@@ -121,17 +127,22 @@ public partial class ResponseLibraryPage : Page, IRefreshablePage
     private async void FilterHeader_Click(object sender, RoutedEventArgs e)
     {
         if (sender is not Button { Tag: string tag } button || !Enum.TryParse<ResponseFilterField>(tag, out var field)) return;
+        var clock = Stopwatch.StartNew();
         _facetQueryCancellation?.Cancel(); _facetQueryCancellation?.Dispose(); _facetQueryCancellation = new CancellationTokenSource();
         ColumnFilterPanel.BeginConfigure(field); FilterPopup.PlacementTarget = button; FilterPopup.IsOpen = true; e.Handled = true;
         try
         {
             var result = await _libraryViewModel.QueryFacetAsync(field, _filterState, _facetQueryCancellation.Token);
-            if (FilterPopup.IsOpen) ColumnFilterPanel.Configure(field, _filterState, result.Values, result.MatchCount);
+            if (FilterPopup.IsOpen)
+            {
+                ColumnFilterPanel.Configure(field, _filterState, result.Values, result.MatchCount);
+                LastFilterOpenDuration = clock.Elapsed;
+            }
         }
         catch (OperationCanceledException) { }
     }
 
-    private void FilterPopup_Closed(object sender, EventArgs e) { _facetQueryCancellation?.Cancel(); }
+    private void FilterPopup_Closed(object sender, EventArgs e) { _facetQueryCancellation?.Cancel(); ColumnFilterPanel.NotifyPopupClosed(); }
 
     private void ApplySort(ResponseFilterField field, ListSortDirection direction)
     {
@@ -140,8 +151,17 @@ public partial class ResponseLibraryPage : Page, IRefreshablePage
 
     private void ApplyFilters()
     {
-        using (_libraryView.DeferRefresh()) { }
+        _libraryView.Refresh();
         UpdateEmptyState(); UpdateActiveFilters(); UpdateFilterButtons();
+    }
+
+    private void CommitColumnFilter(FilterAppliedEventArgs args)
+    {
+        var clock = Stopwatch.StartNew();
+        ApplyFilters();
+        if (args.Action == FilterCommitAction.Clear) LastFilterClearDuration = clock.Elapsed;
+        else LastFilterApplyDuration = clock.Elapsed;
+        Dispatcher.BeginInvoke(() => ResponsesGrid.Focus(), System.Windows.Threading.DispatcherPriority.Input);
     }
 
     private void ClearFilterChip_Click(object sender, RoutedEventArgs e)
@@ -160,9 +180,9 @@ public partial class ResponseLibraryPage : Page, IRefreshablePage
     private void UpdateActiveFilters()
     {
         var chips = new List<ActiveFilterChip>();
-        if (_filterState.Summary?.IsActive == true) chips.Add(new(ResponseFilterField.Summary, $"{LocalizationService.Get("Summary")}: {_filterState.Summary.Value}"));
+        if (_filterState.Summary?.IsActive == true) chips.Add(new(ResponseFilterField.Summary, $"{LocalizationService.Get("Summary")}: {LocalizationService.Get(_filterState.Summary.Operator.ToString())} \"{_filterState.Summary.Value}\""));
         if (_filterState.Categories.Count > 0) chips.Add(new(ResponseFilterField.Category, $"{LocalizationService.Get("Category")}: {string.Join(", ", _filterState.Categories)}"));
-        if (_filterState.Keywords?.IsActive == true) chips.Add(new(ResponseFilterField.Keywords, $"{LocalizationService.Get("Keywords")}: {_filterState.Keywords.Value}"));
+        if (_filterState.Keywords?.IsActive == true) chips.Add(new(ResponseFilterField.Keywords, $"{LocalizationService.Get("Keywords")}: {LocalizationService.Get(_filterState.Keywords.Operator.ToString())} \"{_filterState.Keywords.Value}\""));
         if (_filterState.Languages.Count > 0) chips.Add(new(ResponseFilterField.Language, $"{LocalizationService.Get("Language")}: {string.Join(", ", _filterState.Languages)}"));
         if (_filterState.Statuses.Count > 0) chips.Add(new(ResponseFilterField.Status, $"{LocalizationService.Get("Status")}: {string.Join(", ", _filterState.Statuses.Select(x => LocalizationService.Get(x ? "Enabled" : "Disabled")))}"));
         if (_filterState.UsageCount is { } usage) chips.Add(new(ResponseFilterField.UsageCount, $"{LocalizationService.Get("UsageCount")}: {LocalizationService.Get(usage.Operator.ToString())} {usage.Value}{(usage.SecondValue is null ? "" : $"–{usage.SecondValue}")}"));
@@ -171,7 +191,13 @@ public partial class ResponseLibraryPage : Page, IRefreshablePage
     }
     private void UpdateFilterButtons()
     {
-        foreach (var (button, field) in FilterButtons()) { button.SetResourceReference(Control.ForegroundProperty, _filterState.IsActive(field) ? "QrbAccentBrush" : "QrbTextPrimaryBrush"); button.SetResourceReference(Control.BackgroundProperty, _filterState.IsActive(field) ? "QrbSelectionBrush" : "QrbSurfaceBrush"); }
+        foreach (var (button, field) in FilterButtons())
+        {
+            var active = _filterState.IsActive(field);
+            button.SetResourceReference(Control.ForegroundProperty, active ? "QrbAccentBrush" : "QrbTextSecondaryBrush");
+            button.SetResourceReference(Control.BackgroundProperty, active ? "QrbSelectionBrush" : "QrbSurfaceBrush");
+            button.Opacity = active ? 1 : 0.46;
+        }
     }
     private IEnumerable<(Button Button, ResponseFilterField Field)> FilterButtons() => [(SummaryFilterButton, ResponseFilterField.Summary), (CategoryColumnFilterButton, ResponseFilterField.Category), (KeywordsFilterButton, ResponseFilterField.Keywords), (LanguageColumnFilterButton, ResponseFilterField.Language), (StatusColumnFilterButton, ResponseFilterField.Status), (UsageFilterButton, ResponseFilterField.UsageCount), (LastUsedFilterButton, ResponseFilterField.LastUsed)];
 

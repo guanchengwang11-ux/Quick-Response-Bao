@@ -122,10 +122,11 @@ public partial class App : System.Windows.Application
         _ = Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.ContextIdle, () => _ = _logger.WriteAsync($"UiRuntime | startup stage=Main window interactive; elapsed={startupClock.Elapsed.TotalMilliseconds:F2}ms"));
         if (Environment.GetEnvironmentVariable("QRB_UI_AUTOWALK") == "1") _ = MainAppWindow.RunUiDiagnosticWalkthroughAsync();
         if (Settings.CheckUpdatesOnStartup) _ = CheckUpdatesOnStartupAsync();
-        DispatcherUnhandledException += async (_, args) =>
+        DispatcherUnhandledException += (_, args) =>
         {
-            await (_logger?.WriteAsync("Unhandled exception", args.Exception) ?? Task.CompletedTask);
-            args.Handled = true; UiDialogService.ShowFatal(MainAppWindow, LocalizationService.Get("AppName"), LocalizationService.Get("OperationFailed"), args.Exception.Message);
+            args.Handled = true;
+            _ = _logger?.WriteAsync("Unhandled exception", args.Exception);
+            UiDialogService.ShowFatal(MainAppWindow, LocalizationService.Get("AppName"), LocalizationService.Get("OperationFailed"), args.Exception.Message);
         };
     }
 
