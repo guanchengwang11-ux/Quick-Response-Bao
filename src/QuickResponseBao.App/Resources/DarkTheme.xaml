@@ -19,6 +19,7 @@
   <Color x:Key="QrbDisabledColor">#303A49</Color>
   <Color x:Key="QrbHighlightColor">#FF7373</Color>
   <Color x:Key="QrbFocusRingColor">#92B9FF</Color>
+  <Color x:Key="QrbTextOnAccentColor">#101722</Color>
   <Color x:Key="QrbSuccessSurfaceColor">#204A38</Color>
   <Color x:Key="QrbWarningSurfaceColor">#594520</Color>
   <Color x:Key="QrbErrorSurfaceColor">#572C32</Color>
@@ -42,6 +43,7 @@
   <SolidColorBrush x:Key="QrbDisabledBrush" Color="{DynamicResource QrbDisabledColor}" />
   <SolidColorBrush x:Key="QrbHighlightBrush" Color="{DynamicResource QrbHighlightColor}" />
   <SolidColorBrush x:Key="QrbFocusRingBrush" Color="{DynamicResource QrbFocusRingColor}" />
+  <SolidColorBrush x:Key="QrbTextOnAccentBrush" Color="{DynamicResource QrbTextOnAccentColor}" />
   <SolidColorBrush x:Key="QrbSuccessSurfaceBrush" Color="{DynamicResource QrbSuccessSurfaceColor}" />
   <SolidColorBrush x:Key="QrbWarningSurfaceBrush" Color="{DynamicResource QrbWarningSurfaceColor}" />
   <SolidColorBrush x:Key="QrbErrorSurfaceBrush" Color="{DynamicResource QrbErrorSurfaceColor}" />
@@ -68,7 +70,7 @@
   <SolidColorBrush x:Key="SuccessBrush" Color="{DynamicResource QrbSuccessColor}" />
   <SolidColorBrush x:Key="WarningBrush" Color="{DynamicResource QrbWarningColor}" />
   <SolidColorBrush x:Key="ErrorBrush" Color="{DynamicResource QrbErrorColor}" />
-  <SolidColorBrush x:Key="CardBlueBrush" Color="#233B62" />
-  <SolidColorBrush x:Key="CardGreenBrush" Color="#204A38" />
-  <SolidColorBrush x:Key="CardAmberBrush" Color="#594520" />
+  <SolidColorBrush x:Key="CardBlueBrush" Color="{DynamicResource QrbSelectionColor}" />
+  <SolidColorBrush x:Key="CardGreenBrush" Color="{DynamicResource QrbSuccessSurfaceColor}" />
+  <SolidColorBrush x:Key="CardAmberBrush" Color="{DynamicResource QrbWarningSurfaceColor}" />
 </ResourceDictionary>

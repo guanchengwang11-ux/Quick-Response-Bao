@@ -16,8 +16,8 @@ public partial class SettingsPage : Page, IRefreshablePage
     private static void Select(System.Windows.Controls.ComboBox box, string value) => box.SelectedItem = box.Items.Cast<ComboBoxItem>().FirstOrDefault(x => string.Equals(x.Tag?.ToString(), value, StringComparison.OrdinalIgnoreCase));
     private void ImmediateSetting_Changed(object sender, RoutedEventArgs e)
     {
-        if (_loading) return;
-        if ((ThemeBox.SelectedItem as ComboBoxItem)?.Tag?.ToString() is { } theme) { _viewModel.Settings.Theme = theme; Runtime.ThemeService.Apply(theme); }
+        if (_loading || System.Windows.Application.Current is not App runtime) return;
+        if ((ThemeBox.SelectedItem as ComboBoxItem)?.Tag?.ToString() is { } theme) { _viewModel.Settings.Theme = theme; runtime.ThemeService.Apply(theme); }
         if ((LanguageBox.SelectedItem as ComboBoxItem)?.Tag?.ToString() is { } language && language != _viewModel.Settings.Language) { _viewModel.Settings.Language = language; LocalizationService.Apply(language); }
         SaveState.SetResourceReference(TextBlock.TextProperty, "UnsavedChanges");
     }

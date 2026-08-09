@@ -14,4 +14,16 @@
   <SolidColorBrush x:Key="QrbAccentHoverBrush" Color="{DynamicResource {x:Static SystemColors.HighlightColorKey}}" />
   <SolidColorBrush x:Key="QrbAccentPressedBrush" Color="{DynamicResource {x:Static SystemColors.HotTrackColorKey}}" />
   <SolidColorBrush x:Key="QrbFocusRingBrush" Color="{DynamicResource {x:Static SystemColors.HighlightColorKey}}" />
+  <SolidColorBrush x:Key="QrbTextOnAccentBrush" Color="{DynamicResource {x:Static SystemColors.HighlightTextColorKey}}" />
+  <SolidColorBrush x:Key="QrbInputBrush" Color="{DynamicResource {x:Static SystemColors.WindowColorKey}}" />
+  <SolidColorBrush x:Key="QrbControlBrush" Color="{DynamicResource {x:Static SystemColors.ControlColorKey}}" />
+  <SolidColorBrush x:Key="QrbSelectionBrush" Color="{DynamicResource {x:Static SystemColors.ControlColorKey}}" />
+  <SolidColorBrush x:Key="QrbDisabledBrush" Color="{DynamicResource {x:Static SystemColors.ControlColorKey}}" />
+  <SolidColorBrush x:Key="QrbHighlightBrush" Color="{DynamicResource {x:Static SystemColors.HotTrackColorKey}}" />
+  <SolidColorBrush x:Key="QrbSuccessBrush" Color="{DynamicResource {x:Static SystemColors.WindowTextColorKey}}" />
+  <SolidColorBrush x:Key="QrbWarningBrush" Color="{DynamicResource {x:Static SystemColors.WindowTextColorKey}}" />
+  <SolidColorBrush x:Key="QrbErrorBrush" Color="{DynamicResource {x:Static SystemColors.WindowTextColorKey}}" />
+  <SolidColorBrush x:Key="QrbSuccessSurfaceBrush" Color="{DynamicResource {x:Static SystemColors.WindowColorKey}}" />
+  <SolidColorBrush x:Key="QrbWarningSurfaceBrush" Color="{DynamicResource {x:Static SystemColors.WindowColorKey}}" />
+  <SolidColorBrush x:Key="QrbErrorSurfaceBrush" Color="{DynamicResource {x:Static SystemColors.WindowColorKey}}" />
 </ResourceDictionary>

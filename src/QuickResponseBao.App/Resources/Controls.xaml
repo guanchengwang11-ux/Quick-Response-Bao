@@ -58,7 +58,7 @@
   </Style>
 
   <Style x:Key="QrbPrimaryButtonStyle" TargetType="Button" BasedOn="{StaticResource QrbButtonBaseStyle}">
-    <Setter Property="Foreground" Value="White" />
+    <Setter Property="Foreground" Value="{DynamicResource QrbTextOnAccentBrush}" />
     <Setter Property="Background" Value="{DynamicResource QrbAccentBrush}" />
     <Setter Property="BorderBrush" Value="{DynamicResource QrbAccentBrush}" />
     <Style.Triggers>
@@ -179,6 +179,7 @@
   <Style x:Key="QrbSettingRowStyle" TargetType="Grid">
     <Setter Property="Margin" Value="4,10" />
     <Setter Property="VerticalAlignment" Value="Center" />
+    <Setter Property="controls:ResponsiveGrid.IsSettingRow" Value="True" />
   </Style>
 
   <!-- Current screens inherit the new system without changing behavior. -->
