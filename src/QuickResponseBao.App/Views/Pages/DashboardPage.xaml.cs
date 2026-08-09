@@ -21,7 +21,7 @@ public partial class DashboardPage : Page, IRefreshablePage
     }
     public async Task RefreshAsync()
     {
-        await _viewModel.RefreshAsync();
+        await _viewModel.EnsureLoadedAsync();
         var listening = System.Windows.Application.Current is App app && app.Listener?.IsRunning == true;
         ListenerMetric.SetResourceReference(TextBlock.TextProperty, listening ? "Active" : "Paused");
         ListenerMetric.SetResourceReference(TextBlock.ForegroundProperty, listening ? "QrbSuccessBrush" : "QrbWarningBrush");

@@ -117,4 +117,5 @@
   <sys:String x:Key="ProductDescription">Fast, local response search and insertion for customer support teams.</sys:String><sys:String x:Key="AboutLinks">Product</sys:String><sys:String x:Key="LegalAndPrivacy">Legal and privacy</sys:String><sys:String x:Key="Licenses">Licenses</sys:String><sys:String x:Key="ThirdPartyNotices">Third-party notices</sys:String>
   <sys:String x:Key="Suggestions">Suggestions</sys:String><sys:String x:Key="SuggestionCount">{0} results</sys:String><sys:String x:Key="CandidateKeyboardHint">↑ ↓ navigate   ·   Enter / Tab insert   ·   Esc close</sys:String>
   <sys:String x:Key="CandidateInstanceCount">Candidate window instances</sys:String>
+  <sys:String x:Key="LoadingResponses">Loading responses…</sys:String>
 </ResourceDictionary>

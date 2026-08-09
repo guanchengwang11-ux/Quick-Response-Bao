@@ -3,6 +3,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Input;
+using System.Windows.Media;
 using QuickResponseBao.App.Services;
 using QuickResponseBao.App.ViewModels;
 using QuickResponseBao.Core.Interfaces;
@@ -18,6 +19,7 @@ public partial class ResponseLibraryPage : Page, IRefreshablePage
     private readonly ListCollectionView _libraryView;
     private int _searchVersion;
     private bool _updatingFilters;
+    private int _seenDataVersion = -1;
 
     private IQuickResponseRepository Repository => _viewModel.Repository;
     private ICategoryRepository CategoryRepository => (ICategoryRepository)_viewModel.Repository;
@@ -35,8 +37,10 @@ public partial class ResponseLibraryPage : Page, IRefreshablePage
 
     public async Task RefreshAsync()
     {
-        await _viewModel.RefreshAsync();
-        await RefreshFilterOptionsAsync();
+        LoadingOverlay.Visibility = _viewModel.IsLoaded ? Visibility.Collapsed : Visibility.Visible;
+        await _viewModel.EnsureLoadedAsync();
+        LoadingOverlay.Visibility = Visibility.Collapsed;
+        if (_seenDataVersion != _viewModel.DataVersion) { RefreshFilterOptions(); _seenDataVersion = _viewModel.DataVersion; }
         _libraryView.Refresh();
         UpdateEmptyState();
     }
@@ -58,14 +62,14 @@ public partial class ResponseLibraryPage : Page, IRefreshablePage
         _updatingFilters = false;
     }
 
-    private async Task RefreshFilterOptionsAsync()
+    private void RefreshFilterOptions()
     {
         _updatingFilters = true;
         var categoryValue = (CategoryFilter.SelectedItem as FilterOption)?.Value;
         var languageValue = (LanguageFilter.SelectedItem as FilterOption)?.Value;
-        var categories = await CategoryRepository.GetCategoriesAsync();
+        var categories = _viewModel.Responses.Select(x => x.Category).Where(x => !string.IsNullOrWhiteSpace(x)).Distinct(StringComparer.OrdinalIgnoreCase).OrderBy(x => x);
         CategoryFilter.ItemsSource = new[] { new FilterOption(LocalizationService.Get("AllCategories"), null) }
-            .Concat(categories.Select(x => new FilterOption(x.Name, x.Name))).ToList();
+            .Concat(categories.Select(x => new FilterOption(x, x))).ToList();
         LanguageFilter.ItemsSource = new[] { new FilterOption(LocalizationService.Get("AllLanguages"), null) }
             .Concat(_viewModel.Responses.Select(x => x.Language).Where(x => !string.IsNullOrWhiteSpace(x)).Distinct(StringComparer.OrdinalIgnoreCase).OrderBy(x => x).Select(x => new FilterOption(x, x))).ToList();
         CategoryFilter.SelectedItem = CategoryFilter.Items.Cast<FilterOption>().FirstOrDefault(x => x.Value == categoryValue) ?? CategoryFilter.Items[0];
@@ -79,7 +83,8 @@ public partial class ResponseLibraryPage : Page, IRefreshablePage
         var category = (CategoryFilter.SelectedItem as FilterOption)?.Value;
         var language = (LanguageFilter.SelectedItem as FilterOption)?.Value;
         var status = (StatusFilter.SelectedItem as FilterOption)?.Value;
-        return (category is null || response.Category.Equals(category, StringComparison.OrdinalIgnoreCase))
+        return MatchesGlobalSearch(response, _viewModel.SearchText)
+            && (category is null || response.Category.Equals(category, StringComparison.OrdinalIgnoreCase))
             && (language is null || response.Language.Equals(language, StringComparison.OrdinalIgnoreCase))
             && (status is null || response.IsEnabled == (status == "enabled"));
     }
@@ -90,7 +95,8 @@ public partial class ResponseLibraryPage : Page, IRefreshablePage
         await Task.Delay(150);
         if (version != _searchVersion) return;
         _viewModel.SearchText = SearchBox.Text;
-        await RefreshAsync();
+        using (_libraryView.DeferRefresh()) { }
+        UpdateEmptyState();
     }
 
     private void Filter_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -163,6 +169,14 @@ public partial class ResponseLibraryPage : Page, IRefreshablePage
         if (ResponsesGrid.SelectedItem is QuickResponse response) _ = EditAsync(response);
     }
 
+    private void ResponsesGrid_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
+    {
+        var viewer = FindVisualChild<ScrollViewer>(ResponsesGrid);
+        if (viewer is null || viewer.ScrollableHeight <= 0) return;
+        viewer.ScrollToVerticalOffset(Math.Clamp(viewer.VerticalOffset - (e.Delta / 3d), 0, viewer.ScrollableHeight));
+        e.Handled = true;
+    }
+
     private void ResponsesGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         var count = ResponsesGrid.SelectedItems.Count;
@@ -214,7 +228,7 @@ public partial class ResponseLibraryPage : Page, IRefreshablePage
     private async Task ChangedAsync(string messageOrKey, bool isKey = true)
     {
         if (System.Windows.Application.Current is App app) await app.ReloadCacheAsync();
-        await RefreshAsync();
+        await _viewModel.RefreshAsync(); await RefreshAsync();
         _feedback(isKey ? LocalizationService.Get(messageOrKey) : messageOrKey);
     }
 
@@ -222,6 +236,17 @@ public partial class ResponseLibraryPage : Page, IRefreshablePage
     private static QuickResponse? MenuResponse(object sender) => (sender as FrameworkElement)?.DataContext as QuickResponse;
 
     private void UpdateEmptyState() => EmptyState.Visibility = _libraryView.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
+    private static bool MatchesGlobalSearch(QuickResponse response, string query)
+    {
+        if (string.IsNullOrWhiteSpace(query)) return true;
+        return response.Summary.Contains(query, StringComparison.OrdinalIgnoreCase) || response.Content.Contains(query, StringComparison.OrdinalIgnoreCase)
+            || response.Category.Contains(query, StringComparison.OrdinalIgnoreCase) || response.Keywords.Any(x => x.Contains(query, StringComparison.OrdinalIgnoreCase));
+    }
+    private static T? FindVisualChild<T>(DependencyObject parent) where T : DependencyObject
+    {
+        for (var index = 0; index < VisualTreeHelper.GetChildrenCount(parent); index++) { var child = VisualTreeHelper.GetChild(parent, index); if (child is T match) return match; if (FindVisualChild<T>(child) is { } nested) return nested; }
+        return null;
+    }
     public sealed class FilterOption(string label, string? value)
     {
         public string Label { get; } = label;

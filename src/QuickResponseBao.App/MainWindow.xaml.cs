@@ -34,7 +34,7 @@ public partial class MainWindow : FluentWindow
     public async Task InitializeAsync(AppSettings settings)
     {
         _mainViewModel.Settings = settings;
-        await _mainViewModel.RefreshAsync();
+        await _mainViewModel.EnsureLoadedAsync();
         UpdateListenerDisplay();
     }
 

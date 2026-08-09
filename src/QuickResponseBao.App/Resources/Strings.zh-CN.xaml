@@ -117,4 +117,5 @@
   <sys:String x:Key="ProductDescription">为客服团队提供快速、本地的话术搜索与插入。</sys:String><sys:String x:Key="AboutLinks">产品</sys:String><sys:String x:Key="LegalAndPrivacy">法律与隐私</sys:String><sys:String x:Key="Licenses">许可证</sys:String><sys:String x:Key="ThirdPartyNotices">第三方声明</sys:String>
   <sys:String x:Key="Suggestions">候选话术</sys:String><sys:String x:Key="SuggestionCount">{0} 条结果</sys:String><sys:String x:Key="CandidateKeyboardHint">↑ ↓ 切换   ·   Enter / Tab 插入   ·   Esc 关闭</sys:String>
   <sys:String x:Key="CandidateInstanceCount">候选窗口实例数</sys:String>
+  <sys:String x:Key="LoadingResponses">正在加载话术…</sys:String>
 </ResourceDictionary>

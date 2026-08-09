@@ -49,7 +49,8 @@
                   HeadersVisibility="Column" GridLinesVisibility="Horizontal" BorderThickness="0" RowHeight="58"
                   EnableRowVirtualization="True" EnableColumnVirtualization="True" VirtualizingPanel.IsVirtualizing="True"
                   VirtualizingPanel.VirtualizationMode="Recycling" ScrollViewer.CanContentScroll="True"
-                  SelectionChanged="ResponsesGrid_SelectionChanged" MouseDoubleClick="ResponsesGrid_MouseDoubleClick">
+                  ScrollViewer.VerticalScrollBarVisibility="Auto" ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                  PreviewMouseWheel="ResponsesGrid_PreviewMouseWheel" SelectionChanged="ResponsesGrid_SelectionChanged" MouseDoubleClick="ResponsesGrid_MouseDoubleClick">
           <DataGrid.Columns>
             <DataGridTemplateColumn Width="44"><DataGridTemplateColumn.HeaderTemplate><DataTemplate><CheckBox Checked="SelectAllCheck_Checked" Unchecked="SelectAllCheck_Unchecked"/></DataTemplate></DataGridTemplateColumn.HeaderTemplate><DataGridTemplateColumn.CellTemplate><DataTemplate><CheckBox IsChecked="{Binding IsSelected, RelativeSource={RelativeSource AncestorType=DataGridRow}, Mode=TwoWay}"/></DataTemplate></DataGridTemplateColumn.CellTemplate></DataGridTemplateColumn>
             <DataGridTextColumn Header="{DynamicResource Summary}" Binding="{Binding Summary}" Width="2*" MinWidth="180"/>
@@ -70,6 +71,7 @@
         <ContentControl x:Name="EmptyState" Style="{DynamicResource QrbEmptyStateStyle}" Visibility="Collapsed">
           <StackPanel HorizontalAlignment="Center" MaxWidth="420"><ui:SymbolIcon Symbol="BookOpen24" Width="48" Height="48" Foreground="{DynamicResource QrbTextSecondaryBrush}"/><TextBlock Text="{DynamicResource EmptyLibraryTitle}" Style="{DynamicResource QrbSectionTitleTextStyle}" TextAlignment="Center" Margin="0,16,0,6"/><TextBlock Text="{DynamicResource EmptyLibraryDescription}" Style="{DynamicResource QrbBodyTextStyle}" TextAlignment="Center" TextWrapping="Wrap"/><StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,16,0,0"><Button Content="{DynamicResource Add}" Style="{DynamicResource QrbPrimaryButtonStyle}" Click="Add_Click"/><Button Content="{DynamicResource Import}" Style="{DynamicResource QrbSecondaryButtonStyle}" Click="ImportExport_Click"/></StackPanel></StackPanel>
         </ContentControl>
+        <Border x:Name="LoadingOverlay" Background="{DynamicResource QrbSurfaceBrush}" Visibility="Collapsed"><StackPanel HorizontalAlignment="Center" VerticalAlignment="Center"><ui:ProgressRing Width="36" Height="36" IsIndeterminate="True" Foreground="{DynamicResource QrbAccentBrush}"/><TextBlock Text="{DynamicResource LoadingResponses}" Style="{DynamicResource QrbBodyStrongTextStyle}" Margin="0,12,0,0"/></StackPanel></Border>
       </Grid>
     </Border>
   </Grid>

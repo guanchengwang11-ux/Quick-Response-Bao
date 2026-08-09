@@ -89,8 +89,8 @@ public partial class App : System.Windows.Application
         CreateTray();
         MainAppWindow = new MainWindow(new MainViewModel(Repository, SearchService));
         MainAppWindow.Closing += MainWindowClosing;
-        await MainAppWindow.InitializeAsync(Settings);
         if (!Settings.StartMinimized) MainAppWindow.Show();
+        await MainAppWindow.InitializeAsync(Settings);
         if (Settings.CheckUpdatesOnStartup) _ = CheckUpdatesOnStartupAsync();
         DispatcherUnhandledException += async (_, args) =>
         {
