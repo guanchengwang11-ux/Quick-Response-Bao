@@ -70,26 +70,24 @@ public partial class CandidateWindow : Window
     {
         ItemsPanel.Children.Clear();
         _itemBorders.Clear();
+        ResultCount.Text = string.Format(Services.LocalizationService.Get("SuggestionCount"), _results.Count);
         for (var i = 0; i < _results.Count; i++)
         {
             var index = i; var response = _results[i].Response;
-            var stack = new StackPanel();
-            stack.Children.Add(CreateHighlighted(response.Summary, true));
-            stack.Children.Add(CreateHighlighted(response.Content, false));
-            if (response.Keywords.Count > 0) stack.Children.Add(CreateHighlighted(string.Join(" · ", response.Keywords), false, 11));
+            var stack = new StackPanel { Margin = new Thickness(2) };
+            stack.Children.Add(CreateHighlighted(response.Summary, CandidateTextRole.Summary));
+            stack.Children.Add(CreateHighlighted(response.Content, CandidateTextRole.Response));
+            if (response.Keywords.Count > 0) stack.Children.Add(CreateHighlighted(string.Join(" · ", response.Keywords), CandidateTextRole.Keywords));
             var border = new Border
             {
-                Child = stack, Padding = new Thickness(12, 9, 12, 9), Margin = new Thickness(2), CornerRadius = new CornerRadius(5),
+                Child = stack, Padding = new Thickness(14, 11, 14, 11), Margin = new Thickness(2, 2, 2, 4), CornerRadius = new CornerRadius(8),
                 Background = System.Windows.Media.Brushes.Transparent, BorderBrush = System.Windows.Media.Brushes.Transparent,
-                BorderThickness = new Thickness(i == _selected ? 1 : 0)
+                BorderThickness = new Thickness(1), Cursor = System.Windows.Input.Cursors.Hand,
+                ToolTip = response.Content
             };
-            if (i == _selected) { border.SetResourceReference(Border.BackgroundProperty, "SelectionBrush"); border.SetResourceReference(Border.BorderBrushProperty, "PrimaryBrush"); }
-            border.MouseEnter += (_, _) =>
-            {
-                var previous = _selected;
-                _selected = index;
-                UpdateSelection(previous, _selected);
-            };
+            if (i == _selected) ApplySelection(border, true);
+            border.MouseEnter += (_, _) => { if (index != _selected) ApplyHover(border, true); };
+            border.MouseLeave += (_, _) => { if (index != _selected) ApplyHover(border, false); };
             border.MouseLeftButtonUp += (_, _) => Confirm(CandidateConfirmationMethod.Mouse, response);
             _itemBorders.Add(border); ItemsPanel.Children.Add(border);
         }
@@ -110,17 +108,23 @@ public partial class CandidateWindow : Window
 
     private static void ApplySelection(Border border, bool selected)
     {
-        border.BorderThickness = new Thickness(selected ? 1 : 0);
+        border.BorderThickness = new Thickness(1);
         if (selected)
         {
-            border.SetResourceReference(Border.BackgroundProperty, "SelectionBrush");
-            border.SetResourceReference(Border.BorderBrushProperty, "PrimaryBrush");
+            border.SetResourceReference(Border.BackgroundProperty, "QrbSelectionBrush");
+            border.SetResourceReference(Border.BorderBrushProperty, "QrbAccentBrush");
         }
         else
         {
             border.Background = System.Windows.Media.Brushes.Transparent;
             border.BorderBrush = System.Windows.Media.Brushes.Transparent;
         }
+    }
+
+    private static void ApplyHover(Border border, bool hovered)
+    {
+        if (hovered) { border.SetResourceReference(Border.BackgroundProperty, "QrbSurfaceSecondaryBrush"); border.SetResourceReference(Border.BorderBrushProperty, "QrbBorderBrush"); }
+        else { border.Background = System.Windows.Media.Brushes.Transparent; border.BorderBrush = System.Windows.Media.Brushes.Transparent; }
     }
 
     private void EnsureSelectedVisible()
@@ -133,16 +137,19 @@ public partial class CandidateWindow : Window
         if (_context is not null) Confirmed?.Invoke(this, _context.Confirm(response, method));
     }
 
-    private TextBlock CreateHighlighted(string text, bool bold, double size = 13)
+    private TextBlock CreateHighlighted(string text, CandidateTextRole role)
     {
-        var block = new TextBlock { TextWrapping = TextWrapping.Wrap, FontSize = size, FontWeight = bold ? FontWeights.SemiBold : FontWeights.Normal, Margin = new Thickness(0, 1, 0, 3) };
+        var block = new TextBlock { TextWrapping = TextWrapping.Wrap, Margin = role switch { CandidateTextRole.Summary => new Thickness(0, 0, 0, 5), CandidateTextRole.Response => new Thickness(0, 0, 0, 8), _ => new Thickness(0) } };
+        block.SetResourceReference(StyleProperty, role switch { CandidateTextRole.Summary => "QrbBodyStrongTextStyle", CandidateTextRole.Response => "QrbBodyTextStyle", _ => "QrbCaptionTextStyle" });
         foreach (var part in _highlight.Split(text, _query))
         {
-            var run = new Run(part.Text) { FontWeight = part.IsMatch ? FontWeights.Bold : block.FontWeight };
-            run.SetResourceReference(TextElement.ForegroundProperty, part.IsMatch ? "HighlightBrush" : "TextBrush"); block.Inlines.Add(run);
+            var run = new Run(part.Text) { FontWeight = part.IsMatch ? FontWeights.Bold : role == CandidateTextRole.Summary ? FontWeights.SemiBold : FontWeights.Normal };
+            run.SetResourceReference(TextElement.ForegroundProperty, part.IsMatch ? "QrbErrorBrush" : role == CandidateTextRole.Keywords ? "QrbTextSecondaryBrush" : "QrbTextPrimaryBrush"); block.Inlines.Add(run);
         }
         return block;
     }
+
+    private enum CandidateTextRole { Summary, Response, Keywords }
 
     private void PositionNearCaret()
     {
@@ -174,12 +181,12 @@ public partial class CandidateWindow : Window
                 ClientToScreen(info.CaretWindow, ref p); return (new System.Windows.Point(p.X, p.Y), CandidatePositionMethod.Caret);
             }
             if (foreground != 0 && GetWindowRect(foreground, out var rect) && rect.Right > rect.Left && rect.Bottom > rect.Top)
-                return (new System.Windows.Point(rect.Right - 540, rect.Bottom - 520), CandidatePositionMethod.WindowBottomRight);
+                return (new System.Windows.Point(rect.Right - 620, rect.Bottom - 520), CandidatePositionMethod.WindowBottomRight);
             var monitor = MonitorFromWindow(foreground, 2);
             var monitorInfo = new MonitorInfo { Size = Marshal.SizeOf<MonitorInfo>() };
             if (monitor != 0 && GetMonitorInfo(monitor, ref monitorInfo))
-                return (new System.Windows.Point(monitorInfo.WorkArea.Right - 540, monitorInfo.WorkArea.Bottom - 520), CandidatePositionMethod.CurrentMonitorBottomRight);
-            return (new System.Windows.Point(SystemParameters.VirtualScreenLeft + SystemParameters.VirtualScreenWidth - 540,
+                return (new System.Windows.Point(monitorInfo.WorkArea.Right - 620, monitorInfo.WorkArea.Bottom - 520), CandidatePositionMethod.CurrentMonitorBottomRight);
+            return (new System.Windows.Point(SystemParameters.VirtualScreenLeft + SystemParameters.VirtualScreenWidth - 620,
                 SystemParameters.VirtualScreenTop + SystemParameters.VirtualScreenHeight - 520), CandidatePositionMethod.CurrentMonitorBottomRight);
         }
         [StructLayout(LayoutKind.Sequential)] private struct GuiThreadInfo { public int Size; public uint Flags; public nint Active, Focus, Capture, MenuOwner, MoveSize, CaretWindow; public NativeRect CaretRect; }
