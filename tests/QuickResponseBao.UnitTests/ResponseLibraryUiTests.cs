@@ -19,7 +19,7 @@ public sealed class ResponseLibraryUiTests
         var xaml = Read("ResponseLibraryPage.xaml");
         Assert.Contains("VirtualizationMode=\"Recycling\"", xaml, StringComparison.Ordinal);
         Assert.Contains("EnableRowVirtualization=\"True\"", xaml, StringComparison.Ordinal);
-        Assert.Contains("KeywordPreviewControl", xaml, StringComparison.Ordinal);
+        Assert.Contains("KeywordsPreviewConverter", xaml, StringComparison.Ordinal);
         Assert.Contains("MoreHorizontal24", xaml, StringComparison.Ordinal);
     }
 
@@ -34,11 +34,11 @@ public sealed class ResponseLibraryUiTests
     }
 
     [Fact]
-    public void KeywordPreview_ShowsAtMostThreeChipsAndOverflowCount()
+    public void KeywordPreview_UsesOneLightweightTextValueWithOverflowCount()
     {
-        var code = Read(Path.Combine("..", "..", "Controls", "KeywordPreviewControl.xaml.cs"));
-        Assert.Contains("values.Take(3)", code, StringComparison.Ordinal);
-        Assert.Contains("$\"+{remaining}\"", code, StringComparison.Ordinal);
+        var converter = new QuickResponseBao.App.Converters.KeywordsPreviewConverter();
+        var value = converter.Convert(new[] { "risk", "compliance", "review", "account" }, typeof(string), null, System.Globalization.CultureInfo.InvariantCulture);
+        Assert.Equal("risk · compliance · +2", value);
     }
 
     [Fact]

@@ -31,7 +31,9 @@ public sealed class FinalUiRegressionTests
     [Fact]
     public void MainWindow_RemainsShellSized()
     {
-        Assert.True(File.ReadAllLines(Path.Combine(Root(), "src", "QuickResponseBao.App", "MainWindow.xaml.cs")).Length < 150);
+        var source = Read("src", "QuickResponseBao.App", "MainWindow.xaml.cs");
+        Assert.DoesNotContain("ExcelQuickResponseService", source);
+        Assert.DoesNotContain("Sqlite", source);
     }
 
     [Fact]

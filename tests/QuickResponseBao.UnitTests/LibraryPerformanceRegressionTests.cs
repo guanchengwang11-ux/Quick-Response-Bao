@@ -31,10 +31,11 @@ public sealed class LibraryPerformanceRegressionTests
     }
 
     [Fact]
-    public void DataGridPreservesVirtualizationAndExplicitWheelScrolling()
+    public void DataGridConfigurationPreservesNativeVirtualizedScrolling()
     {
-        var xaml = Read("src", "QuickResponseBao.App", "Views", "Pages", "ResponseLibraryPage.xaml"); var code = Read("src", "QuickResponseBao.App", "Views", "Pages", "ResponseLibraryPage.xaml.cs");
-        Assert.Contains("VirtualizationMode=\"Recycling\"", xaml); Assert.Contains("EnableRowVirtualization=\"True\"", xaml); Assert.Contains("VerticalScrollBarVisibility=\"Auto\"", xaml); Assert.Contains("ResponsesGrid_PreviewMouseWheel", code); Assert.Contains("ScrollToVerticalOffset", code);
+        var xaml = Read("src", "QuickResponseBao.App", "Views", "Pages", "ResponseLibraryPage.xaml");
+        Assert.Contains("VirtualizationMode=\"Recycling\"", xaml); Assert.Contains("EnableRowVirtualization=\"True\"", xaml); Assert.Contains("VerticalScrollBarVisibility=\"Auto\"", xaml); Assert.Contains("PanningMode=\"VerticalOnly\"", xaml);
+        Assert.DoesNotContain("PreviewMouseWheel", xaml);
     }
 
     [Fact]
