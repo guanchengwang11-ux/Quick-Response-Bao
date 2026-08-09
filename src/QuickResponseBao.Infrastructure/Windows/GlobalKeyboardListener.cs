@@ -153,7 +153,7 @@ public sealed class GlobalKeyboardListener : IDisposable
                     _buffer.AppendLetter(letter);
                     Publish(sequenceId, foreground, environment);
                 }
-                else if (key is not VirtualKey.Shift and not VirtualKey.Control and not VirtualKey.Menu)
+                else if (!IsModifierVirtualKey(data.vkCode))
                 {
                     if (_buffer.Length > 0) Reset();
                 }
@@ -236,6 +236,8 @@ public sealed class GlobalKeyboardListener : IDisposable
         !environment.PasswordFieldDetected && !environment.SecureSystemProcess;
 
     public static bool ShouldIgnoreInjectedKeyboard(uint flags) => (flags & LlkhfInjected) != 0;
+    public static bool IsModifierVirtualKey(uint virtualKey) => virtualKey is
+        0x10 or 0x11 or 0x12 or 0x14 or 0xA0 or 0xA1 or 0xA2 or 0xA3 or 0xA4 or 0xA5;
 
     private static string GetWindowProcessName(nint window)
     {
