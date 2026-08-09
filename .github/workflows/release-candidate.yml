@@ -9,6 +9,7 @@ permissions:
 jobs:
   build-verify-and-upload:
     runs-on: windows-latest
+    timeout-minutes: 30
     env:
       RELEASE_VERSION: 1.1.0
     steps:

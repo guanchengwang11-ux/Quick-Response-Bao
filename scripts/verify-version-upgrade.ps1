@@ -35,11 +35,14 @@ function Invoke-Installer([string]$path, [string]$operation) {
 }
 
 function Start-And-Stop([string]$path, [string]$operation) {
+    Write-Host "$operation`: starting $path"
     $process = Start-Process -FilePath $path -PassThru
     Start-Sleep -Seconds 5
     if ($process.HasExited) { throw "$operation exited unexpectedly with code $($process.ExitCode)." }
-    $process.Kill($true)
+    Write-Host "$operation`: startup passed; stopping process $($process.Id)."
+    Stop-Process -Id $process.Id -Force -ErrorAction Stop
     if (-not $process.WaitForExit(15000)) { throw "$operation did not stop within 15 seconds." }
+    Write-Host "$operation`: startup and shutdown check passed."
 }
 
 $seedDatabase = @'

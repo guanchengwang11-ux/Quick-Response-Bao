@@ -36,7 +36,8 @@ function Start-And-Stop([string]$Executable, [string]$Operation) {
     $process = Start-Process -FilePath $Executable -PassThru
     Start-Sleep -Seconds 4
     if ($process.HasExited) { throw "$Executable exited unexpectedly with code $($process.ExitCode)." }
-    $process.Kill($true)
+    Write-Host "$Operation`: startup passed; stopping process $($process.Id)."
+    Stop-Process -Id $process.Id -Force -ErrorAction Stop
     if (-not $process.WaitForExit(15000)) { throw "$Operation did not stop within 15 seconds." }
     Write-Host "$Operation`: startup and shutdown check passed."
 }
