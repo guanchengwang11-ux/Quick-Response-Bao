@@ -40,6 +40,7 @@ public partial class App : System.Windows.Application
     private IReadOnlyList<string> _restartArguments = [];
     private SingleInstanceService? _singleInstance;
     private static readonly HttpClient UpdateHttpClient = new() { Timeout = TimeSpan.FromMinutes(15) };
+    private readonly bool _candidateRuntimeTracing = Environment.GetEnvironmentVariable("QRB_RUNTIME_TRACE") == "1";
 
     public AppPaths Paths { get; private set; } = null!;
     public IQuickResponseRepository Repository { get; private set; } = null!;
@@ -75,10 +76,16 @@ public partial class App : System.Windows.Application
         await ReloadCacheAsync();
         _paste = new ClipboardPasteService(); _candidates = new CandidateWindow();
         _candidates.Confirmed += CandidateConfirmed;
+        _candidates.RuntimeTrace += (_, trace) => TraceCandidateRuntime(trace);
         _candidates.PositionMethodChanged += (_, method) => _ = _logger?.WriteAsync($"Candidate positioning: {method}");
         Listener = new GlobalKeyboardListener(Settings);
         Listener.CandidateWindowHandle = _candidates.WindowHandle;
-        Listener.SearchTextChanged += (_, context) => Dispatcher.BeginInvoke(() => ShowSuggestions(context));
+        Listener.RuntimeTrace += (_, trace) => TraceCandidateRuntime(trace);
+        Listener.SearchTextChanged += (_, context) =>
+        {
+            TraceCandidateRuntime(new(context.SequenceId, "Dispatcher queued", $"query='{context.NormalizedQuery}'; targetHWND=0x{context.TargetWindowHandle:X}; targetPID={context.TargetProcessId}"));
+            Dispatcher.BeginInvoke(() => ShowSuggestions(context));
+        };
         Listener.SearchCancelled += (_, _) => Dispatcher.BeginInvoke(HideSuggestions);
         Listener.NavigationRequested += (_, key) => Dispatcher.BeginInvoke(() =>
         {
@@ -115,13 +122,26 @@ public partial class App : System.Windows.Application
 
     private void ShowSuggestions(CandidateSearchContext context)
     {
+        TraceCandidateRuntime(new(context.SequenceId, "ShowSuggestions entered", $"query='{context.NormalizedQuery}'; targetHWND=0x{context.TargetWindowHandle:X}"));
         var options = new SearchOptions(Settings.MatchSummary, Settings.MatchContent, Settings.MatchKeywords,
             Settings.MatchCategory, Settings.CaseSensitive, Settings.SortByUsage, Settings.MaximumSuggestions);
         var results = SearchService.Search(_cache, context.NormalizedQuery, options);
+        TraceCandidateRuntime(new(context.SequenceId, "Search completed", $"resultCount={results.Count}; distinctResponseCount={results.Select(x => x.Response.Id).Distinct().Count()}"));
         if (results.Count == 0) { HideSuggestions(); return; }
         _candidates!.ShowResults(context, results); Listener.SuggestionsVisible = true;
+        Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.ContextIdle, () =>
+        {
+            foreach (var window in TopLevelWindowEnumerator.CurrentProcessWindows())
+                TraceCandidateRuntime(new(context.SequenceId, "EnumWindows", window.ToString()));
+        });
     }
     private void HideSuggestions() { _candidates?.Dismiss(); if (Listener is not null) Listener.SuggestionsVisible = false; }
+
+    private void TraceCandidateRuntime(CandidateRuntimeTrace trace)
+    {
+        if (!_candidateRuntimeTracing) return;
+        _ = _logger?.WriteAsync($"CandidateRuntime | {trace}");
+    }
 
     private async void CandidateConfirmed(object? sender, CandidateConfirmationContext context)
     {

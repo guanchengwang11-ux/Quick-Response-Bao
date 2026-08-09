@@ -4,6 +4,7 @@ using System.Text;
 using System.Windows.Automation;
 using QuickResponseBao.Core.Models;
 using QuickResponseBao.Core.Services;
+using QuickResponseBao.Infrastructure.Diagnostics;
 
 namespace QuickResponseBao.Infrastructure.Windows;
 
@@ -26,6 +27,8 @@ public sealed class GlobalKeyboardListener : IDisposable
     private DateTime _cachedAt;
     private InputEnvironmentInfo? _cachedEnvironment;
     private AppSettings _settings;
+    private long _sequenceId;
+    private readonly bool _acceptSyntheticDiagnosticInput = Environment.GetEnvironmentVariable("QRB_ACCEPT_SYNTHETIC_INPUT") == "1";
 
     public GlobalKeyboardListener(AppSettings settings)
     {
@@ -37,6 +40,7 @@ public sealed class GlobalKeyboardListener : IDisposable
     public event EventHandler<CandidateSearchContext>? SearchTextChanged;
     public event EventHandler? SearchCancelled;
     public event EventHandler<NavigationKey>? NavigationRequested;
+    public event EventHandler<CandidateRuntimeTrace>? RuntimeTrace;
     public bool IsRunning => _hook != 0;
     public bool SuggestionsVisible { get; set; }
     public int BufferLength => _buffer.Length;
@@ -110,7 +114,9 @@ public sealed class GlobalKeyboardListener : IDisposable
             return CallNextHookEx(_hook, code, wParam, lParam);
 
         var data = Marshal.PtrToStructure<KbdLlHookStruct>(lParam);
-        if (ShouldIgnoreInjectedKeyboard(data.flags)) return CallNextHookEx(_hook, code, wParam, lParam);
+        var sequenceId = Interlocked.Increment(ref _sequenceId);
+        Trace(sequenceId, "Hook callback", $"message=0x{wParam:X}; vkCode=0x{data.vkCode:X}; scanCode=0x{data.scanCode:X}; flags=0x{data.flags:X}; timestamp={data.time}; injected={ShouldIgnoreInjectedKeyboard(data.flags)}");
+        if (ShouldIgnoreInjectedKeyboard(data.flags) && !_acceptSyntheticDiagnosticInput) return CallNextHookEx(_hook, code, wParam, lParam);
 
         var foreground = GetForegroundWindow();
         if (_lastForegroundWindow != 0 && foreground != _lastForegroundWindow && _buffer.Length > 0) Reset();
@@ -136,16 +142,16 @@ public sealed class GlobalKeyboardListener : IDisposable
                 break;
             case VirtualKey.Back:
                 _buffer.Backspace();
-                Publish(foreground, environment);
+                Publish(sequenceId, foreground, environment);
                 break;
             case VirtualKey.Space:
-                if (_buffer.AppendSpace()) Publish(foreground, environment);
+                if (_buffer.AppendSpace()) Publish(sequenceId, foreground, environment);
                 break;
             default:
                 if (TryGetLetter(data.vkCode, out var letter))
                 {
                     _buffer.AppendLetter(letter);
-                    Publish(foreground, environment);
+                    Publish(sequenceId, foreground, environment);
                 }
                 else if (key is not VirtualKey.Shift and not VirtualKey.Control and not VirtualKey.Menu)
                 {
@@ -153,19 +159,29 @@ public sealed class GlobalKeyboardListener : IDisposable
                 }
                 break;
         }
+        Trace(sequenceId, "Hook processed", $"bufferLength={_buffer.Length}; normalizedQuery='{_buffer.Value}'; rawCharacterCount={_buffer.RawTypedCharacterCount}");
         return CallNextHookEx(_hook, code, wParam, lParam);
     }
 
-    private void Publish(nint targetWindow, InputEnvironmentInfo environment)
+    private void Publish(long sequenceId, nint targetWindow, InputEnvironmentInfo environment)
     {
         if (_buffer.IsReady(_settings.MinimumTriggerLength))
         {
             GetWindowThreadProcessId(targetWindow, out var processId);
-            SearchTextChanged?.Invoke(this, new CandidateSearchContext(_buffer.Value, _buffer.RawTypedCharacterCount,
-                targetWindow, processId, environment.ProcessName, DateTimeOffset.UtcNow, _buffer.RawTypedText));
+            var context = new CandidateSearchContext(_buffer.Value, _buffer.RawTypedCharacterCount,
+                targetWindow, processId, environment.ProcessName, DateTimeOffset.UtcNow, _buffer.RawTypedText, sequenceId);
+            Trace(sequenceId, "SearchTextChanged emitted", $"query='{context.NormalizedQuery}'; targetHWND=0x{targetWindow:X}; targetPID={processId}; rawCharacterCount={context.RawTypedCharacterCount}");
+            SearchTextChanged?.Invoke(this, context);
         }
-        else SearchCancelled?.Invoke(this, EventArgs.Empty);
+        else
+        {
+            Trace(sequenceId, "Search cancelled below trigger", $"bufferLength={_buffer.Length}; minimum={_settings.MinimumTriggerLength}");
+            SearchCancelled?.Invoke(this, EventArgs.Empty);
+        }
     }
+
+    private void Trace(long sequenceId, string stage, string details) =>
+        RuntimeTrace?.Invoke(this, new CandidateRuntimeTrace(sequenceId, stage, details));
 
     private nint MouseHookCallback(int code, nint wParam, nint lParam)
     {

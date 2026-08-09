@@ -8,6 +8,7 @@ using System.Windows.Media;
 using System.Windows.Threading;
 using QuickResponseBao.Core.Models;
 using QuickResponseBao.Core.Services;
+using QuickResponseBao.Infrastructure.Diagnostics;
 
 namespace QuickResponseBao.App;
 
@@ -20,6 +21,7 @@ public partial class CandidateWindow : Window
     private string _query = string.Empty;
     private CandidateSearchContext? _context;
     private readonly List<Border> _itemBorders = [];
+    private readonly Guid _runtimeInstanceId = Guid.NewGuid();
     public CandidatePositionMethod LastPositionMethod { get; private set; } = CandidatePositionMethod.CurrentMonitorBottomRight;
     public nint WindowHandle => new WindowInteropHelper(this).EnsureHandle();
 
@@ -27,9 +29,11 @@ public partial class CandidateWindow : Window
     public static int LiveInstanceCount => Volatile.Read(ref _liveInstanceCount);
     public event EventHandler<CandidateConfirmationContext>? Confirmed;
     public event EventHandler<CandidatePositionMethod>? PositionMethodChanged;
+    public event EventHandler<CandidateRuntimeTrace>? RuntimeTrace;
 
     public void ShowResults(CandidateSearchContext context, IReadOnlyList<SearchResult> results)
     {
+        Trace(context.SequenceId, "CandidateWindow.ShowResults entered", $"runtimeInstance={_runtimeInstanceId}; HWND=0x{WindowHandle:X}; visible={IsVisible}; resultCount={results.Count}; left={Left:F1}; top={Top:F1}; width={ActualWidth:F1}; height={ActualHeight:F1}");
         _context = context; _query = context.NormalizedQuery; _results = results; _selected = 0;
         Rebuild(); PositionNearCaret();
         if (!IsVisible) Show();
@@ -37,6 +41,7 @@ public partial class CandidateWindow : Window
         {
             Scroller.ScrollToTop();
             EnsureSelectedVisible();
+            Trace(context.SequenceId, "CandidateWindow.ShowResults rendered", $"runtimeInstance={_runtimeInstanceId}; HWND=0x{WindowHandle:X}; visible={IsVisible}; left={Left:F1}; top={Top:F1}; width={ActualWidth:F1}; height={ActualHeight:F1}");
         });
     }
 
@@ -164,6 +169,9 @@ public partial class CandidateWindow : Window
         Left = Math.Clamp(point.X * scaleX, area.Left, Math.Max(area.Left, area.Right - Width));
         Top = Math.Clamp((point.Y + 24) * scaleY, area.Top, Math.Max(area.Top, area.Bottom - 500));
     }
+
+    private void Trace(long sequenceId, string stage, string details) =>
+        RuntimeTrace?.Invoke(this, new CandidateRuntimeTrace(sequenceId, stage, details));
 
     protected override void OnSourceInitialized(EventArgs e)
     {
