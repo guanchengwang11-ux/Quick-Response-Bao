@@ -31,6 +31,31 @@ public sealed class MainViewModel(IQuickResponseRepository repository, SearchSer
     {
         var all = await repository.GetAllAsync();
         Responses.ReplaceRange(all);
+        CommitDataChange();
+    }
+
+    public void ApplyUpsert(QuickResponse response)
+    {
+        var existing = Responses.FirstOrDefault(x => x.Id == response.Id);
+        if (existing is not null) Responses.Remove(existing);
+        Responses.Add(response);
+        CommitDataChange();
+    }
+
+    public void ApplyRemove(Guid id)
+    {
+        if (Responses.FirstOrDefault(x => x.Id == id) is { } existing) Responses.Remove(existing);
+        CommitDataChange();
+    }
+
+    public void ApplySnapshot(IEnumerable<QuickResponse> responses)
+    {
+        Responses.ReplaceRange(responses);
+        CommitDataChange();
+    }
+
+    private void CommitDataChange()
+    {
         IsLoaded = true; DataVersion++;
         Notify(nameof(TotalCount)); Notify(nameof(EnabledCount)); Notify(nameof(TodayUsageCount)); Notify(nameof(RecentResponses));
     }

@@ -122,4 +122,6 @@
   <sys:String x:Key="ClearAll">Clear all</sys:String><sys:String x:Key="Apply">Apply</sys:String><sys:String x:Key="ClearFilter">Clear filter</sys:String><sys:String x:Key="ActiveFilters">Filters:</sys:String>
   <sys:String x:Key="GreaterThan">Greater than</sys:String><sys:String x:Key="GreaterThanOrEqual">Greater than or equal</sys:String><sys:String x:Key="LessThan">Less than</sys:String><sys:String x:Key="LessThanOrEqual">Less than or equal</sys:String><sys:String x:Key="Between">Between</sys:String>
   <sys:String x:Key="All">All</sys:String><sys:String x:Key="Today">Today</sys:String><sys:String x:Key="Last7Days">Last 7 days</sys:String><sys:String x:Key="Last30Days">Last 30 days</sys:String><sys:String x:Key="NeverUsed">Never used</sys:String><sys:String x:Key="CustomRange">Custom range</sys:String>
+  <sys:String x:Key="SortAscending">Sort ascending</sys:String><sys:String x:Key="SortDescending">Sort descending</sys:String>
+  <sys:String x:Key="LoadingFilterValues">Loading filter values…</sys:String><sys:String x:Key="FilterSelectedCount">{0} of {1} selected</sys:String><sys:String x:Key="FilterPreviewCount">{0} matching responses</sys:String>
 </ResourceDictionary>

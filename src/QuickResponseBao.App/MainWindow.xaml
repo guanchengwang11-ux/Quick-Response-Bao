@@ -4,15 +4,16 @@
                  xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
                  Title="{DynamicResource AppName}" Width="1200" Height="780" MinWidth="900" MinHeight="600"
                  WindowStartupLocation="CenterScreen" Icon="/assets/branding/QuickResponseBao.ico"
-                 WindowBackdropType="None" ExtendsContentIntoTitleBar="False">
-  <ui:NavigationView x:Name="RootNavigation" PaneDisplayMode="Left"
+                 WindowBackdropType="None" ExtendsContentIntoTitleBar="True">
+  <Grid>
+  <ui:NavigationView x:Name="RootNavigation" PaneDisplayMode="Left" TitleBar="{Binding ElementName=AppTitleBar}"
                      OpenPaneLength="232" CompactPaneLength="52"
                      IsBackButtonVisible="Collapsed" IsPaneToggleVisible="True"
                      IsPaneOpen="True" IsFooterSeparatorVisible="True"
                      AlwaysShowHeader="True" HeaderVisibility="Visible"
-                     FrameMargin="0" Transition="FadeInWithSlide">
+                     FrameMargin="0" Transition="None">
     <ui:NavigationView.Header>
-      <Grid Margin="8,12,24,12">
+      <Grid x:Name="PageHeader" Margin="8,12,24,12">
         <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
         <TextBlock x:Name="PageTitle" Style="{DynamicResource QrbPageTitleTextStyle}" VerticalAlignment="Center" />
         <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
@@ -61,4 +62,8 @@
       </Border>
     </ui:NavigationView.ContentOverlay>
   </ui:NavigationView>
+  <ui:TitleBar x:Name="AppTitleBar" Title="{DynamicResource AppName}" CloseWindowByDoubleClickOnIcon="True">
+    <ui:TitleBar.Icon><ui:ImageIcon Source="/assets/branding/quick-response-bao-icon.png" /></ui:TitleBar.Icon>
+  </ui:TitleBar>
+  </Grid>
 </ui:FluentWindow>

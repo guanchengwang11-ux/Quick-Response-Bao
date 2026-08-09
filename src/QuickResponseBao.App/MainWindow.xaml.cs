@@ -7,6 +7,7 @@ using QuickResponseBao.Core.Models;
 using QuickResponseBao.Infrastructure.Updates;
 using System.Windows.Threading;
 using Wpf.Ui.Controls;
+using System.Diagnostics;
 
 namespace QuickResponseBao.App;
 
@@ -18,6 +19,8 @@ public partial class MainWindow : FluentWindow
     private UpdateWindow? _updateWindow;
     private readonly UiFeedbackService _feedback = new();
     private readonly DispatcherTimer _feedbackTimer = new();
+    private readonly bool _uiTracing = Environment.GetEnvironmentVariable("QRB_UI_TRACE") == "1";
+    private Task _lastNavigationTask = Task.CompletedTask;
     private App Runtime => (App)System.Windows.Application.Current;
 
     public MainWindow(MainViewModel viewModel)
@@ -29,6 +32,7 @@ public partial class MainWindow : FluentWindow
         _feedbackTimer.Tick += (_, _) => { _feedbackTimer.Stop(); FeedbackHost.Visibility = Visibility.Collapsed; };
         UpdateListenerDisplay();
         Loaded += (_, _) => Navigate(ShellRoutes.Dashboard);
+        RootNavigation.SizeChanged += (_, _) => ApplyPageViewport(_navigation.GetPage(_shellViewModel.CurrentRoute));
     }
 
     public async Task InitializeAsync(AppSettings settings)
@@ -50,6 +54,44 @@ public partial class MainWindow : FluentWindow
     {
         Navigate(ShellRoutes.Library);
         if (_navigation.TryGetCached<ResponseLibraryPage>(ShellRoutes.Library, out var page)) page!.AddResponse();
+    }
+
+    public async Task RunUiDiagnosticWalkthroughAsync()
+    {
+        var routes = new[] { ShellRoutes.Dashboard, ShellRoutes.Library, ShellRoutes.Categories, ShellRoutes.ImportExport, ShellRoutes.Applications, ShellRoutes.Diagnostics, ShellRoutes.Settings, ShellRoutes.About };
+        var instances = new Dictionary<string, Page>();
+        foreach (var route in routes)
+        {
+            Navigate(route);
+            await _lastNavigationTask;
+            var page = _navigation.GetPage(route); instances[route] = page; page.UpdateLayout();
+            var viewer = page is ResponseLibraryPage library
+                ? FindVisualDescendants<ScrollViewer>(library).OrderByDescending(x => x.ScrollableHeight).FirstOrDefault()
+                : FindVisualDescendants<Controls.ScrollablePageLayout>(page).Select(x => x.ScrollViewer).FirstOrDefault(x => x is not null);
+            var before = viewer?.VerticalOffset ?? 0;
+            if (viewer?.ScrollableHeight > 0) { viewer.ScrollToVerticalOffset(Math.Min(120, viewer.ScrollableHeight)); page.UpdateLayout(); }
+            var details = viewer is null ? "scrollViewer=none" : $"scrollable={viewer.ScrollableHeight > 0}; extent={viewer.ExtentHeight:F1}; viewport={viewer.ViewportHeight:F1}; before={before:F1}; after={viewer.VerticalOffset:F1}";
+            if (page is ResponseLibraryPage responseLibrary) details += $"; {Format(responseLibrary.CaptureVisualMetrics())}";
+            await Runtime.LogSafeEventAsync($"UiRuntime | walkthrough route={route}; {details}");
+        }
+        foreach (var (route, instance) in instances)
+        {
+            Navigate(route); await _lastNavigationTask;
+            await Runtime.LogSafeEventAsync($"UiRuntime | walkthrough route={route}; cacheReused={ReferenceEquals(instance, _navigation.GetPage(route))}");
+        }
+        var stalls = Runtime.UiStallSnapshot;
+        await Runtime.LogSafeEventAsync($"UiRuntime | stalls p50={stalls.P50Milliseconds:F2}ms; p95={stalls.P95Milliseconds:F2}ms; max={stalls.MaximumMilliseconds:F2}ms; samples={stalls.SampleCount}; over16={stalls.Over16Milliseconds}; over33={stalls.Over33Milliseconds}; over50={stalls.Over50Milliseconds}; over100={stalls.Over100Milliseconds}; over250={stalls.Over250Milliseconds}");
+        Navigate(ShellRoutes.Normalize(Environment.GetEnvironmentVariable("QRB_UI_FINAL_ROUTE") ?? ShellRoutes.Dashboard));
+    }
+
+    private static IEnumerable<T> FindVisualDescendants<T>(DependencyObject parent) where T : DependencyObject
+    {
+        for (var index = 0; index < System.Windows.Media.VisualTreeHelper.GetChildrenCount(parent); index++)
+        {
+            var child = System.Windows.Media.VisualTreeHelper.GetChild(parent, index);
+            if (child is T match) yield return match;
+            foreach (var nested in FindVisualDescendants<T>(child)) yield return nested;
+        }
     }
 
     public async Task ShowUpdateWindowAsync(UpdateCheckResult? initial = null, bool automaticDownload = false)
@@ -80,12 +122,51 @@ public partial class MainWindow : FluentWindow
 
     public void Navigate(string route)
     {
+        var clock = Stopwatch.StartNew();
         route = ShellRoutes.Normalize(route);
+        var cold = !_navigation.TryGetCached<Page>(route, out _);
+        TraceNavigation(route, "Click", clock, $"cold={cold}");
         _shellViewModel.Navigate(route);
         var page = _navigation.GetPage(route);
+        ApplyPageViewport(page);
+        TraceNavigation(route, "Page instance obtained", clock, $"cold={cold}");
         RootNavigation.ReplaceContent(page);
+        TraceNavigation(route, "Content assigned", clock);
         PageTitle.SetResourceReference(System.Windows.Controls.TextBlock.TextProperty, RouteResourceKey(route));
-        if (page is IRefreshablePage refreshable) _ = refreshable.RefreshAsync();
+        _lastNavigationTask = page is IRefreshablePage refreshable
+            ? RefreshAndTraceAsync(route, page, refreshable, clock)
+            : QueueInteractiveTraceAsync(route, page, clock);
+    }
+
+    private async Task RefreshAndTraceAsync(string route, Page page, IRefreshablePage refreshable, Stopwatch clock)
+    {
+        await refreshable.RefreshAsync(); TraceNavigation(route, "Data available", clock); await QueueInteractiveTraceAsync(route, page, clock);
+    }
+
+    private async Task QueueInteractiveTraceAsync(string route, Page page, Stopwatch clock)
+    {
+        await Dispatcher.InvokeAsync(() => TraceNavigation(route, "Layout completed", clock), DispatcherPriority.Loaded);
+        await Dispatcher.InvokeAsync(() =>
+        {
+            var details = page is ResponseLibraryPage library ? Format(library.CaptureVisualMetrics()) : $"actualHeight={page.ActualHeight:F1}";
+            TraceNavigation(route, "Interactive", clock, details);
+        }, DispatcherPriority.ContextIdle);
+    }
+
+    private void TraceNavigation(string route, string stage, Stopwatch clock, string details = "")
+    {
+        if (!_uiTracing) return;
+        _ = Runtime.LogSafeEventAsync($"UiRuntime | route={route}; stage={stage}; elapsed={clock.Elapsed.TotalMilliseconds:F2}ms; {details}");
+    }
+
+    private static string Format(LibraryVisualMetrics value) =>
+        $"items={value.ItemCount}; realizedRows={value.RealizedRowCount}; gridHeight={value.ActualHeight:F1}; viewport={value.ViewportHeight:F1}; extent={value.ExtentHeight:F1}; scrollable={value.ScrollableHeight:F1}; offset={value.VerticalOffset:F1}";
+
+    private void ApplyPageViewport(Page page)
+    {
+        var available = RootNavigation.ActualHeight - AppTitleBar.ActualHeight - PageHeader.ActualHeight - 8;
+        if (available > 320) page.MaxHeight = available;
+        page.VerticalAlignment = VerticalAlignment.Stretch;
     }
 
     private void RegisterPages()

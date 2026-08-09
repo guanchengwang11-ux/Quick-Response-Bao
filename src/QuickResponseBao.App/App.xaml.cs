@@ -42,6 +42,7 @@ public partial class App : System.Windows.Application
     private static readonly HttpClient UpdateHttpClient = new() { Timeout = TimeSpan.FromMinutes(15) };
     private readonly bool _candidateRuntimeTracing = Environment.GetEnvironmentVariable("QRB_RUNTIME_TRACE") == "1";
     private readonly SuggestionPresentationController _presentation = new();
+    private UiResponsivenessMonitor? _uiMonitor;
 
     public AppPaths Paths { get; private set; } = null!;
     public IQuickResponseRepository Repository { get; private set; } = null!;
@@ -56,9 +57,12 @@ public partial class App : System.Windows.Application
     public HttpClient UpdatesClient => UpdateHttpClient;
     public Task LogSafeErrorAsync(string context, Exception exception) =>
         _logger?.WriteAsync(context, exception) ?? Task.CompletedTask;
+    public Task LogSafeEventAsync(string eventName) => _logger?.WriteAsync(eventName) ?? Task.CompletedTask;
+    public UiStallSnapshot UiStallSnapshot => _uiMonitor?.Snapshot() ?? new(0, 0, 0, 0, 0, 0, 0, 0, 0);
 
     protected override async void OnStartup(StartupEventArgs e)
     {
+        var startupClock = System.Diagnostics.Stopwatch.StartNew();
         base.OnStartup(e); ShutdownMode = ShutdownMode.OnExplicitShutdown;
         _singleInstance = new SingleInstanceService();
         if (!_singleInstance.TryAcquire())
@@ -70,11 +74,22 @@ public partial class App : System.Windows.Application
         _singleInstance.StartActivationServer();
         _restartArguments = e.Args;
         Paths = new AppPaths(); SettingsStore = new JsonSettingsStore(Paths); Settings = await SettingsStore.LoadAsync();
+        var settingsLoadedAt = startupClock.Elapsed.TotalMilliseconds;
         LocalizationService.Apply(Settings.Language); ThemeService = new ThemeService(this); ThemeService.ThemeChanged += (_, _) => UpdateTray(); ThemeService.Apply(Settings.Theme);
         Repository = new SqliteQuickResponseRepository(Paths); await Repository.InitializeAsync();
+        var databaseReadyAt = startupClock.Elapsed.TotalMilliseconds;
         BackupService = new DatabaseBackupService(Paths);
-        _logger = new SafeFileLogger(Paths); await _logger.WriteAsync("Application started");
-        await ReloadCacheAsync();
+        _logger = new SafeFileLogger(Paths); await _logger.WriteAsync($"Application started | settings={settingsLoadedAt:F2}ms; sqlite={databaseReadyAt:F2}ms");
+        _uiMonitor = new UiResponsivenessMonitor(Dispatcher);
+        _uiMonitor.SignificantStall += (_, milliseconds) =>
+        {
+            if (Environment.GetEnvironmentVariable("QRB_UI_TRACE") == "1") _ = _logger.WriteAsync($"UiRuntime | Dispatcher stall={milliseconds:F2}ms");
+        };
+        var mainViewModel = new MainViewModel(Repository, SearchService);
+        MainAppWindow = new MainWindow(mainViewModel);
+        MainAppWindow.Closing += MainWindowClosing;
+        if (!Settings.StartMinimized) MainAppWindow.Show();
+        await _logger.WriteAsync($"UiRuntime | startup stage=Main window visible; elapsed={startupClock.Elapsed.TotalMilliseconds:F2}ms");
         _paste = new ClipboardPasteService(); _candidates = new CandidateWindow();
         _candidates.Confirmed += CandidateConfirmed;
         _candidates.RuntimeTrace += (_, trace) => TraceCandidateRuntime(trace);
@@ -98,12 +113,14 @@ public partial class App : System.Windows.Application
             if (key == NavigationKey.Cancel) { Listener.Reset(); HideSuggestions(); }
             else _candidates.Navigate(key);
         });
-        if (Settings.EnableListenerOnStartup && Settings.GlobalSearchEnabled) TryStartListener();
         CreateTray();
-        MainAppWindow = new MainWindow(new MainViewModel(Repository, SearchService));
-        MainAppWindow.Closing += MainWindowClosing;
-        if (!Settings.StartMinimized) MainAppWindow.Show();
+        await mainViewModel.EnsureLoadedAsync();
+        SynchronizeRuntimeSearchCache(mainViewModel.Responses);
         await MainAppWindow.InitializeAsync(Settings);
+        if (Settings.EnableListenerOnStartup && Settings.GlobalSearchEnabled) TryStartListener();
+        await _logger.WriteAsync($"UiRuntime | startup stage=Cache and listener ready; elapsed={startupClock.Elapsed.TotalMilliseconds:F2}ms; responses={_cache.Count}");
+        _ = Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.ContextIdle, () => _ = _logger.WriteAsync($"UiRuntime | startup stage=Main window interactive; elapsed={startupClock.Elapsed.TotalMilliseconds:F2}ms"));
+        if (Environment.GetEnvironmentVariable("QRB_UI_AUTOWALK") == "1") _ = MainAppWindow.RunUiDiagnosticWalkthroughAsync();
         if (Settings.CheckUpdatesOnStartup) _ = CheckUpdatesOnStartupAsync();
         DispatcherUnhandledException += async (_, args) =>
         {
@@ -113,6 +130,7 @@ public partial class App : System.Windows.Application
     }
 
     public async Task ReloadCacheAsync() => _cache = await Repository.GetAllAsync();
+    public void SynchronizeRuntimeSearchCache(IEnumerable<QuickResponse> responses) => _cache = responses.ToList();
     public void TryStartListener()
     {
         try { Listener.Start(); if (Listener.IsRunning) _lastFailureReason = string.Empty; }
@@ -229,7 +247,7 @@ public partial class App : System.Windows.Application
     }
     public async void ExitApplication()
     {
-        _exiting = true; Listener?.Dispose(); ThemeService?.Dispose(); _tray?.Dispose(); _appIcon?.Dispose(); _candidates?.Close(); _singleInstance?.Dispose(); _singleInstance = null;
+        _exiting = true; Listener?.Dispose(); ThemeService?.Dispose(); _uiMonitor?.Dispose(); _tray?.Dispose(); _appIcon?.Dispose(); _candidates?.Close(); _singleInstance?.Dispose(); _singleInstance = null;
         await (_logger?.WriteAsync("Application exited") ?? Task.CompletedTask); MainAppWindow?.Close(); Shutdown();
     }
 

@@ -7,10 +7,10 @@
     <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
     <Grid Margin="0,0,0,16"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
       <StackPanel><TextBlock Text="{DynamicResource CategoryManagementHint}" Style="{DynamicResource QrbBodyTextStyle}"/><TextBlock Text="{DynamicResource CategoryOrderHint}" Style="{DynamicResource QrbCaptionTextStyle}" Margin="0,4,0,0"/></StackPanel>
-      <Button Grid.Column="1" Style="{DynamicResource QrbPrimaryButtonStyle}" Click="Add_Click"><StackPanel Orientation="Horizontal"><ui:SymbolIcon Symbol="Add24" Style="{DynamicResource QrbIcon16Style}" Margin="0,0,6,0"/><TextBlock Text="{DynamicResource NewCategory}"/></StackPanel></Button>
+      <Button x:Name="AddCategoryButton" Grid.Column="1" Style="{DynamicResource QrbPrimaryButtonStyle}" Click="Add_Click"><StackPanel Orientation="Horizontal"><ui:SymbolIcon Symbol="Add24" Style="{DynamicResource QrbIcon16Style}" Margin="0,0,6,0"/><TextBlock Text="{DynamicResource NewCategory}"/></StackPanel></Button>
     </Grid>
     <Border Grid.Row="1" Background="{DynamicResource QrbSurfaceBrush}" BorderBrush="{DynamicResource QrbBorderBrush}" BorderThickness="1" CornerRadius="12" ClipToBounds="True">
-      <DataGrid x:Name="CategoriesGrid" ItemsSource="{Binding}" AutoGenerateColumns="False" IsReadOnly="True" SelectionMode="Single" HeadersVisibility="Column" BorderThickness="0" RowHeight="58" GridLinesVisibility="Horizontal" EnableRowVirtualization="True">
+      <DataGrid x:Name="CategoriesGrid" ItemsSource="{Binding}" AutoGenerateColumns="False" IsReadOnly="True" SelectionMode="Single" HeadersVisibility="Column" BorderThickness="0" RowHeight="58" GridLinesVisibility="Horizontal" EnableRowVirtualization="True" EnableColumnVirtualization="True" VirtualizingPanel.IsVirtualizing="True" VirtualizingPanel.VirtualizationMode="Recycling" ScrollViewer.VerticalScrollBarVisibility="Auto" ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.PanningMode="VerticalOnly">
         <DataGrid.Columns>
           <DataGridTextColumn Header="{DynamicResource Category}" Binding="{Binding Category.Name}" Width="2*" MinWidth="220"/>
           <DataGridTextColumn Header="{DynamicResource Responses}" Binding="{Binding ResponseCount}" Width="*" MinWidth="120"/>

@@ -2,8 +2,9 @@
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+      xmlns:controls="clr-namespace:QuickResponseBao.App.Controls"
       Background="{DynamicResource QrbBackgroundBrush}">
-  <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+  <controls:ScrollablePageLayout>
     <Grid Margin="24,8,24,28" MaxWidth="1120" HorizontalAlignment="Center">
       <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
 
@@ -56,5 +57,5 @@
         </Border>
       </Grid>
     </Grid>
-  </ScrollViewer>
+  </controls:ScrollablePageLayout>
 </Page>

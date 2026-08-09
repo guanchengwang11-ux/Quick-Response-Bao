@@ -79,15 +79,18 @@ public sealed class ResponseLibraryFilterState
     };
     public bool HasColumnFilters => Enum.GetValues<ResponseFilterField>().Any(IsActive);
 
-    public bool Matches(QuickResponse response)
+    public bool Matches(QuickResponse response) => Matches(response, null);
+
+    public bool Matches(QuickResponse response, ResponseFilterField? ignoredField)
     {
-        return MatchesGlobal(response) && (Summary?.Matches(response.Summary) ?? true)
-            && MatchesKeywords(response.Keywords)
-            && (Categories.Count == 0 || Categories.Contains(response.Category))
-            && (Languages.Count == 0 || Languages.Contains(response.Language))
-            && (Statuses.Count == 0 || Statuses.Contains(response.IsEnabled))
-            && (UsageCount?.Matches(response.UsageCount) ?? true)
-            && (LastUsed?.Matches(response.LastUsedAt, Now) ?? true);
+        return MatchesGlobal(response)
+            && (ignoredField == ResponseFilterField.Summary || (Summary?.Matches(response.Summary) ?? true))
+            && (ignoredField == ResponseFilterField.Keywords || MatchesKeywords(response.Keywords))
+            && (ignoredField == ResponseFilterField.Category || Categories.Count == 0 || Categories.Contains(response.Category))
+            && (ignoredField == ResponseFilterField.Language || Languages.Count == 0 || Languages.Contains(response.Language))
+            && (ignoredField == ResponseFilterField.Status || Statuses.Count == 0 || Statuses.Contains(response.IsEnabled))
+            && (ignoredField == ResponseFilterField.UsageCount || (UsageCount?.Matches(response.UsageCount) ?? true))
+            && (ignoredField == ResponseFilterField.LastUsed || (LastUsed?.Matches(response.LastUsedAt, Now) ?? true));
     }
 
     public void Clear(ResponseFilterField field)

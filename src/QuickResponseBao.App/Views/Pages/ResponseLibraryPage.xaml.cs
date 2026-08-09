@@ -23,6 +23,9 @@ public partial class ResponseLibraryPage : Page, IRefreshablePage
     private bool _updatingFilters;
     private int _seenDataVersion = -1;
     private readonly ResponseLibraryFilterState _filterState = new();
+    private readonly ResponseLibraryViewModel _libraryViewModel = new();
+    private CancellationTokenSource? _facetQueryCancellation;
+    private ScrollViewer? _responseGridScrollViewer;
 
     private IQuickResponseRepository Repository => _viewModel.Repository;
     private ICategoryRepository CategoryRepository => (ICategoryRepository)_viewModel.Repository;
@@ -37,6 +40,8 @@ public partial class ResponseLibraryPage : Page, IRefreshablePage
         ResponsesGrid.ItemsSource = _libraryView;
         ColumnFilterPanel.Applied += (_, _) => ApplyFilters();
         ColumnFilterPanel.CloseRequested += (_, _) => FilterPopup.IsOpen = false;
+        ColumnFilterPanel.SortRequested += (_, request) => ApplySort(request.Field, request.Direction);
+        ResponsesGrid.Loaded += (_, _) => _responseGridScrollViewer ??= FindVisualChild<ScrollViewer>(ResponsesGrid);
         InitializeStaticFilters();
     }
 
@@ -45,9 +50,16 @@ public partial class ResponseLibraryPage : Page, IRefreshablePage
         LoadingOverlay.Visibility = _viewModel.IsLoaded ? Visibility.Collapsed : Visibility.Visible;
         await _viewModel.EnsureLoadedAsync();
         LoadingOverlay.Visibility = Visibility.Collapsed;
-        if (_seenDataVersion != _viewModel.DataVersion) { RefreshFilterOptions(); _seenDataVersion = _viewModel.DataVersion; }
-        _libraryView.Refresh();
+        if (_seenDataVersion != _viewModel.DataVersion) { RefreshFilterOptions(); _libraryViewModel.Synchronize(_viewModel.Responses, _viewModel.DataVersion); _libraryView.Refresh(); _seenDataVersion = _viewModel.DataVersion; }
         UpdateEmptyState();
+    }
+
+    public LibraryVisualMetrics CaptureVisualMetrics()
+    {
+        _responseGridScrollViewer ??= FindVisualChild<ScrollViewer>(ResponsesGrid);
+        var viewer = _responseGridScrollViewer;
+        return new LibraryVisualMetrics(ResponsesGrid.Items.Count, CountVisualChildren<DataGridRow>(ResponsesGrid), ResponsesGrid.ActualHeight,
+            viewer?.ViewportHeight ?? 0, viewer?.ExtentHeight ?? 0, viewer?.ScrollableHeight ?? 0, viewer?.VerticalOffset ?? 0);
     }
 
     public void AddResponse() => Add_Click(this, new RoutedEventArgs());
@@ -106,11 +118,24 @@ public partial class ResponseLibraryPage : Page, IRefreshablePage
         ApplyFilters();
     }
 
-    private void FilterHeader_Click(object sender, RoutedEventArgs e)
+    private async void FilterHeader_Click(object sender, RoutedEventArgs e)
     {
         if (sender is not Button { Tag: string tag } button || !Enum.TryParse<ResponseFilterField>(tag, out var field)) return;
-        var values = field switch { ResponseFilterField.Category => _viewModel.Responses.Select(x => x.Category), ResponseFilterField.Language => _viewModel.Responses.Select(x => x.Language), ResponseFilterField.Status => new[] { "enabled", "disabled" }, _ => [] };
-        ColumnFilterPanel.Configure(field, _filterState, values.Where(x => !string.IsNullOrWhiteSpace(x))); FilterPopup.PlacementTarget = button; FilterPopup.IsOpen = true; e.Handled = true;
+        _facetQueryCancellation?.Cancel(); _facetQueryCancellation?.Dispose(); _facetQueryCancellation = new CancellationTokenSource();
+        ColumnFilterPanel.BeginConfigure(field); FilterPopup.PlacementTarget = button; FilterPopup.IsOpen = true; e.Handled = true;
+        try
+        {
+            var result = await _libraryViewModel.QueryFacetAsync(field, _filterState, _facetQueryCancellation.Token);
+            if (FilterPopup.IsOpen) ColumnFilterPanel.Configure(field, _filterState, result.Values, result.MatchCount);
+        }
+        catch (OperationCanceledException) { }
+    }
+
+    private void FilterPopup_Closed(object sender, EventArgs e) { _facetQueryCancellation?.Cancel(); }
+
+    private void ApplySort(ResponseFilterField field, ListSortDirection direction)
+    {
+        _libraryView.CustomSort = new ResponseFieldComparer(field, direction);
     }
 
     private void ApplyFilters()
@@ -155,7 +180,7 @@ public partial class ResponseLibraryPage : Page, IRefreshablePage
         var editor = new ResponseEditorWindow { Owner = Window.GetWindow(this) };
         if (editor.ShowDialog() != true) return;
         await Repository.UpsertAsync(editor.Response);
-        await ChangedAsync("ResponseSaved");
+        await ChangedIncrementallyAsync(editor.Response, "ResponseSaved");
     }
 
     private async void EditMenu_Click(object sender, RoutedEventArgs e) => await EditAsync(MenuResponse(sender));
@@ -166,7 +191,7 @@ public partial class ResponseLibraryPage : Page, IRefreshablePage
         var editor = new ResponseEditorWindow(response) { Owner = Window.GetWindow(this) };
         if (editor.ShowDialog() != true) return;
         await Repository.UpsertAsync(editor.Response);
-        await ChangedAsync("ResponseUpdated");
+        await ChangedIncrementallyAsync(editor.Response, "ResponseUpdated");
     }
 
     private async void DuplicateMenu_Click(object sender, RoutedEventArgs e)
@@ -179,7 +204,7 @@ public partial class ResponseLibraryPage : Page, IRefreshablePage
             IsEnabled = source.IsEnabled, SortOrder = source.SortOrder
         };
         await Repository.UpsertAsync(copy);
-        await ChangedAsync("ResponseDuplicated");
+        await ChangedIncrementallyAsync(copy, "ResponseDuplicated");
     }
 
     private async void ToggleMenu_Click(object sender, RoutedEventArgs e)
@@ -187,7 +212,7 @@ public partial class ResponseLibraryPage : Page, IRefreshablePage
         if (MenuResponse(sender) is not { } response) return;
         response.IsEnabled = !response.IsEnabled;
         await Repository.UpsertAsync(response);
-        await ChangedAsync(response.IsEnabled ? "ResponseEnabled" : "ResponseDisabled");
+        await ChangedIncrementallyAsync(response, response.IsEnabled ? "ResponseEnabled" : "ResponseDisabled");
     }
 
     private async void MoveMenu_Click(object sender, RoutedEventArgs e)
@@ -205,20 +230,15 @@ public partial class ResponseLibraryPage : Page, IRefreshablePage
         var message = string.Format(LocalizationService.Get("ConfirmDeleteResponse"), response.Summary);
         if (!UiDialogService.Confirm(Window.GetWindow(this), LocalizationService.Get("Delete"), message)) return;
         await Repository.DeleteAsync(response.Id);
-        await ChangedAsync("ResponseDeleted");
+        _viewModel.ApplyRemove(response.Id);
+        SynchronizeRuntimeCache();
+        await RefreshAsync();
+        _feedback(LocalizationService.Get("ResponseDeleted"));
     }
 
     private void ResponsesGrid_MouseDoubleClick(object sender, MouseButtonEventArgs e)
     {
         if (ResponsesGrid.SelectedItem is QuickResponse response) _ = EditAsync(response);
-    }
-
-    private void ResponsesGrid_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
-    {
-        var viewer = FindVisualChild<ScrollViewer>(ResponsesGrid);
-        if (viewer is null || viewer.ScrollableHeight <= 0) return;
-        viewer.ScrollToVerticalOffset(Math.Clamp(viewer.VerticalOffset - (e.Delta / 3d), 0, viewer.ScrollableHeight));
-        e.Handled = true;
     }
 
     private void ResponsesGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -251,7 +271,7 @@ public partial class ResponseLibraryPage : Page, IRefreshablePage
     {
         var ids = ResponsesGrid.SelectedItems.Cast<QuickResponse>().Select(x => x.Id).ToList();
         if (ids.Count == 0) { _feedback(LocalizationService.Get("NoSelection")); return; }
-        RootPanel.IsEnabled = false;
+        ResponsesGrid.IsEnabled = SelectionToolbar.IsEnabled = false;
         try
         {
             var result = await operation(ids);
@@ -259,7 +279,7 @@ public partial class ResponseLibraryPage : Page, IRefreshablePage
             await ChangedAsync(message, false);
         }
         catch (Exception ex) { _feedback($"{LocalizationService.Get("OperationFailed")}: {ex.Message}"); }
-        finally { RootPanel.IsEnabled = true; }
+        finally { ResponsesGrid.IsEnabled = SelectionToolbar.IsEnabled = true; }
     }
 
     private async Task<CategoryInfo?> ChooseCategoryAsync()
@@ -271,9 +291,21 @@ public partial class ResponseLibraryPage : Page, IRefreshablePage
 
     private async Task ChangedAsync(string messageOrKey, bool isKey = true)
     {
-        if (System.Windows.Application.Current is App app) await app.ReloadCacheAsync();
-        await _viewModel.RefreshAsync(); await RefreshAsync();
+        await _viewModel.RefreshAsync(); SynchronizeRuntimeCache(); await RefreshAsync();
         _feedback(isKey ? LocalizationService.Get(messageOrKey) : messageOrKey);
+    }
+
+    private async Task ChangedIncrementallyAsync(QuickResponse response, string messageKey)
+    {
+        _viewModel.ApplyUpsert(response);
+        SynchronizeRuntimeCache();
+        await RefreshAsync();
+        _feedback(LocalizationService.Get(messageKey));
+    }
+
+    private void SynchronizeRuntimeCache()
+    {
+        if (System.Windows.Application.Current is App app) app.SynchronizeRuntimeSearchCache(_viewModel.Responses);
     }
 
     private void ImportExport_Click(object sender, RoutedEventArgs e) => _navigate(ShellRoutes.ImportExport);
@@ -285,6 +317,12 @@ public partial class ResponseLibraryPage : Page, IRefreshablePage
         for (var index = 0; index < VisualTreeHelper.GetChildrenCount(parent); index++) { var child = VisualTreeHelper.GetChild(parent, index); if (child is T match) return match; if (FindVisualChild<T>(child) is { } nested) return nested; }
         return null;
     }
+    private static int CountVisualChildren<T>(DependencyObject parent) where T : DependencyObject
+    {
+        var count = parent is T ? 1 : 0;
+        for (var index = 0; index < VisualTreeHelper.GetChildrenCount(parent); index++) count += CountVisualChildren<T>(VisualTreeHelper.GetChild(parent, index));
+        return count;
+    }
     public sealed class FilterOption(string label, string? value)
     {
         public string Label { get; } = label;
@@ -292,4 +330,25 @@ public partial class ResponseLibraryPage : Page, IRefreshablePage
         public override string ToString() => Label;
     }
     public sealed record ActiveFilterChip(ResponseFilterField Field, string Label);
+
+    private sealed class ResponseFieldComparer(ResponseFilterField field, ListSortDirection direction) : System.Collections.IComparer
+    {
+        public int Compare(object? x, object? y)
+        {
+            if (x is not QuickResponse left || y is not QuickResponse right) return 0;
+            var result = field switch
+            {
+                ResponseFilterField.Summary => CompareText(left.Summary, right.Summary),
+                ResponseFilterField.Category => CompareText(left.Category, right.Category),
+                ResponseFilterField.Keywords => CompareText(string.Join(' ', left.Keywords), string.Join(' ', right.Keywords)),
+                ResponseFilterField.Language => CompareText(left.Language, right.Language),
+                ResponseFilterField.Status => left.IsEnabled.CompareTo(right.IsEnabled),
+                ResponseFilterField.UsageCount => left.UsageCount.CompareTo(right.UsageCount),
+                ResponseFilterField.LastUsed => Nullable.Compare(left.LastUsedAt, right.LastUsedAt),
+                _ => 0
+            };
+            return direction == ListSortDirection.Ascending ? result : -result;
+        }
+        private static int CompareText(string left, string right) => StringComparer.CurrentCultureIgnoreCase.Compare(left, right);
+    }
 }

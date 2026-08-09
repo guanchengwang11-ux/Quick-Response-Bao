@@ -13,6 +13,7 @@ public partial class CategoriesPage : Page, IRefreshablePage
     private readonly MainViewModel _viewModel;
     private readonly Action<string> _feedback;
     private readonly ObservableCollection<CategoryRow> _rows = [];
+    private bool _loaded;
     private ICategoryRepository Categories => (ICategoryRepository)_viewModel.Repository;
 
     public CategoriesPage(MainViewModel viewModel, Action<string> feedback)
@@ -23,13 +24,18 @@ public partial class CategoriesPage : Page, IRefreshablePage
         CategoriesGrid.DataContext = _rows;
     }
 
-    public async Task RefreshAsync()
+    public Task RefreshAsync() => RefreshAsync(false);
+
+    private async Task RefreshAsync(bool force)
     {
+        if (_loaded && !force) return;
+        await _viewModel.EnsureLoadedAsync();
         var categories = await Categories.GetCategoriesAsync();
-        var responses = await _viewModel.Repository.GetAllAsync();
+        var responses = _viewModel.Responses;
         _rows.Clear();
         foreach (var category in categories.OrderBy(x => x.SortOrder))
             _rows.Add(new CategoryRow(category, responses.Count(x => x.Category.Equals(category.Name, StringComparison.OrdinalIgnoreCase))));
+        _loaded = true;
     }
 
     private async void Add_Click(object sender, RoutedEventArgs e)
@@ -70,15 +76,20 @@ public partial class CategoriesPage : Page, IRefreshablePage
 
     private async Task RunAsync(Func<Task> action, bool refresh = true)
     {
-        RootPanel.IsEnabled = false;
+        CategoriesGrid.IsEnabled = AddCategoryButton.IsEnabled = false;
         try
         {
             await action();
-            if (refresh) await RefreshAsync();
+            if (refresh)
+            {
+                await _viewModel.RefreshAsync();
+                if (System.Windows.Application.Current is App app) app.SynchronizeRuntimeSearchCache(_viewModel.Responses);
+                await RefreshAsync(true);
+            }
             _feedback(LocalizationService.Get("Succeeded"));
         }
         catch (Exception ex) { _feedback($"{LocalizationService.Get("OperationFailed")}: {ex.Message}"); }
-        finally { RootPanel.IsEnabled = true; }
+        finally { CategoriesGrid.IsEnabled = AddCategoryButton.IsEnabled = true; }
     }
 
     private static CategoryRow? Row(object sender) => (sender as FrameworkElement)?.DataContext as CategoryRow;

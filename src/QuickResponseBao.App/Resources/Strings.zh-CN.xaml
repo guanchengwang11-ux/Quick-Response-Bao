@@ -122,4 +122,6 @@
   <sys:String x:Key="ClearAll">全部清除</sys:String><sys:String x:Key="Apply">应用</sys:String><sys:String x:Key="ClearFilter">清除筛选</sys:String><sys:String x:Key="ActiveFilters">筛选条件：</sys:String>
   <sys:String x:Key="GreaterThan">大于</sys:String><sys:String x:Key="GreaterThanOrEqual">大于或等于</sys:String><sys:String x:Key="LessThan">小于</sys:String><sys:String x:Key="LessThanOrEqual">小于或等于</sys:String><sys:String x:Key="Between">介于</sys:String>
   <sys:String x:Key="All">全部</sys:String><sys:String x:Key="Today">今天</sys:String><sys:String x:Key="Last7Days">最近 7 天</sys:String><sys:String x:Key="Last30Days">最近 30 天</sys:String><sys:String x:Key="NeverUsed">从未使用</sys:String><sys:String x:Key="CustomRange">自定义范围</sys:String>
+  <sys:String x:Key="SortAscending">升序排列</sys:String><sys:String x:Key="SortDescending">降序排列</sys:String>
+  <sys:String x:Key="LoadingFilterValues">正在加载筛选值…</sys:String><sys:String x:Key="FilterSelectedCount">已选择 {0}/{1} 项</sys:String><sys:String x:Key="FilterPreviewCount">预计匹配 {0} 条话术</sys:String>
 </ResourceDictionary>

@@ -1,11 +1,26 @@
-<UserControl x:Class="QuickResponseBao.App.Controls.ColumnFilterPanel" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Background="Transparent">
-  <Border Width="320" Background="{DynamicResource QrbSurfaceBrush}" BorderBrush="{DynamicResource QrbBorderBrush}" BorderThickness="1" CornerRadius="{DynamicResource QrbRadius10}" Padding="16">
-    <StackPanel><TextBlock x:Name="TitleText" Style="{DynamicResource QrbSectionTitleTextStyle}" Margin="0,0,0,12"/>
-      <StackPanel x:Name="TextPanel"><ComboBox x:Name="TextOperatorBox" DisplayMemberPath="Label"/><TextBox x:Name="TextValueBox" Margin="4,8"/></StackPanel>
-      <StackPanel x:Name="MultiPanel" Visibility="Collapsed"><TextBox x:Name="ValueSearchBox" ToolTip="{DynamicResource Search}" TextChanged="ValueSearchBox_TextChanged"/><StackPanel Orientation="Horizontal"><Button Content="{DynamicResource SelectAll}" Style="{DynamicResource QrbGhostButtonStyle}" Click="SelectAll_Click"/><Button Content="{DynamicResource ClearAll}" Style="{DynamicResource QrbGhostButtonStyle}" Click="ClearAllValues_Click"/></StackPanel><ListBox x:Name="ValuesList" MaxHeight="220" BorderThickness="0"><ListBox.ItemTemplate><DataTemplate><CheckBox Content="{Binding Label}" IsChecked="{Binding IsSelected}"/></DataTemplate></ListBox.ItemTemplate></ListBox></StackPanel>
-      <StackPanel x:Name="NumberPanel" Visibility="Collapsed"><ComboBox x:Name="NumberOperatorBox" DisplayMemberPath="Label"/><TextBox x:Name="NumberValueBox" Margin="4,8"/><TextBox x:Name="NumberSecondValueBox" Margin="4" Visibility="Collapsed"/></StackPanel>
-      <StackPanel x:Name="DatePanel" Visibility="Collapsed"><ComboBox x:Name="DatePeriodBox" DisplayMemberPath="Label" SelectionChanged="DatePeriodBox_SelectionChanged"/><Grid x:Name="DateRangePanel" Visibility="Collapsed" Margin="4,8"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="8"/><ColumnDefinition/></Grid.ColumnDefinitions><DatePicker x:Name="FromDatePicker"/><DatePicker x:Name="ToDatePicker" Grid.Column="2"/></Grid></StackPanel>
-      <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,14,0,0"><Button Content="{DynamicResource ClearFilter}" Style="{DynamicResource QrbGhostButtonStyle}" Click="Clear_Click"/><Button Content="{DynamicResource Apply}" Style="{DynamicResource QrbPrimaryButtonStyle}" IsDefault="True" Click="Apply_Click"/></StackPanel>
-    </StackPanel>
+<UserControl x:Class="QuickResponseBao.App.Controls.ColumnFilterPanel" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml" Background="Transparent" Focusable="True">
+  <Border Width="360" MaxHeight="520" Background="{DynamicResource QrbSurfaceBrush}" BorderBrush="{DynamicResource QrbBorderBrush}" BorderThickness="1" CornerRadius="{DynamicResource QrbRadius10}" Padding="16">
+    <Grid>
+      <StackPanel x:Name="ContentPanel">
+        <DockPanel Margin="0,0,0,12"><Button DockPanel.Dock="Right" Style="{DynamicResource QrbIconButtonStyle}" Click="Cancel_Click" ToolTip="{DynamicResource Cancel}"><ui:SymbolIcon Symbol="Dismiss20"/></Button><TextBlock x:Name="TitleText" Style="{DynamicResource QrbSectionTitleTextStyle}" VerticalAlignment="Center"/></DockPanel>
+        <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+          <Button Style="{DynamicResource QrbGhostButtonStyle}" Click="SortAscending_Click"><StackPanel Orientation="Horizontal"><ui:SymbolIcon Symbol="ArrowSortUp20" Margin="0,0,6,0"/><TextBlock Text="{DynamicResource SortAscending}"/></StackPanel></Button>
+          <Button Style="{DynamicResource QrbGhostButtonStyle}" Click="SortDescending_Click"><StackPanel Orientation="Horizontal"><ui:SymbolIcon Symbol="ArrowSortDown20" Margin="0,0,6,0"/><TextBlock Text="{DynamicResource SortDescending}"/></StackPanel></Button>
+        </StackPanel>
+        <StackPanel x:Name="TextPanel"><ComboBox x:Name="TextOperatorBox" DisplayMemberPath="Label"/><TextBox x:Name="TextValueBox" Margin="0,8,0,0"/></StackPanel>
+        <StackPanel x:Name="MultiPanel" Visibility="Collapsed">
+          <TextBox x:Name="ValueSearchBox" ToolTip="{DynamicResource Search}" TextChanged="ValueSearchBox_TextChanged"/>
+          <DockPanel Margin="0,8,0,4"><TextBlock x:Name="SelectionSummaryText" DockPanel.Dock="Right" Style="{DynamicResource QrbCaptionTextStyle}" VerticalAlignment="Center"/><CheckBox x:Name="SelectAllCheck" Content="{DynamicResource SelectAll}" IsThreeState="True" Click="SelectAllCheck_Click"/></DockPanel>
+          <ListBox x:Name="ValuesList" MaxHeight="240" BorderThickness="0" ScrollViewer.VerticalScrollBarVisibility="Auto" VirtualizingPanel.IsVirtualizing="True" VirtualizingPanel.VirtualizationMode="Recycling">
+            <ListBox.ItemTemplate><DataTemplate><Grid Margin="2,3"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><CheckBox Content="{Binding Label}" IsChecked="{Binding IsSelected}" Click="ValueCheck_Click"/><TextBlock Grid.Column="1" Text="{Binding Count}" Foreground="{DynamicResource QrbTextSecondaryBrush}" Margin="12,0,4,0"/></Grid></DataTemplate></ListBox.ItemTemplate>
+          </ListBox>
+        </StackPanel>
+        <StackPanel x:Name="NumberPanel" Visibility="Collapsed"><ComboBox x:Name="NumberOperatorBox" DisplayMemberPath="Label"/><TextBox x:Name="NumberValueBox" Margin="0,8,0,0"/><TextBox x:Name="NumberSecondValueBox" Margin="0,8,0,0" Visibility="Collapsed"/></StackPanel>
+        <StackPanel x:Name="DatePanel" Visibility="Collapsed"><ComboBox x:Name="DatePeriodBox" DisplayMemberPath="Label" SelectionChanged="DatePeriodBox_SelectionChanged"/><Grid x:Name="DateRangePanel" Visibility="Collapsed" Margin="0,8,0,0"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="8"/><ColumnDefinition/></Grid.ColumnDefinitions><DatePicker x:Name="FromDatePicker"/><DatePicker x:Name="ToDatePicker" Grid.Column="2"/></Grid></StackPanel>
+        <TextBlock x:Name="PreviewCountText" Style="{DynamicResource QrbCaptionTextStyle}" Margin="0,10,0,0"/>
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,14,0,0"><Button Content="{DynamicResource ClearFilter}" Style="{DynamicResource QrbGhostButtonStyle}" Click="Clear_Click"/><Button Content="{DynamicResource Cancel}" Style="{DynamicResource QrbSecondaryButtonStyle}" Click="Cancel_Click"/><Button Content="{DynamicResource Apply}" Style="{DynamicResource QrbPrimaryButtonStyle}" IsDefault="True" Click="Apply_Click"/></StackPanel>
+      </StackPanel>
+      <StackPanel x:Name="LoadingPanel" Visibility="Collapsed" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="32"><ui:ProgressRing IsIndeterminate="True" Width="28" Height="28"/><TextBlock Text="{DynamicResource LoadingFilterValues}" Style="{DynamicResource QrbCaptionTextStyle}" Margin="0,10,0,0"/></StackPanel>
+    </Grid>
   </Border>
 </UserControl>
