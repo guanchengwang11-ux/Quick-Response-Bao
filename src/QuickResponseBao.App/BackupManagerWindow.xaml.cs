@@ -15,10 +15,10 @@ public partial class BackupManagerWindow : Window
     private async Task RefreshAsync() { _backups.Clear(); foreach (var item in await _service.GetBackupsAsync()) _backups.Add(item); }
     private async Task RunAsync(Func<Task<string>> action)
     {
-        Actions.IsEnabled = false; Feedback.Text = LocalizationService.Get("Loading");
+        Actions.IsEnabled = false; BusyProgress.Visibility = Visibility.Visible; Feedback.Text = LocalizationService.Get("Loading");
         try { Feedback.Text = await action(); await RefreshAsync(); }
         catch (Exception ex) { Feedback.Text = $"{LocalizationService.Get("OperationFailed")}: {ex.Message}"; _ = ((App)System.Windows.Application.Current).LogSafeErrorAsync("Backup operation failed", ex); }
-        finally { Actions.IsEnabled = true; }
+        finally { BusyProgress.Visibility = Visibility.Collapsed; Actions.IsEnabled = true; }
     }
     private async void Create_Click(object sender, RoutedEventArgs e) => await RunAsync(async () =>
     {
@@ -35,7 +35,7 @@ public partial class BackupManagerWindow : Window
     }
     private async Task RestoreAsync(string path)
     {
-        if (System.Windows.MessageBox.Show(LocalizationService.Get("ConfirmRestore"), LocalizationService.Get("Backups"), MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes) return;
+        if (!UiDialogService.Confirm(this, LocalizationService.Get("Backups"), LocalizationService.Get("ConfirmRestore"))) return;
         await RunAsync(async () =>
         {
             var result = await _service.RestoreAsync(path); DatabaseRestored |= result.Succeeded;

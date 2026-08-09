@@ -153,7 +153,7 @@ public partial class ResponseLibraryPage : Page, IRefreshablePage
     {
         if (MenuResponse(sender) is not { } response) return;
         var message = string.Format(LocalizationService.Get("ConfirmDeleteResponse"), response.Summary);
-        if (System.Windows.MessageBox.Show(message, LocalizationService.Get("Delete"), MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes) return;
+        if (!UiDialogService.Confirm(Window.GetWindow(this), LocalizationService.Get("Delete"), message)) return;
         await Repository.DeleteAsync(response.Id);
         await ChangedAsync("ResponseDeleted");
     }
@@ -185,7 +185,7 @@ public partial class ResponseLibraryPage : Page, IRefreshablePage
 
     private async void BatchDelete_Click(object sender, RoutedEventArgs e)
     {
-        if (System.Windows.MessageBox.Show(LocalizationService.Get("ConfirmBatchDelete"), LocalizationService.Get("BatchDelete"), MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes) return;
+        if (!UiDialogService.Confirm(Window.GetWindow(this), LocalizationService.Get("BatchDelete"), LocalizationService.Get("ConfirmBatchDelete"))) return;
         await RunBatchAsync(ids => Repository.DeleteManyAsync(ids));
     }
 

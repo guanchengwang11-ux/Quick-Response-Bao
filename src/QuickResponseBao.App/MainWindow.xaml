@@ -49,13 +49,15 @@
     </ui:NavigationView.FooterMenuItems>
 
     <ui:NavigationView.ContentOverlay>
-      <Border x:Name="FeedbackHost" Background="{DynamicResource QrbSurfaceSecondaryBrush}" BorderBrush="{DynamicResource QrbBorderBrush}"
-              BorderThickness="1" CornerRadius="{DynamicResource QrbRadius8}" Padding="12,8" Margin="248,0,24,16"
+      <Border x:Name="FeedbackHost" Background="{DynamicResource QrbSurfaceBrush}" BorderBrush="{DynamicResource QrbBorderBrush}"
+              BorderThickness="1" CornerRadius="{DynamicResource QrbRadius10}" Padding="0" Margin="248,0,24,16" MaxWidth="620" HorizontalAlignment="Center"
               VerticalAlignment="Bottom" Visibility="Collapsed">
-        <DockPanel>
-          <Button DockPanel.Dock="Right" Style="{DynamicResource QrbIconButtonStyle}" ToolTip="{DynamicResource Copy}" Click="CopyFeedback_Click"><ui:SymbolIcon Symbol="Document24" Style="{DynamicResource QrbIcon16Style}" /></Button>
-          <TextBlock x:Name="FeedbackText" Foreground="{DynamicResource QrbTextSecondaryBrush}" TextWrapping="Wrap" VerticalAlignment="Center" />
-        </DockPanel>
+        <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="4"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+          <Border x:Name="FeedbackAccent" Background="{DynamicResource QrbSuccessBrush}" CornerRadius="10,0,0,10"/>
+          <ui:SymbolIcon x:Name="FeedbackIcon" Grid.Column="1" Symbol="CheckmarkCircle24" Foreground="{DynamicResource QrbSuccessBrush}" Margin="14,0,8,0"/>
+          <StackPanel Grid.Column="2" Margin="0,11"><TextBlock x:Name="FeedbackText" Style="{DynamicResource QrbBodyStrongTextStyle}" TextWrapping="Wrap"/><TextBlock x:Name="FeedbackDetails" Style="{DynamicResource QrbCaptionTextStyle}" TextWrapping="Wrap" Visibility="Collapsed"/></StackPanel>
+          <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center"><Button Style="{DynamicResource QrbIconButtonStyle}" ToolTip="{DynamicResource Copy}" Click="CopyFeedback_Click"><ui:SymbolIcon Symbol="Document24" Style="{DynamicResource QrbIcon16Style}" /></Button><Button Style="{DynamicResource QrbIconButtonStyle}" ToolTip="{DynamicResource Close}" Click="CloseFeedback_Click"><ui:SymbolIcon Symbol="Dismiss24" Style="{DynamicResource QrbIcon16Style}" /></Button></StackPanel>
+        </Grid>
       </Border>
     </ui:NavigationView.ContentOverlay>
   </ui:NavigationView>

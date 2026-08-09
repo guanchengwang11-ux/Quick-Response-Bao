@@ -86,7 +86,7 @@ public partial class App : System.Windows.Application
         DispatcherUnhandledException += async (_, args) =>
         {
             await (_logger?.WriteAsync("Unhandled exception", args.Exception) ?? Task.CompletedTask);
-            args.Handled = true; System.Windows.MessageBox.Show(args.Exception.Message, LocalizationService.Get("AppName"));
+            args.Handled = true; UiDialogService.ShowFatal(MainAppWindow, LocalizationService.Get("AppName"), LocalizationService.Get("OperationFailed"), args.Exception.Message);
         };
     }
 
@@ -159,7 +159,7 @@ public partial class App : System.Windows.Application
                 RecordPasteDiagnostics(failed.Target, new PasteSendResult(false, failed.SentCount, failed.ErrorCode, failed.InputSize));
             if (ex is ResponseReplacementException replacementFailed) RecordInsertionDiagnostics(replacementFailed.Result);
             await (_logger?.WriteAsync("Paste failed", ex) ?? Task.CompletedTask);
-            System.Windows.MessageBox.Show(message, LocalizationService.Get("PasteFailedTitle"), MessageBoxButton.OK, MessageBoxImage.Error);
+            MainAppWindow?.ShowFeedback(message);
         }
     }
 

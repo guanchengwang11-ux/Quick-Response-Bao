@@ -36,7 +36,7 @@ public partial class CategoryManagerWindow : Window
         if (Selected is not { } item) { Feedback.Text = LocalizationService.Get("NoSelection"); return; }
         var count = await _repository.CountResponsesAsync(item.Id);
         var message = count > 0 ? LocalizationService.Get("MoveAndDeleteCategory") : LocalizationService.Get("ConfirmDeleteCategory");
-        if (System.Windows.MessageBox.Show(message, LocalizationService.Get("Categories"), MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes) return;
+        if (!UiDialogService.Confirm(this, LocalizationService.Get("Categories"), message)) return;
         await RunAsync(() => _repository.DeleteCategoryAsync(item.Id, count > 0), LocalizationService.Get("Succeeded"));
     }
     private async void Up_Click(object sender, RoutedEventArgs e) => await MoveAsync(-1);

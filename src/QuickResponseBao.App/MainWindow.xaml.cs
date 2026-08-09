@@ -5,6 +5,7 @@ using QuickResponseBao.App.ViewModels;
 using QuickResponseBao.App.Views.Pages;
 using QuickResponseBao.Core.Models;
 using QuickResponseBao.Infrastructure.Updates;
+using System.Windows.Threading;
 using Wpf.Ui.Controls;
 
 namespace QuickResponseBao.App;
@@ -15,6 +16,8 @@ public partial class MainWindow : FluentWindow
     private readonly ShellViewModel _shellViewModel = new();
     private readonly ShellNavigationService _navigation = new();
     private UpdateWindow? _updateWindow;
+    private readonly UiFeedbackService _feedback = new();
+    private readonly DispatcherTimer _feedbackTimer = new();
     private App Runtime => (App)System.Windows.Application.Current;
 
     public MainWindow(MainViewModel viewModel)
@@ -22,6 +25,8 @@ public partial class MainWindow : FluentWindow
         InitializeComponent();
         _mainViewModel = viewModel;
         RegisterPages();
+        _feedback.MessageRequested += (_, message) => RenderFeedback(message);
+        _feedbackTimer.Tick += (_, _) => { _feedbackTimer.Stop(); FeedbackHost.Visibility = Visibility.Collapsed; };
         UpdateListenerDisplay();
         Loaded += (_, _) => Navigate(ShellRoutes.Dashboard);
     }
@@ -60,8 +65,17 @@ public partial class MainWindow : FluentWindow
 
     public void ShowFeedback(string message)
     {
-        FeedbackText.Text = message;
-        FeedbackHost.Visibility = string.IsNullOrWhiteSpace(message) ? Visibility.Collapsed : Visibility.Visible;
+        if (string.IsNullOrWhiteSpace(message)) { FeedbackHost.Visibility = Visibility.Collapsed; return; }
+        var failure = message.Contains(LocalizationService.Get("OperationFailed"), StringComparison.OrdinalIgnoreCase) || message.Contains("failed", StringComparison.OrdinalIgnoreCase) || message.Contains("error", StringComparison.OrdinalIgnoreCase);
+        _feedback.Show(message, failure ? UiFeedbackSeverity.Error : UiFeedbackSeverity.Success);
+    }
+
+    private void RenderFeedback(UiFeedbackMessage message)
+    {
+        FeedbackText.Text = message.Message; FeedbackDetails.Text = message.Details ?? string.Empty; FeedbackDetails.Visibility = string.IsNullOrWhiteSpace(message.Details) ? Visibility.Collapsed : Visibility.Visible;
+        var (brush, symbol) = message.Severity switch { UiFeedbackSeverity.Error => ("QrbErrorBrush", SymbolRegular.ErrorCircle24), UiFeedbackSeverity.Warning => ("QrbWarningBrush", SymbolRegular.Warning24), UiFeedbackSeverity.Information => ("QrbAccentBrush", SymbolRegular.Info24), _ => ("QrbSuccessBrush", SymbolRegular.CheckmarkCircle24) };
+        FeedbackAccent.SetResourceReference(Border.BackgroundProperty, brush); FeedbackIcon.SetResourceReference(SymbolIcon.ForegroundProperty, brush); FeedbackIcon.Symbol = symbol;
+        FeedbackHost.Visibility = Visibility.Visible; _feedbackTimer.Stop(); _feedbackTimer.Interval = message.DisplayDuration; _feedbackTimer.Start();
     }
 
     public void Navigate(string route)
@@ -111,6 +125,7 @@ public partial class MainWindow : FluentWindow
     {
         if (!string.IsNullOrWhiteSpace(FeedbackText.Text)) System.Windows.Clipboard.SetText(FeedbackText.Text);
     }
+    private void CloseFeedback_Click(object sender, RoutedEventArgs e) { _feedbackTimer.Stop(); FeedbackHost.Visibility = Visibility.Collapsed; }
 
     private async Task<IReadOnlyList<QuickResponse>> ResolveExportScopeAsync(string scope)
     {
@@ -130,7 +145,4 @@ public partial class MainWindow : FluentWindow
     };
 }
 
-public interface IRefreshablePage
-{
-    Task RefreshAsync();
-}
+public interface IRefreshablePage { Task RefreshAsync(); }

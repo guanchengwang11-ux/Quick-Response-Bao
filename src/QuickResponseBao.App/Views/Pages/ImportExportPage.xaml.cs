@@ -210,14 +210,14 @@ public partial class ImportExportPage : Page, IRefreshablePage
 
     private async Task RunBusyAsync(Func<Task> action, string errorKey)
     {
-        RootPanel.IsEnabled = false;
+        RootPanel.IsEnabled = false; BusyOverlay.Visibility = Visibility.Visible;
         try { await action(); }
         catch (Exception ex)
         {
             _feedback($"{LocalizationService.Get(errorKey)}: {ex.Message}");
             if (System.Windows.Application.Current is App app) await app.LogSafeErrorAsync(errorKey, ex);
         }
-        finally { RootPanel.IsEnabled = true; }
+        finally { BusyOverlay.Visibility = Visibility.Collapsed; RootPanel.IsEnabled = true; }
     }
 
     private static string? SelectedTag(System.Windows.Controls.ComboBox box) => (box.SelectedItem as ComboBoxItem)?.Tag?.ToString();
