@@ -4,6 +4,7 @@
   <Color x:Key="QrbSurfaceColor">#FFFFFF</Color>
   <Color x:Key="QrbSurfaceSecondaryColor">#F0F4F9</Color>
   <Color x:Key="QrbBorderColor">#C8D1DE</Color>
+  <Color x:Key="QrbGridLineColor">#E6EAF0</Color>
   <Color x:Key="QrbTextPrimaryColor">#172033</Color>
   <Color x:Key="QrbTextSecondaryColor">#526074</Color>
   <Color x:Key="QrbTextDisabledColor">#737F91</Color>
@@ -28,6 +29,7 @@
   <SolidColorBrush x:Key="QrbSurfaceBrush" Color="{DynamicResource QrbSurfaceColor}" />
   <SolidColorBrush x:Key="QrbSurfaceSecondaryBrush" Color="{DynamicResource QrbSurfaceSecondaryColor}" />
   <SolidColorBrush x:Key="QrbBorderBrush" Color="{DynamicResource QrbBorderColor}" />
+  <SolidColorBrush x:Key="QrbGridLineBrush" Color="{DynamicResource QrbGridLineColor}" />
   <SolidColorBrush x:Key="QrbTextPrimaryBrush" Color="{DynamicResource QrbTextPrimaryColor}" />
   <SolidColorBrush x:Key="QrbTextSecondaryBrush" Color="{DynamicResource QrbTextSecondaryColor}" />
   <SolidColorBrush x:Key="QrbTextDisabledBrush" Color="{DynamicResource QrbTextDisabledColor}" />

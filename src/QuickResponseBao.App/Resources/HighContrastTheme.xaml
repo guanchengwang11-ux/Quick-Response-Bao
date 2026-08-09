@@ -7,6 +7,7 @@
   <SolidColorBrush x:Key="QrbSurfaceBrush" Color="{DynamicResource {x:Static SystemColors.WindowColorKey}}" />
   <SolidColorBrush x:Key="QrbSurfaceSecondaryBrush" Color="{DynamicResource {x:Static SystemColors.ControlColorKey}}" />
   <SolidColorBrush x:Key="QrbBorderBrush" Color="{DynamicResource {x:Static SystemColors.WindowTextColorKey}}" />
+  <SolidColorBrush x:Key="QrbGridLineBrush" Color="{DynamicResource {x:Static SystemColors.WindowTextColorKey}}" />
   <SolidColorBrush x:Key="QrbTextPrimaryBrush" Color="{DynamicResource {x:Static SystemColors.WindowTextColorKey}}" />
   <SolidColorBrush x:Key="QrbTextSecondaryBrush" Color="{DynamicResource {x:Static SystemColors.WindowTextColorKey}}" />
   <SolidColorBrush x:Key="QrbTextDisabledBrush" Color="{DynamicResource {x:Static SystemColors.GrayTextColorKey}}" />
